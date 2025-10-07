@@ -25,13 +25,13 @@ Quando trabalhas com Git e GitHub, existem duas operações principais:
    ```bash
    cd caminho/para/o/repositorio
 
-   git status 
+   git status (Verificar quais ficheiros foram alterados)
 
-   git add .
+   git add . (Adicionar os ficheiros ao staging (lista de ficheiros a incluir no commit))
 
-   git commit -m "mensagem das alterações"
+   git commit -m "mensagem das alterações" (Criar um commit com uma mensagem descritiva)
 
-   git push origin main
+   git push origin main (Enviar as alterações para o GitHub)
  
 ---
 
@@ -41,7 +41,7 @@ Quando trabalhas com Git e GitHub, existem duas operações principais:
    ```bash
    cd caminho/para/o/repositorio
    
-   git pull origin main
+   git pull origin main (Buscar as alterações do GitHub e aplicar no teu PC)
 
 ---
 
