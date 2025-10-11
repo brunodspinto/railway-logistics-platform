@@ -69,7 +69,7 @@ public class Box implements Comparable<Box> {
         this.location = location;
     }
 
-    public void setQuantity(int quantity) {
+    private void setQuantity(int quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("Quantity must be positive");
         }
