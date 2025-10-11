@@ -20,7 +20,7 @@ public class Box implements Comparable<Box> {
 
     public Box(String boxId, String sku, int quantity, LocalDate expiryDate,
                Instant receivedAt, String wagonId) {
-        // Validações mantidas (são essenciais)
+
         if (boxId == null || boxId.trim().isEmpty()) {
             throw new IllegalArgumentException("BoxId cannot be null or empty");
         }
@@ -46,7 +46,7 @@ public class Box implements Comparable<Box> {
         this.location = null;
     }
 
-    // ==================== GETTERS (mantemos todos) ====================
+    // ==================== GETTERS ====================
 
     public String getBoxId() { return boxId; }
     public String getSku() { return sku; }
@@ -56,7 +56,7 @@ public class Box implements Comparable<Box> {
     public String getWagonId() { return wagonId; }
     public Location getLocation() { return location; }
 
-    // ==================== BUSINESS METHODS (essenciais) ====================
+    // ==================== BUSINESS METHODS ====================
 
     public boolean isPerishable() {
         return expiryDate != null;
@@ -91,7 +91,7 @@ public class Box implements Comparable<Box> {
         this.quantity -= amount;
     }
 
-    // ==================== FEFO/FIFO COMPARISON (CRÍTICO - mantemos igual) ====================
+    // ==================== FEFO/FIFO COMPARISON ====================
 
     @Override
     public int compareTo(Box other) {
@@ -119,7 +119,7 @@ public class Box implements Comparable<Box> {
         return this.boxId.compareTo(other.boxId);
     }
 
-    // ==================== BASIC OBJECT METHODS ====================
+    // ==================== OBJECT METHODS ====================
 
     @Override
     public boolean equals(Object o) {

@@ -46,7 +46,7 @@ public class WagonCsvReader {
                 String[] fields = line.split(",", -1);
 
                 if (fields.length < 6) {
-                    System.err.println("❌ Line " + lineNumber + ": Expected 6 fields, got " + fields.length);
+                    System.err.println("Line " + lineNumber + ": Expected 6 fields, got " + fields.length);
                     throw new ValidationException("Invalid wagon CSV format at line " + lineNumber + ": expected 6 fields");
                 }
 
@@ -107,9 +107,9 @@ public class WagonCsvReader {
             throw new ValidationException("Unknown SKU: " + sku);
         }
 
-        // ✅ Additional validations per requirements
+        // Additional validations per requirements
         if (expiryDate != null && expiryDate.isBefore(LocalDate.now())) {
-            System.err.println("⚠️  Line " + lineNumber + ": Product already expired: " + boxId);
+            System.err.println(" Line " + lineNumber + ": Product already expired: " + boxId);
             // Decide: reject or just warn? Requirements unclear
         }
 
@@ -159,7 +159,7 @@ public class WagonCsvReader {
             LocalDateTime localDateTime = LocalDateTime.parse(receivedField);
             Instant instant = localDateTime.atZone(ZoneOffset.UTC).toInstant();
 
-            // ✅ Validate not in the future
+            // Validate not in the future
             if (instant.isAfter(Instant.now())) {
                 throw new ValidationException("receivedAt cannot be in the future: " + receivedField);
             }
