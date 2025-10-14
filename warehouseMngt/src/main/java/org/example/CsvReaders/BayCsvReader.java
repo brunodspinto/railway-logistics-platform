@@ -25,7 +25,7 @@ public class BayCsvReader {
                     continue; // Skip header
                 }
 
-                String[] fields = line.split(",");
+                String[] fields = line.split(";");
                 if (fields.length != 4) {
                     throw new ValidationException("Invalid bay CSV format: " + line);
                 }
