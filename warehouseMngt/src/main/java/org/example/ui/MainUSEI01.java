@@ -13,26 +13,12 @@ import java.util.*;
  */
 public class MainUSEI01 {
 
-    // ========== CONFIGURAÇÃO DE PATHS ==========
-    // Altere aqui os caminhos dos ficheiros CSV
-    private static final String BASE_PATH = "src/main/java/res/";
-
-    // Cenário ativo (altere conforme necessário)
-    private static final String ACTIVE_SCENARIO = "cenario3";
 
     // Paths dos ficheiros
-    private static final String ITEMS_FILE = BASE_PATH + ACTIVE_SCENARIO + "/items3.csv";
-    private static final String BAYS_FILE = BASE_PATH + ACTIVE_SCENARIO + "/bays3.csv";
-    private static final String WAGONS_FILE = BASE_PATH + ACTIVE_SCENARIO + "/wagons3 .csv";
+    private static final String ITEMS_FILE = "res/Data/items.csv";
+    private static final String BAYS_FILE = "res/Data/bays.csv";
+    private static final String WAGONS_FILE = "res/Data/wagons.csv";
 
-    // OU configure paths individuais (comente o bloco acima e use este):
-    /*
-    private static final String ITEMS_FILE = "src/main/java/res/cenario3/items3.csv";
-    private static final String BAYS_FILE = "src/main/java/res/cenario3/bays3.csv";
-    private static final String WAGONS_FILE = "src/main/java/res/cenario3/wagons3.csv";
-    */
-
-    // ===========================================
 
     public static void main(String[] args) {
         // Permitir override por argumentos da linha de comando
@@ -51,7 +37,7 @@ public class MainUSEI01 {
             return;
         }
 
-        System.out.println("📁 Files:");
+        System.out.println("   Files:");
         System.out.println("   Items:  " + itemsFile);
         System.out.println("   Bays:   " + baysFile);
         System.out.println("   Wagons: " + wagonsFile);
@@ -70,12 +56,12 @@ public class MainUSEI01 {
             ValidationResult result = importService.importAllData(itemsFile, baysFile, wagonsFile);
 
             if (!result.isSuccess()) {
-                System.err.println("❌ Import failed!");
+                System.err.println("Import failed!");
                 result.getErrors().forEach(System.err::println);
                 System.exit(1);
             }
 
-            System.out.printf("✅ Items: %d | Bays: %d | Wagons: %d | Boxes: %d%n",
+            System.out.printf("Items: %d | Bays: %d | Wagons: %d | Boxes: %d%n",
                     result.getItemsImported(),
                     result.getBaysImported(),
                     result.getWagonsImported(),
@@ -86,10 +72,10 @@ public class MainUSEI01 {
             // 2. Verify FEFO
             printStep("2. FEFO/FIFO VERIFICATION");
             if (!verifyFEFO(warehouse)) {
-                System.err.println("❌ FEFO/FIFO verification failed!");
+                System.err.println("FEFO/FIFO verification failed!");
                 System.exit(1);
             }
-            System.out.println("✅ FEFO/FIFO correct");
+            System.out.println(" FEFO/FIFO correct");
 
             // 3. Initial state
             printStep("3. INITIAL STATE");
@@ -107,10 +93,10 @@ public class MainUSEI01 {
             printStep("6. FINAL STATE");
             printCompactState(warehouse);
 
-            printFooter("✅ ALL TESTS PASSED");
+            printFooter("ALL TESTS PASSED");
 
         } catch (Exception e) {
-            printFooter("❌ TEST FAILED");
+            printFooter("TEST FAILED");
             System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
             System.exit(1);
@@ -121,15 +107,13 @@ public class MainUSEI01 {
         boolean allExist = true;
         for (String file : files) {
             if (!new File(file).exists()) {
-                System.err.println("❌ File not found: " + file);
+                System.err.println("File not found: " + file);
                 allExist = false;
             }
         }
 
         if (!allExist) {
-            System.err.println("\n💡 Tip: Update the paths at the top of MainNoPause.java");
-            System.err.println("   Current base path: " + BASE_PATH);
-            System.err.println("   Current scenario: " + ACTIVE_SCENARIO);
+            System.err.println("\n Tip: Update the paths at the top of MainUSEI01.java");
         }
 
         return allExist;
@@ -147,7 +131,7 @@ public class MainUSEI01 {
                     Box curr = boxes.get(i);
 
                     if (prev.compareTo(curr) > 0) {
-                        System.err.printf("❌ Bay %s: %s should come BEFORE %s%n",
+                        System.err.printf("Bay %s: %s should come BEFORE %s%n",
                                 bay.getLocation().toFormattedString(),
                                 curr.getBoxId(),
                                 prev.getBoxId()
@@ -187,7 +171,7 @@ public class MainUSEI01 {
         }
 
         if (skuTotals.isEmpty()) {
-            System.out.println("⚠️  Warehouse is EMPTY");
+            System.out.println("Warehouse is EMPTY");
         } else {
             System.out.print("Inventory: ");
             skuTotals.entrySet().stream()
@@ -226,7 +210,7 @@ public class MainUSEI01 {
     private static void testDispatch(InventoryService inventoryService, Warehouse warehouse) {
         String sku = findFirstSku(warehouse);
         if (sku == null) {
-            System.out.println("⚠️  No stock available for dispatch test");
+            System.out.println(" No stock available for dispatch test");
             return;
         }
 
@@ -245,9 +229,9 @@ public class MainUSEI01 {
                 result.getDispatchedQty(), request, after, before - after);
 
         if (result.getDispatchedQty() == expected) {
-            System.out.println("✅ Dispatch correct");
+            System.out.println("Dispatch correct");
         } else {
-            System.err.printf("❌ Dispatch mismatch! Expected: %d, Got: %d%n",
+            System.err.printf("Dispatch mismatch! Expected: %d, Got: %d%n",
                     expected, result.getDispatchedQty());
         }
     }
@@ -255,7 +239,7 @@ public class MainUSEI01 {
     private static void testRelocation(InventoryService inventoryService, Warehouse warehouse) {
         Box box = findFirstBox(warehouse);
         if (box == null) {
-            System.out.println("⚠️  No boxes available for relocation test");
+            System.out.println(" No boxes available for relocation test");
             return;
         }
 
@@ -263,7 +247,7 @@ public class MainUSEI01 {
         Bay targetBay = findDifferentBay(warehouse, from);
 
         if (targetBay == null) {
-            System.out.println("⚠️  No alternative bay available");
+            System.out.println("No alternative bay available");
             return;
         }
 
@@ -277,9 +261,9 @@ public class MainUSEI01 {
         boolean success = inventoryService.relocateBox(box.getBoxId(), targetBay.getLocation());
 
         if (success) {
-            System.out.println("✅ Relocation successful");
+            System.out.println("Relocation successful");
         } else {
-            System.err.println("❌ Relocation failed");
+            System.err.println("Relocation failed");
         }
     }
 
