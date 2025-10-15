@@ -7,6 +7,8 @@ import org.example.service.*;
 
 import java.io.File;
 import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
 
 public class Main {
@@ -15,12 +17,14 @@ public class Main {
     private static final String ITEMS_FILE = "res/Data/items.csv";
     private static final String BAYS_FILE = "res/Data/bays.csv";
     private static final String WAGONS_FILE = "res/Data/wagons.csv";
+    private static final String ORDER_LINES_FILE = "res/Data/order_lines.csv";
 
     public static void main(String[] args) {
         // Permitir override por argumentos da linha de comando
         String itemsPath = args.length > 0 ? args[0] : ITEMS_FILE;
         String baysPath = args.length > 1 ? args[1] : BAYS_FILE;
         String wagonsPath = args.length > 2 ? args[2] : WAGONS_FILE;
+        String orderLinesPath = args.length > 3 ? args[3] : ORDER_LINES_FILE;
 
         // Criar repositórios e serviços
         ItemRepository itemRepo = new ItemRepository();
@@ -30,16 +34,17 @@ public class Main {
         InventoryService inventoryService = new InventoryService(warehouseRepo);
 
         // Validar ficheiros
-        if (!validateFiles(itemsPath, baysPath, wagonsPath)) {
+        if (!validateFiles(itemsPath, baysPath, wagonsPath, orderLinesPath)) {
             return;
         }
 
         printHeader("USEI01 - WAGON UNLOADING TEST");
 
         System.out.println("   Files:");
-        System.out.println("   Items:  " + itemsPath);
-        System.out.println("   Bays:   " + baysPath);
-        System.out.println("   Wagons: " + wagonsPath);
+        System.out.println("   Items:       " + itemsPath);
+        System.out.println("   Bays:        " + baysPath);
+        System.out.println("   Wagons:      " + wagonsPath);
+        System.out.println("   OrderLines:  " + orderLinesPath);
         System.out.println();
 
         try {
@@ -91,18 +96,38 @@ public class Main {
             printStep("7. ORDER ALLOCATION (USEI02)");
             OrderAllocationService service = new OrderAllocationService(warehouse);
 
-            List<OrderLine> orders = Arrays.asList(
-                    new OrderLine("O1", 1, "SKU123", 5),
-                    new OrderLine("O1", 2, "SKU200", 10),
-                    new OrderLine("O2", 1, "SKU123", 15)
-            );
+            List<OrderLine> orders = loadOrderLinesFromCsv(orderLinesPath);
+
+            if (orders.isEmpty()) {
+                System.out.println("Nenhuma order line encontrada no ficheiro!");
+            }
 
             List<OrderAllocationResult> results = service.allocateOrders(orders, false);
+
+            int eligible = 0, undispatchable = 0, total = results.size();
 
             // Output
             for (OrderAllocationResult r : results) {
                 System.out.println(r);
                 r.getAllocations().forEach(System.out::println);
+
+                if (r.getStatus() == OrderAllocationResult.Status.ELIGIBLE) {
+                    eligible++;
+                } else {
+                    undispatchable++;
+                }
+
+                System.out.println();
+            }
+
+            // Resumo final
+            System.out.println("\nResumo da alocação:");
+            System.out.printf("Total linhas: %d%n", total);
+            System.out.printf("Elegíveis: %d%n", eligible);
+            System.out.printf("Não despacháveis: %d%n", undispatchable);
+            if (total > 0) {
+                double percent = (eligible * 100.0) / total;
+                System.out.printf("Taxa de sucesso: %.2f%%%n", percent);
             }
 
         } catch (Exception e) {
@@ -111,6 +136,38 @@ public class Main {
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    // Novo método para ler order_lines.csv
+    private static List<OrderLine> loadOrderLinesFromCsv(String csvPath) {
+        List<OrderLine> lines = new ArrayList<>();
+        File f = new File(csvPath);
+        if (!f.exists()) {
+            throw new RuntimeException("order_lines.csv não encontrado em: " + csvPath);
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+            String header = br.readLine(); // salta cabeçalho
+            if (header == null) {
+                return lines;
+            }
+            String row;
+            while ((row = br.readLine()) != null) {
+                if (row.isBlank()) continue;
+                String[] parts = row.split("[;,]", -1);
+                if (parts.length < 4) continue;
+
+                String orderId = parts[0].trim();
+                int lineNo     = Integer.parseInt(parts[1].trim());
+                String sku     = parts[2].trim();
+                int qty        = Integer.parseInt(parts[3].trim());
+
+                lines.add(new OrderLine(orderId, lineNo, sku, qty));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Falha a ler " + csvPath + ": " + e.getMessage(), e);
+        }
+        return lines;
     }
 
     // Métodos auxiliares do MainUSEI01
