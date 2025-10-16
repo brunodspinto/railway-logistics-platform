@@ -1,59 +1,56 @@
 package org.example.ui;
 
 import org.example.domain.*;
-import org.example.results.*;
 import org.example.repository.*;
+import org.example.results.*;
 import org.example.service.*;
 
 import java.io.File;
 import java.util.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
 
-/**
- * Main class for USEI01 - Configurable paths version
- */
-public class MainUSEI01 {
 
+public class Main {
 
     // Paths dos ficheiros
     private static final String ITEMS_FILE = "res/Data/items.csv";
     private static final String BAYS_FILE = "res/Data/bays.csv";
     private static final String WAGONS_FILE = "res/Data/wagons.csv";
-
+    private static final String ORDER_LINES_FILE = "res/Data/order_lines.csv";
 
     public static void main(String[] args) {
         // Permitir override por argumentos da linha de comando
         String itemsPath = args.length > 0 ? args[0] : ITEMS_FILE;
         String baysPath = args.length > 1 ? args[1] : BAYS_FILE;
         String wagonsPath = args.length > 2 ? args[2] : WAGONS_FILE;
+        String orderLinesPath = args.length > 3 ? args[3] : ORDER_LINES_FILE;
 
-        runTest(itemsPath, baysPath, wagonsPath);
-    }
+        // Criar repositórios e serviços
+        ItemRepository itemRepo = new ItemRepository();
+        WarehouseRepository warehouseRepo = new WarehouseRepository();
+        WagonUnloadingService unloadingService = new WagonUnloadingService(warehouseRepo);
+        DataImportService importService = new DataImportService(itemRepo, warehouseRepo, unloadingService);
+        InventoryService inventoryService = new InventoryService(warehouseRepo);
 
-    private static void runTest(String itemsFile, String baysFile, String wagonsFile) {
-        printHeader("USEI01 - WAGON UNLOADING TEST");
-
-        // Verificar se ficheiros existem
-        if (!validateFiles(itemsFile, baysFile, wagonsFile)) {
+        // Validar ficheiros
+        if (!validateFiles(itemsPath, baysPath, wagonsPath, orderLinesPath)) {
             return;
         }
 
+        printHeader("USEI01 - WAGON UNLOADING TEST");
+
         System.out.println("   Files:");
-        System.out.println("   Items:  " + itemsFile);
-        System.out.println("   Bays:   " + baysFile);
-        System.out.println("   Wagons: " + wagonsFile);
+        System.out.println("   Items:       " + itemsPath);
+        System.out.println("   Bays:        " + baysPath);
+        System.out.println("   Wagons:      " + wagonsPath);
+        System.out.println("   OrderLines:  " + orderLinesPath);
         System.out.println();
 
         try {
-            // Initialize
-            ItemRepository itemRepo = new ItemRepository();
-            WarehouseRepository warehouseRepo = new WarehouseRepository();
-            WagonUnloadingService unloadingService = new WagonUnloadingService(warehouseRepo);
-            DataImportService importService = new DataImportService(itemRepo, warehouseRepo, unloadingService);
-            InventoryService inventoryService = new InventoryService(warehouseRepo);
-
-            // 1. Import
+            // 1. Importar dados
             printStep("1. DATA IMPORT");
-            ValidationResult result = importService.importAllData(itemsFile, baysFile, wagonsFile);
+            ValidationResult result = importService.importAllData(itemsPath, baysPath, wagonsPath);
 
             if (!result.isSuccess()) {
                 System.err.println("Import failed!");
@@ -69,7 +66,7 @@ public class MainUSEI01 {
 
             Warehouse warehouse = warehouseRepo.findDefault();
 
-            // 2. Verify FEFO
+            // 2. Verificar FEFO
             printStep("2. FEFO/FIFO VERIFICATION");
             if (!verifyFEFO(warehouse)) {
                 System.err.println("FEFO/FIFO verification failed!");
@@ -77,23 +74,61 @@ public class MainUSEI01 {
             }
             System.out.println(" FEFO/FIFO correct");
 
-            // 3. Initial state
+            // 3. Estado inicial
             printStep("3. INITIAL STATE");
             printCompactState(warehouse);
 
-            // 4. Dispatch
+            // 4. Teste de despacho
             printStep("4. DISPATCH TEST");
             testDispatch(inventoryService, warehouse);
 
-            // 5. Relocation
+            // 5. Teste de realocação
             printStep("5. RELOCATION TEST");
             testRelocation(inventoryService, warehouse);
 
-            // 6. Final state
+            // 6. Estado final
             printStep("6. FINAL STATE");
             printCompactState(warehouse);
 
             printFooter("ALL TESTS PASSED");
+
+            // 7. Executar alocação de encomendas (USEI02)
+            printStep("7. ORDER ALLOCATION (USEI02)");
+            OrderAllocationService service = new OrderAllocationService(warehouse);
+
+            List<OrderLine> orders = loadOrderLinesFromCsv(orderLinesPath);
+
+            if (orders.isEmpty()) {
+                System.out.println("Nenhuma order line encontrada no ficheiro!");
+            }
+
+            List<OrderAllocationResult> results = service.allocateOrders(orders, false);
+
+            int eligible = 0, undispatchable = 0, total = results.size();
+
+            // Output
+            for (OrderAllocationResult r : results) {
+                System.out.println(r);
+                r.getAllocations().forEach(System.out::println);
+
+                if (r.getStatus() == OrderAllocationResult.Status.ELIGIBLE) {
+                    eligible++;
+                } else {
+                    undispatchable++;
+                }
+
+                System.out.println();
+            }
+
+            // Resumo final
+            System.out.println("\nResumo da alocação:");
+            System.out.printf("Total linhas: %d%n", total);
+            System.out.printf("Elegíveis: %d%n", eligible);
+            System.out.printf("Não despacháveis: %d%n", undispatchable);
+            if (total > 0) {
+                double percent = (eligible * 100.0) / total;
+                System.out.printf("Taxa de sucesso: %.2f%%%n", percent);
+            }
 
         } catch (Exception e) {
             printFooter("TEST FAILED");
@@ -102,6 +137,40 @@ public class MainUSEI01 {
             System.exit(1);
         }
     }
+
+    // Novo método para ler order_lines.csv
+    private static List<OrderLine> loadOrderLinesFromCsv(String csvPath) {
+        List<OrderLine> lines = new ArrayList<>();
+        File f = new File(csvPath);
+        if (!f.exists()) {
+            throw new RuntimeException("order_lines.csv não encontrado em: " + csvPath);
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(f))) {
+            String header = br.readLine(); // salta cabeçalho
+            if (header == null) {
+                return lines;
+            }
+            String row;
+            while ((row = br.readLine()) != null) {
+                if (row.isBlank()) continue;
+                String[] parts = row.split("[;,]", -1);
+                if (parts.length < 4) continue;
+
+                String orderId = parts[0].trim();
+                int lineNo     = Integer.parseInt(parts[1].trim());
+                String sku     = parts[2].trim();
+                int qty        = Integer.parseInt(parts[3].trim());
+
+                lines.add(new OrderLine(orderId, lineNo, sku, qty));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Falha a ler " + csvPath + ": " + e.getMessage(), e);
+        }
+        return lines;
+    }
+
+    // Métodos auxiliares do MainUSEI01
 
     private static boolean validateFiles(String... files) {
         boolean allExist = true;
@@ -113,7 +182,7 @@ public class MainUSEI01 {
         }
 
         if (!allExist) {
-            System.err.println("\n Tip: Update the paths at the top of MainUSEI01.java");
+            System.err.println("\n Tip: Update the paths at the top of Main.java");
         }
 
         return allExist;
@@ -162,7 +231,7 @@ public class MainUSEI01 {
                 warehouse.getOccupancyPercentage()
         );
 
-        // SKU totals
+        // Totais por SKU
         Map<String, Integer> skuTotals = new HashMap<>();
         for (Bay bay : warehouse.getAllBays()) {
             for (Box box : bay.getBoxes()) {
@@ -180,13 +249,13 @@ public class MainUSEI01 {
             System.out.println();
         }
 
-        // Occupied bays
+        // Bays ocupadas
         long occupiedBays = warehouse.getAllBays().stream()
                 .filter(b -> b.getCurrentBoxCount() > 0)
                 .count();
         System.out.printf("Occupied bays: %d/%d%n", occupiedBays, warehouse.getBayCount());
 
-        // Show bay details if not too many
+        // Detalhes das bays se não houver muitas
         if (occupiedBays <= 5) {
             for (Bay bay : warehouse.getAllBays()) {
                 if (bay.getCurrentBoxCount() > 0) {
@@ -267,7 +336,7 @@ public class MainUSEI01 {
         }
     }
 
-    // ==================== HELPER METHODS ====================
+    // Métodos auxiliares
 
     private static String findFirstSku(Warehouse warehouse) {
         for (Bay bay : warehouse.getAllBays()) {
@@ -302,7 +371,7 @@ public class MainUSEI01 {
         return null;
     }
 
-    // ==================== UI ====================
+    // Métodos de interface
 
     private static void printHeader(String title) {
         System.out.println("\n" + "═".repeat(60));
