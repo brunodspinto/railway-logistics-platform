@@ -1,0 +1,179 @@
+@startuml
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+hide methods
+
+title Domain Model - Sprint 1
+
+class Warehouse {
+    warehouseId
+}
+
+class Aisle {
+    aisleNumber
+}
+
+class Bay {
+    bayNumber
+    capacityBoxes
+    currentBoxes
+}
+
+class Box {
+    boxId
+    sku
+    qty
+    expiryDate
+    receivedAt
+    qtyAvailable
+}
+
+class Item {
+    sku
+    name
+    category
+    unit
+    volume
+    unitWeight
+}
+
+class Wagon {
+    wagonId
+    type
+    gauge
+    capacity
+}
+
+class Locomotive {
+    locoId
+}
+
+class LocomotiveModel {
+    make
+    power
+    acceleration
+    type
+    maxWeight
+    gauge
+}
+
+class Train {
+    trainId
+    type
+}
+
+class DieselTrain
+
+class ElectricTrain
+
+class RailLine {
+    lineId
+}
+
+class LineSegment {
+    segmentId
+    trackType
+    gauge
+    maxWeight
+    speedLimit
+}
+
+class ElectrifiedLineSegment {
+    electrified
+}
+
+class Endpoint {
+    endpointId
+    name
+    type
+}
+
+class Operator {
+    operatorId
+    name
+}
+
+class Order {
+    orderId
+    dueDate
+    priority
+    status
+}
+
+class OrderLine {
+    lineNo
+    sku
+    qty
+    allocatedQty
+}
+
+class Allocation {
+    orderId
+    lineNo
+    boxId
+    qtyAllocated
+    aisle
+    bay
+}
+
+class Return {
+    returnId
+    sku
+    qty
+    reason
+    timestamp
+    expiryDate
+    status
+}
+
+class Quarantine {
+}
+
+class User {
+    userId
+    role
+}
+
+Warehouse "1" -- "*" Aisle : contains
+Aisle "1" -- "*" Bay : contains
+Bay "1" -- "*" Box : stores
+Box "1" -- "1" Item : of
+Wagon "1" -- "*" Box : transports
+Wagon "0..*" -- "1" Operator : belongsTo
+Locomotive "0..*" -- "1" Operator : belongsTo
+Locomotive "1" -- "1" LocomotiveModel : has
+Train "1" -- "1..*" Locomotive : contains
+Train "1" -- "*" Wagon : contains
+Train "0..*" -- "1" Operator : belongsTo
+Train "*" -- "*" LineSegment : movesThrough
+Train <|-- ElectricTrain
+Train <|-- DieselTrain
+RailLine "1" -- "*" LineSegment : composedOf
+LineSegment "2" -- "2" Endpoint : connects
+LineSegment <|-- ElectrifiedLineSegment
+RailLine "1" -- "1" Operator : ownedBy
+ElectricTrain "*" -- "*" ElectrifiedLineSegment : requires
+Order "1" -- "*" OrderLine : has
+OrderLine "1" -- "*" Allocation : allocatesFrom
+Allocation "1" -- "1" Box : from
+Return "1" -- "1" Item : of
+Quarantine "1" -- "*" Return : holds
+User "1" -- "*" Order : processes
+User "1" -- "*" Return : inspects
+User "1" -- "*" Box : manages
+
+@enduml
+
+### Explicação do Domain Model
+Olá! Atualizei o Domain Model com base nas tuas observações, mantendo o formato exato que indicaste (sem métodos, apenas atributos, com skinparam para um look básico). Aqui vai o detalhe das adições:
+
+- **Locomotive e LocomotiveModel**: Locomotive agora tem apenas `locoId` (como identificador único), e referencia uma LocomotiveModel que agrupa os atributos como `make`, `power`, `acceleration`, `type`, `maxWeight`, `gauge` (baseado no enunciado e no teu pedido para "model que tem os atributos").
+
+- **Train e Ligações**: Adicionei a classe Train com `trainId` e `type`. Train `contains` uma ou mais Locomotives e múltiplos Wagons. Além disso, Train `belongsTo` Operator, alinhando com o rolling stock pertencente a operators.
+
+- **Logística de Electrified**: Tornei mais complexo com herança para tipos: Train <|-- ElectricTrain e Train <|-- DieselTrain (para diferenciar diesel/electric). Para linhas, LineSegment tem atributos base, e ElectrifiedLineSegment herda e adiciona `electrified` (como boolean ou flag). Adicionei relação `requires` entre ElectricTrain e ElectrifiedLineSegment para refletir que "comboios <Type> andam em linhas <Type>" (ElectricTrains requerem ElectrifiedLineSegments). Isso adiciona complexidade sem overcomplicar, suportando constraints como compatibilidade de electrification.
+
+O modelo continua focado no Sprint 1 (cargo handling), mas integra melhor o railway system com infrastructure e rolling stock. É conceitual e ajuda o cliente a entender o produto, com mais profundidade agora. O que achas? Se quiseres mais ajustes (e.g., mais atributos em Train ou heranças adicionais), ou prosseguir para o Relational Model, avisa!
