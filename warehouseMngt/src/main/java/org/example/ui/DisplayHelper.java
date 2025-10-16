@@ -2,6 +2,8 @@ package org.example.ui;
 
 import org.example.domain.*;
 import org.example.results.*;
+import org.example.service.InventoryService;
+
 import java.util.*;
 
 public class DisplayHelper {
@@ -99,6 +101,85 @@ public class DisplayHelper {
             System.out.println();
         }
     }
+
+    public static void showDispatchTest(Warehouse warehouse, InventoryService inventoryService) {
+        System.out.println("\n🚚 Dispatch Test (AC2)");
+        System.out.println("────────────────────────────────────────────");
+
+        String sku = warehouse.getAllBays().stream()
+                .flatMap(b -> b.getBoxes().stream())
+                .map(Box::getSku)
+                .findFirst()
+                .orElse(null);
+
+        if (sku == null) {
+            System.out.println("No SKUs available for dispatch test.");
+            return;
+        }
+
+        int totalQty = warehouse.getAllBays().stream()
+                .mapToInt(b -> b.getQuantityForSku(sku))
+                .sum();
+
+        int requestQty = Math.min(totalQty, 50);
+
+        System.out.printf("Selected SKU: %s%n", sku);
+        System.out.printf("Available: %d | Requesting: %d%n", totalQty, requestQty);
+
+        DispatchResult result = inventoryService.dispatchBoxes(sku, requestQty);
+
+        System.out.printf("Dispatched: %d | Remaining: %d%n",
+                result.getDispatchedQty(),
+                totalQty - result.getDispatchedQty());
+
+        if (result.getDispatchedQty() < requestQty) {
+            System.out.println("⚠️ Partial fulfillment");
+        }
+
+        System.out.println("Boxes affected:");
+        result.getDispatchedBoxes().forEach(box ->
+                System.out.printf("  - %s → %d units%n", box.getBoxId(), box.getQuantity()));
+
+    }
+
+    public static void showRelocationTest(Warehouse warehouse, InventoryService inventoryService) {
+        System.out.println("\n🔁 Relocation Test (AC3)");
+        System.out.println("────────────────────────────────────────────");
+
+        Box box = warehouse.getAllBays().stream()
+                .flatMap(b -> b.getBoxes().stream())
+                .findFirst()
+                .orElse(null);
+
+        if (box == null) {
+            System.out.println("No boxes available for relocation test.");
+            return;
+        }
+
+        Location from = box.getLocation();
+        Bay targetBay = warehouse.getAllBays().stream()
+                .filter(b -> !b.getLocation().equals(from) && b.hasAvailableSpace())
+                .findFirst()
+                .orElse(null);
+
+        if (targetBay == null) {
+            System.out.println("No available target bay for relocation.");
+            return;
+        }
+
+        System.out.printf("Moving box %s (%s) from %s → %s%n",
+                box.getBoxId(),
+                box.getSku(),
+                from.toFormattedString(),
+                targetBay.getLocation().toFormattedString());
+
+        boolean success = inventoryService.relocateBox(box.getBoxId(), targetBay.getLocation());
+
+        System.out.println(success ? "✅ Relocation successful"
+                : "❌ Relocation failed");
+    }
+
+
 
     // ========== MÉTODOS AUXILIARES PRIVADOS ==========
 

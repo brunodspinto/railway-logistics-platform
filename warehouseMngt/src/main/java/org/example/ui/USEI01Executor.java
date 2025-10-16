@@ -15,6 +15,7 @@ public class USEI01Executor {
         try {
             WagonUnloadingService unloadingService = new WagonUnloadingService(warehouseRepo);
             DataImportService importService = new DataImportService(itemRepo, warehouseRepo, unloadingService);
+            InventoryService inventoryService = new InventoryService(warehouseRepo);
 
             // Importar dados
             ValidationResult result = importService.importAllData(itemsPath, baysPath, wagonsPath);
@@ -39,6 +40,9 @@ public class USEI01Executor {
             DisplayHelper.showFEFOValidation(warehouse);
             DisplayHelper.showWarehouseOverview(warehouse);
             DisplayHelper.showInventoryBySKU(warehouse);
+
+            DisplayHelper.showDispatchTest(warehouse, inventoryService);
+            DisplayHelper.showRelocationTest(warehouse, inventoryService);
 
             DisplayHelper.printSuccess("USEI01 completed successfully");
 
