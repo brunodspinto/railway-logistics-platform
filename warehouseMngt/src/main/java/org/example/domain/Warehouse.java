@@ -164,6 +164,25 @@ public class Warehouse {
                 .collect(Collectors.toList());
     }
 
+    public void addBox(Box box) {
+        if (box == null) {
+            throw new IllegalArgumentException("Cannot add null box to warehouse");
+        }
+
+        // Find the best bay for this SKU (reuses your own logic)
+        Bay targetBay = findBestAvailableBay(box.getSku());
+
+        if (targetBay == null) {
+            throw new IllegalStateException(
+                    String.format("No available bay found for SKU %s in warehouse %s",
+                            box.getSku(), warehouseId)
+            );
+        }
+
+        // Delegate to Bay (handles FEFO/FIFO order and duplicate validation)
+        targetBay.addBox(box);
+    }
+
     /**
      * Returns the total capacity (maximum boxes) across all bays.
      *
