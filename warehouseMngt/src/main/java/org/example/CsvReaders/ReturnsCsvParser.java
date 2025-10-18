@@ -139,6 +139,8 @@ public class ReturnsCsvParser {
         String timestampStr = fields[4];
         String expiryDateStr = fields[5];
 
+        if (lineNumber == 1 && fields[0].contains("returnId")) return null;
+
         // Validate returnId is not empty
         if (returnId.isEmpty()) {
             addError(lineNumber, returnId, "Return ID cannot be empty");
