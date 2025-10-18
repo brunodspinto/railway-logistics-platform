@@ -1,4 +1,4 @@
-package org.example.ui;
+package org.example.ui.menu;
 
 import org.example.domain.*;
 import org.example.results.*;
