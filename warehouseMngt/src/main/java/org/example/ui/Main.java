@@ -130,6 +130,69 @@ public class Main {
                 System.out.printf("Taxa de sucesso: %.2f%%%n", percent);
             }
 
+
+            // 8. Executar USEI03 - Picking Plans
+            printStep("8. PICKING PLANS (USEI03)");
+
+            try {
+                // 🔹 1. Extrair todas as AllocationRows de todas as OrderLines elegíveis
+                List<AllocationRow> allAllocations = new ArrayList<>();
+                for (OrderAllocationResult result2 : results) {
+                    allAllocations.addAll(result2.getAllocations());
+                }
+
+                if (allAllocations.isEmpty()) {
+                    System.out.println("Nenhuma AllocationRow disponível para picking!");
+                    return;
+                }
+
+                // 🔹 2. Mapa de pesos unitários (normalmente vem de items.csv)
+                Map<String, Double> unitWeights = new HashMap<>();
+                for (Item item : itemRepo.findAll()) {
+                    unitWeights.put(item.getSku(), item.getUnitWeight());
+                }
+
+                // 🔹 3. Converter AllocationRow -> PickingItem
+                List<PickingItem> pickingItems = new ArrayList<>();
+                for (AllocationRow row : allAllocations) {
+                    double unitWeight = unitWeights.getOrDefault(row.getSku(), 1.0);
+                    pickingItems.add(new PickingItem(
+                            row.getOrderId(),
+                            row.getLineNo(),
+                            row.getSku(),
+                            row.getBoxId(),
+                            row.getAisle(),
+                            row.getBay(),
+                            row.getQty(),
+                            unitWeight
+                    ));
+                }
+
+                // 🔹 4. Definir a capacidade global dos trolleys (podes alterar este valor)
+                Trolley.setCapacity(639.0);
+
+                // 🔹 5. Criar o serviço de planeamento e executar as 3 heurísticas
+                PickingPlannerService planner = new PickingPlannerService();
+
+                List<Trolley> planFF  = planner.generatePickingPlan(pickingItems, PickingPlannerService.Heuristic.FF);
+                List<Trolley> planFFD = planner.generatePickingPlan(pickingItems, PickingPlannerService.Heuristic.FFD);
+                List<Trolley> planBFD = planner.generatePickingPlan(pickingItems, PickingPlannerService.Heuristic.BFD);
+
+                // 🔹 6. Mostrar resultados
+                System.out.println("\n=== PICKING PLAN - FIRST FIT ===");
+                PickingResult.printSummary("FIRST FIT", planFF);
+
+                System.out.println("\n=== PICKING PLAN - FIRST FIT DECREASING ===");
+                PickingResult.printSummary("FIRST FIT DECREASING", planFFD);
+
+                System.out.println("\n=== PICKING PLAN - BEST FIT DECREASING ===");
+                PickingResult.printSummary("BEST FIT DECREASING", planBFD);
+
+            } catch (Exception e) {
+                System.err.println("Error generating the picking plans (USEI03): " + e.getMessage());
+                e.printStackTrace();
+            }
+
         } catch (Exception e) {
             printFooter("TEST FAILED");
             System.err.println("Error: " + e.getMessage());

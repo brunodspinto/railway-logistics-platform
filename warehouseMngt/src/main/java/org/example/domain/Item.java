@@ -55,17 +55,6 @@ public class Item {
     public double getVolume() { return volume; }
     public double getUnitWeight() { return unitWeight; }
 
-    // ==================== MÉTODOS ÚTEIS (apenas os necessários) ====================
-
-    /**
-     * Calculates total weight for a quantity - útil para cálculos de capacidade
-     */
-    public double calculateTotalWeight(int quantity) {
-        if (quantity < 0) {
-            throw new IllegalArgumentException("Quantity cannot be negative");
-        }
-        return unitWeight * quantity;
-    }
 
     // ==================== OBJECT METHODS ====================
 
