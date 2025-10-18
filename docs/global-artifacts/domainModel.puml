@@ -1,0 +1,166 @@
+@startuml
+skinparam monochrome true
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+hide circle
+hide methods
+
+title Domain Model - Train Station Warehouse (Sprint 1)
+
+class Warehouse {
+    warehouseId
+}
+
+class Aisle {
+    aisleNumber
+}
+
+class Bay {
+    bayNumber
+    capacityBoxes
+}
+
+class Box {
+    boxId
+    sku
+    qty
+    expiryDate
+    receivedAt
+}
+
+class Item {
+    sku
+    name
+    category
+    unit
+    volume
+    unitWeight
+}
+
+class Wagon {
+    wagonId
+    type
+    gauge
+    capacity
+}
+
+class Locomotive {
+    locomotiveId
+}
+
+class LocomotiveModel {
+    make
+    power
+    acceleration
+    type
+    maxWeight
+    gauge
+}
+
+class Train {
+    trainId
+    type
+}
+
+class DieselTrain
+
+class ElectricTrain
+
+class RailLine {
+    lineId
+}
+
+class LineSegment {
+    segmentId
+    trackType
+    gauge
+    maxWeight
+    speedLimit
+}
+
+class ElectrifiedLineSegment {
+}
+
+class Endpoint {
+    endpointId
+    name
+    type
+}
+
+class Operator {
+    operatorId
+    name
+}
+
+class Order {
+    orderId
+    dueDate
+    priority
+    status
+}
+
+class OrderLine {
+    lineNo
+    sku
+    qty
+    allocatedQty
+}
+
+class Allocation {
+    orderId
+    lineNo
+    boxId
+    qtyAllocated
+    aisle
+    bay
+}
+
+class Return {
+    returnId
+    sku
+    qty
+    reason
+    timestamp
+    expiryDate
+    status
+}
+
+class Quarantine {
+}
+
+class User {
+    userId
+    role
+}
+
+Warehouse "1" -- "*" Aisle : contains
+Aisle "1" -- "*" Bay : contains
+Bay "1" -- "*" Box : stores
+Box "1" -- "1" Item : of
+Wagon "1" -- "*" Box : transports
+Wagon "0..*" -- "1" Operator : belongsTo
+Locomotive "0..*" -- "1" Operator : belongsTo
+Locomotive "1" -- "1" LocomotiveModel : has
+Train "1" -- "1..*" Locomotive : contains
+Train "1" -- "*" Wagon : contains
+Train "0..*" -- "1" Operator : belongsTo
+Train "*" -- "*" LineSegment : movesThrough
+Train <|-- ElectricTrain
+Train <|-- DieselTrain
+RailLine "1" -- "*" LineSegment : composedOf
+LineSegment "2" -- "2" Endpoint : connects
+LineSegment <|-- ElectrifiedLineSegment
+RailLine "1" -- "1" Operator : ownedBy
+ElectricTrain "*" -- "*" ElectrifiedLineSegment : requires
+Order "1" -- "*" OrderLine : has
+OrderLine "1" -- "*" Allocation : allocatesFrom
+Allocation "1" -- "1" Box : from
+Return "1" -- "1" Item : of
+Quarantine "1" -- "*" Return : holds
+User "1" -- "*" Order : processes
+User "1" -- "*" Return : inspects
+User "1" -- "*" Box : manages
+Endpoint "1" -- "*" Warehouse : has
+
+@enduml

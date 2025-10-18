@@ -11,6 +11,7 @@ public class MainTeste {
     private static final String BAYS_FILE = "res/Data/bays.csv";
     private static final String WAGONS_FILE = "res/Data/wagons.csv";
     private static final String ORDER_LINES_FILE = "res/Data/order_lines.csv";
+    private static final String RETURNS_FILE = "res/Data/returns.csv";
 
     public static void main(String[] args) {
         try {
@@ -24,6 +25,8 @@ public class MainTeste {
             // Executar USEI02
             USEI02Executor.execute(warehouseRepo, ORDER_LINES_FILE);
 
+            // Executar USEI05
+            USEI05Executor.execute(itemRepo, warehouseRepo, RETURNS_FILE);
 
         } catch (Exception e) {
             System.err.println("❌ Execution failed: " + e.getMessage());
