@@ -169,7 +169,7 @@ public class Main {
                 }
 
                 // 🔹 4. Definir a capacidade global dos trolleys (podes alterar este valor)
-                Trolley.setCapacity(639.0);
+                Trolley.setCapacity(638.96);
 
                 // 🔹 5. Criar o serviço de planeamento e executar as 3 heurísticas
                 PickingPlannerService planner = new PickingPlannerService();
