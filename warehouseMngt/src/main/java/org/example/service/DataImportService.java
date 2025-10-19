@@ -82,7 +82,7 @@ public class DataImportService {
             // 3. Import wagons
             System.out.println("Step 3: Importing wagons...");
             WagonCsvReader wagonParser = new WagonCsvReader();
-            this.importedWagons = wagonParser.parse(wagonsPath, itemRepository);
+            this.importedWagons = wagonParser.parse(wagonsPath, itemRepository, result);
 
             result.setWagonsImported(importedWagons.size());
             System.out.println("Imported " + importedWagons.size() + " wagons");

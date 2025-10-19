@@ -12,6 +12,8 @@ public class ValidationResult {
 
     private boolean success = false;
     private final List<String> errors = new ArrayList<>();
+    private final List<String> warnings = new ArrayList<>();
+    private int boxesFlaggedForInspection = 0;
 
     // Import statistics
     private int itemsImported = 0;
@@ -36,6 +38,18 @@ public class ValidationResult {
 
     public boolean hasErrors() {
         return !errors.isEmpty();
+    }
+
+    public void addWarning(String warning) {
+        this.warnings.add(warning);
+    }
+
+    public List<String> getWarnings() {
+        return new ArrayList<>(warnings);
+    }
+
+    public boolean hasWarnings() {
+        return !warnings.isEmpty();
     }
 
     // ==================== SUCCESS STATUS ====================
@@ -87,6 +101,14 @@ public class ValidationResult {
         return boxesUnloaded;
     }
 
+    public void setBoxesFlaggedForInspection(int count) {
+        this.boxesFlaggedForInspection = count;
+    }
+
+    public int getBoxesFlaggedForInspection() {
+        return boxesFlaggedForInspection;
+    }
+
     // ==================== DETAILED RESULTS ====================
 
     public void setImportedWagons(List<Wagon> wagons) {
@@ -133,6 +155,18 @@ public class ValidationResult {
         sb.append(String.format("║   Wagons     : %-5d imported                      ║\n", wagonsImported));
         sb.append(String.format("║   Boxes      : %-5d unloaded into warehouse       ║\n", boxesUnloaded));
         sb.append("╠════════════════════════════════════════════════════╣\n");
+
+        if (boxesFlaggedForInspection > 0) {
+            sb.append(String.format("║   Flagged    : %-5d require inspection           ║\n", boxesFlaggedForInspection));
+        }
+        if (hasWarnings()) {
+            sb.append("╠════════════════════════════════════════════════════╣\n");
+            sb.append("║ ⚠️  Warnings:                                       ║\n");
+            for (String warning : warnings) {
+                String truncated = warning.length() > 48 ? warning.substring(0, 45) + "..." : warning;
+                sb.append(String.format("║   • %-49s║\n", truncated));
+            }
+        }
 
         if (unloadingResult != null) {
             sb.append("║ Unloading Details:                                 ║\n");

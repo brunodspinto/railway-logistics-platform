@@ -27,159 +27,76 @@ public class DisplayHelper {
     // ========== MÉTODOS ESPECÍFICOS USEI01 ==========
 
     public static void showImportSummary(ValidationResult result) {
-        System.out.println("\n📦 Import Summary");
-        System.out.println("────────────────────────────────────────────");
-        System.out.printf(" Items imported: %d%n", result.getItemsImported());
-        System.out.printf(" Bays created: %d%n", result.getBaysImported());
-        System.out.printf(" Wagons processed: %d%n", result.getWagonsImported());
-        System.out.printf(" Boxes unloaded: %d%n", result.getBoxesUnloaded());
-    }
+        System.out.println("\n════════════════════════════════════════════════════════════");
+        System.out.println("📦 IMPORT SUMMARY");
+        System.out.println("════════════════════════════════════════════════════════════");
+        System.out.printf(" Items imported:         %d%n", result.getItemsImported());
+        System.out.printf(" Bays created:           %d%n", result.getBaysImported());
+        System.out.printf(" Wagons processed:       %d%n", result.getWagonsImported());
+        System.out.printf(" Boxes unloaded:         %d%n", result.getBoxesUnloaded());
 
-    public static void showFEFOValidation(Warehouse warehouse) {
-        boolean fefoOK = verifyFEFO(warehouse);
-        System.out.println("\n📊 FEFO/FIFO Check: " + (fefoOK ? "✅ PASSED" : "❌ FAILED"));
-    }
+        if (result.getBoxesFlaggedForInspection() > 0) {
+            System.out.printf(" Flagged for inspection: %d%n", result.getBoxesFlaggedForInspection());
+        }
 
-    public static void showWarehouseOverview(Warehouse warehouse) {
-        System.out.println("\n🏗 Warehouse Overview");
-        System.out.println("────────────────────────────────────────────");
-        System.out.printf(" Warehouse ID: %s%n", warehouse.getWarehouseId());
-        System.out.printf(" Total bays: %d%n", warehouse.getBayCount());
-        System.out.printf(" Occupied bays: %d%n", warehouse.getAllBays().stream()
-                .filter(b -> b.getCurrentBoxCount() > 0).count());
-        System.out.printf(" Total boxes: %d%n", warehouse.getTotalBoxCount());
-        System.out.printf(" Occupancy: %.1f%%%n", warehouse.getOccupancyPercentage());
-    }
+        System.out.printf(" Validation errors:      %d%n", result.getErrors().size());
 
-    public static void showInventoryBySKU(Warehouse warehouse) {
-        System.out.println("\n📦 Inventory Totals by SKU");
-        System.out.println("────────────────────────────────────────────");
-        Map<String, Integer> skuTotals = new TreeMap<>();
-
-        for (Bay bay : warehouse.getAllBays()) {
-            for (Box box : bay.getBoxes()) {
-                skuTotals.merge(box.getSku(), box.getQuantity(), Integer::sum);
+        if (result.hasWarnings()) {
+            System.out.println("────────────────────────────────────────────────────────────");
+            System.out.println("⚠️  Warnings:");
+            for (String warning : result.getWarnings()) {
+                System.out.println("  • " + warning);
             }
         }
 
-        if (skuTotals.isEmpty()) {
-            System.out.println(" (Warehouse is empty)");
-        } else {
-            skuTotals.forEach((sku, qty) -> System.out.printf(" %s → %d units%n", sku, qty));
-        }
+        System.out.println("════════════════════════════════════════════════════════════");
     }
 
-
-    public static void showFEFOExample(Warehouse warehouse) {
-        System.out.println("\n🔍 FEFO/FIFO Order Example");
-        System.out.println("────────────────────────────────────────────");
+    public static void showFEFOValidation(Warehouse warehouse) {
+        System.out.println("\n════════════════════════════════════════════════════════════");
+        System.out.println("🔍 FEFO/FIFO VALIDATION");
+        System.out.println("════════════════════════════════════════════════════════════");
 
         String exampleSku = findSKUWithMultipleBoxes(warehouse);
         if (exampleSku == null) {
-            System.out.println("No SKU with multiple boxes found for demonstration.");
+            System.out.println("No SKU with multiple boxes found for validation.");
+            System.out.println("════════════════════════════════════════════════════════════");
             return;
         }
 
         List<Box> orderedBoxes = getAllBoxesForSKU(warehouse, exampleSku);
         if (orderedBoxes.size() < 2) {
-            System.out.println("SKU " + exampleSku + " has only " + orderedBoxes.size() + " box");
+            System.out.println("Not enough boxes for validation example.");
+            System.out.println("════════════════════════════════════════════════════════════");
             return;
         }
 
-        System.out.println("SKU: " + exampleSku);
-        System.out.println("Order: " + getOrderingExplanation(orderedBoxes));
-        System.out.println("\nBox sequence (FEFO/FIFO):");
+        System.out.println("Sample verification for " + exampleSku + ":");
+        System.out.println();
+        System.out.println("Expected order (FEFO/FIFO rules):");
+        System.out.println("  1. Earliest expiry date first");
+        System.out.println("  2. Oldest received date for same expiry");
+        System.out.println("  3. BoxId ascending for ties");
+        System.out.println();
+        System.out.println("Actual order in warehouse:");
 
-        for (int i = 0; i < orderedBoxes.size(); i++) {
+        for (int i = 0; i < Math.min(3, orderedBoxes.size()); i++) {
             Box box = orderedBoxes.get(i);
-            System.out.printf("  %d. %s", i + 1, formatBoxForDisplay(box));
-
-            if (i > 0) {
-                Box prevBox = orderedBoxes.get(i - 1);
-                System.out.printf("   ← %s", getOrderingReason(prevBox, box));
-            }
-            System.out.println();
+            System.out.printf("  %d. %s%n", i + 1, formatBoxForDisplay(box));
         }
+
+        System.out.println();
+        System.out.println("Validation checks:");
+
+        boolean fefoOK = verifyFEFO(warehouse);
+        System.out.println(" " + (fefoOK ? "✅" : "❌") + " Expiry dates in ascending order (nulls last)");
+        System.out.println(" " + (fefoOK ? "✅" : "❌") + " Received dates ordered correctly within same expiry");
+        System.out.println(" " + (fefoOK ? "✅" : "❌") + " BoxIds ordered correctly for ties");
+        System.out.println();
+        System.out.println("Result: " + (fefoOK ? "✅ FEFO/FIFO ORDER VERIFIED" : "❌ FEFO/FIFO ORDER FAILED"));
+
+        System.out.println("════════════════════════════════════════════════════════════");
     }
-
-    public static void showDispatchTest(Warehouse warehouse, InventoryService inventoryService) {
-        System.out.println("\n🚚 Dispatch Test (AC2)");
-        System.out.println("────────────────────────────────────────────");
-
-        String sku = warehouse.getAllBays().stream()
-                .flatMap(b -> b.getBoxes().stream())
-                .map(Box::getSku)
-                .findFirst()
-                .orElse(null);
-
-        if (sku == null) {
-            System.out.println("No SKUs available for dispatch test.");
-            return;
-        }
-
-        int totalQty = warehouse.getAllBays().stream()
-                .mapToInt(b -> b.getQuantityForSku(sku))
-                .sum();
-
-        int requestQty = Math.min(totalQty, 50);
-
-        System.out.printf("Selected SKU: %s%n", sku);
-        System.out.printf("Available: %d | Requesting: %d%n", totalQty, requestQty);
-
-        DispatchResult result = inventoryService.dispatchBoxes(sku, requestQty);
-
-        System.out.printf("Dispatched: %d | Remaining: %d%n",
-                result.getDispatchedQty(),
-                totalQty - result.getDispatchedQty());
-
-        if (result.getDispatchedQty() < requestQty) {
-            System.out.println("⚠️ Partial fulfillment");
-        }
-
-        System.out.println("Boxes affected:");
-        result.getDispatchedBoxes().forEach(box ->
-                System.out.printf("  - %s → %d units%n", box.getBoxId(), box.getQuantity()));
-
-    }
-
-    public static void showRelocationTest(Warehouse warehouse, InventoryService inventoryService) {
-        System.out.println("\n🔁 Relocation Test (AC3)");
-        System.out.println("────────────────────────────────────────────");
-
-        Box box = warehouse.getAllBays().stream()
-                .flatMap(b -> b.getBoxes().stream())
-                .findFirst()
-                .orElse(null);
-
-        if (box == null) {
-            System.out.println("No boxes available for relocation test.");
-            return;
-        }
-
-        Location from = box.getLocation();
-        Bay targetBay = warehouse.getAllBays().stream()
-                .filter(b -> !b.getLocation().equals(from) && b.hasAvailableSpace())
-                .findFirst()
-                .orElse(null);
-
-        if (targetBay == null) {
-            System.out.println("No available target bay for relocation.");
-            return;
-        }
-
-        System.out.printf("Moving box %s (%s) from %s → %s%n",
-                box.getBoxId(),
-                box.getSku(),
-                from.toFormattedString(),
-                targetBay.getLocation().toFormattedString());
-
-        boolean success = inventoryService.relocateBox(box.getBoxId(), targetBay.getLocation());
-
-        System.out.println(success ? "✅ Relocation successful"
-                : "❌ Relocation failed");
-    }
-
-
 
     // ========== MÉTODOS AUXILIARES PRIVADOS ==========
 

@@ -5,6 +5,7 @@ import org.example.domain.Item;
 import org.example.domain.Wagon;
 import org.example.exception.ValidationException;
 import org.example.repository.ItemRepository;
+import org.example.results.ValidationResult;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -20,10 +21,12 @@ public class WagonCsvReader {
 
     // Track unique boxIds across ALL wagons
     private final Set<String> globalBoxIds = new HashSet<>();
+    private ValidationResult validationResult; // NEW: Track warnings
 
-    public List<Wagon> parse(String filePath, ItemRepository itemRepository) {
+    public List<Wagon> parse(String filePath, ItemRepository itemRepository, ValidationResult validationResult) {
+        this.validationResult = validationResult; // Store reference
         List<Wagon> wagons = new ArrayList<>();
-        globalBoxIds.clear(); // Reset for each parse operation
+        globalBoxIds.clear();
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
@@ -35,10 +38,9 @@ public class WagonCsvReader {
 
                 if (isFirstLine) {
                     isFirstLine = false;
-                    continue; // Skip header
+                    continue;
                 }
 
-                // Skip empty lines
                 if (line.trim().isEmpty()) {
                     continue;
                 }
@@ -53,7 +55,6 @@ public class WagonCsvReader {
                 try {
                     parseAndValidateLine(fields, lineNumber, wagons, itemRepository);
                 } catch (ValidationException e) {
-                    // Re-throw with line number if not already included
                     if (!e.getMessage().contains("line " + lineNumber)) {
                         throw new ValidationException("Line " + lineNumber + ": " + e.getMessage());
                     }
@@ -107,14 +108,21 @@ public class WagonCsvReader {
             throw new ValidationException("Unknown SKU: " + sku);
         }
 
-        // Additional validations per requirements
-        if (expiryDate != null && expiryDate.isBefore(LocalDate.now())) {
-            System.err.println(" Line " + lineNumber + ": Product already expired: " + boxId);
-            // Decide: reject or just warn? Requirements unclear
-        }
-
         // Create box
         Box box = new Box(boxId, sku, quantity, expiryDate, receivedAt, wagonId);
+
+        // ✅ NEW: Check for expired products and FLAG them (don't reject)
+        if (box.isExpired()) {
+            box.flagForInspection();
+            String warning = String.format("Line %d: Product expired - %s (marked for inspection)", lineNumber, boxId);
+            System.out.println("⚠️  " + warning);
+            if (validationResult != null) {
+                validationResult.addWarning(warning);
+                validationResult.setBoxesFlaggedForInspection(
+                        validationResult.getBoxesFlaggedForInspection() + 1
+                );
+            }
+        }
 
         // Find or create wagon
         Wagon wagon = findOrCreateWagon(wagons, wagonId);
@@ -139,7 +147,7 @@ public class WagonCsvReader {
 
     private LocalDate parseExpiryDate(String expiryField) {
         if (expiryField.isEmpty()) {
-            return null; // Non-perishable products
+            return null;
         }
 
         try {
@@ -159,7 +167,6 @@ public class WagonCsvReader {
             LocalDateTime localDateTime = LocalDateTime.parse(receivedField);
             Instant instant = localDateTime.atZone(ZoneOffset.UTC).toInstant();
 
-            // Validate not in the future
             if (instant.isAfter(Instant.now())) {
                 throw new ValidationException("receivedAt cannot be in the future: " + receivedField);
             }

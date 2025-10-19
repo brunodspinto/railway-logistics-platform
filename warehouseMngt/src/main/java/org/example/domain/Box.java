@@ -17,6 +17,7 @@ public class Box implements Comparable<Box> {
     private final Instant receivedAt;
     private final String wagonId;
     private Location location;
+    private boolean flaggedForInspection;
 
     public Box(String boxId, String sku, int quantity, LocalDate expiryDate,
                Instant receivedAt, String wagonId) {
@@ -44,6 +45,7 @@ public class Box implements Comparable<Box> {
         this.receivedAt = receivedAt;
         this.wagonId = wagonId.trim();
         this.location = null;
+        this.flaggedForInspection = false;
     }
 
     // ==================== GETTERS ====================
@@ -56,10 +58,26 @@ public class Box implements Comparable<Box> {
     public String getWagonId() { return wagonId; }
     public Location getLocation() { return location; }
 
+
     // ==================== BUSINESS METHODS ====================
+
+    public boolean isFlaggedForInspection() {
+        return flaggedForInspection;
+    }
+
+    public void flagForInspection() {
+        this.flaggedForInspection = true;
+    }
 
     public boolean isPerishable() {
         return expiryDate != null;
+    }
+
+    public boolean isExpired() {
+        if (expiryDate == null) {
+            return false;
+        }
+        return expiryDate.isBefore(java.time.LocalDate.now());
     }
 
     public void setLocation(Location location) {
@@ -136,8 +154,10 @@ public class Box implements Comparable<Box> {
 
     @Override
     public String toString() {
-        return String.format("Box[%s, SKU=%s, qty=%d, exp=%s, wagon=%s, loc=%s]",
+        String inspectionFlag = flaggedForInspection ? " [INSPECTION]" : "";
+        return String.format("Box[%s, SKU=%s, qty=%d, exp=%s, wagon=%s, loc=%s]%s",
                 boxId, sku, quantity, expiryDate, wagonId,
-                location != null ? location.toFormattedString() : "unassigned");
+                location != null ? location.toFormattedString() : "unassigned",
+                inspectionFlag);
     }
 }
