@@ -13,44 +13,38 @@ import java.util.*;
 
 public class USEI02Executor {
 
-    public static void execute(WarehouseRepository warehouseRepo, String orderLinesPath) {
+    public static List<OrderAllocationResult> execute(WarehouseRepository warehouseRepo, String orderLinesPath) {
         DisplayHelper.printHeader("USEI02 - Order Allocation");
 
         try {
             Warehouse warehouse = warehouseRepo.findDefault();
             if (warehouse == null) {
                 DisplayHelper.printError("❌ No warehouse available for USEI02 - Run USEI01 first!");
-                return;
+                return Collections.emptyList();
             }
 
             System.out.println("✅ Warehouse loaded: " + warehouse.getWarehouseId());
-
-            // ✅ REMOVER O DEBUG COMPLETO ou movê-lo para depois da alocação
-            // debugOrderFile(orderLinesPath); // COMENTAR ESTA LINHA
 
             OrderAllocationService service = new OrderAllocationService(warehouse);
             List<OrderLine> orders = loadOrderLinesFromCsv(orderLinesPath);
 
             if (orders.isEmpty()) {
                 DisplayHelper.printError("No orders could be loaded - check file format and path");
-                return;
+                return Collections.emptyList();
             }
 
             System.out.println("✅ Loaded " + orders.size() + " order lines");
-
-            // ✅ AGORA EXECUTAR A ALOCAÇÃO (isto está a faltar no teu código)
             System.out.println("\n🚀 Starting Order Allocation...");
 
             List<OrderAllocationResult> results = service.allocateOrders(orders, false);
 
             if (results == null || results.isEmpty()) {
                 DisplayHelper.printError("❌ Order allocation produced no results");
-                return;
+                return Collections.emptyList();
             }
 
             System.out.println("✅ Generated " + results.size() + " allocation results");
 
-            // ✅ PROCESSAR E MOSTRAR RESULTADOS
             int eligible = 0, partial = 0, undispatchable = 0;
 
             for (OrderAllocationResult result : results) {
@@ -82,13 +76,16 @@ public class USEI02Executor {
 
             DisplayHelper.printSuccess("USEI02 completed successfully");
 
+            return results; // 🔹 devolve a lista para ser usada na USEI03
+
         } catch (Exception e) {
             DisplayHelper.printError("USEI02 execution failed: " + e.getMessage());
             e.printStackTrace();
+            return Collections.emptyList();
         }
     }
 
-    // Manter o método loadOrderLinesFromCsv mas REMOVER o debug excessivo
+    // ==============================================================
     private static List<OrderLine> loadOrderLinesFromCsv(String csvPath) {
         List<OrderLine> lines = new ArrayList<>();
         File f = new File(csvPath);
@@ -111,9 +108,7 @@ public class USEI02Executor {
                 if (row.isBlank()) continue;
 
                 String[] parts = row.split(",", -1);
-                if (parts.length < 4) {
-                    continue;
-                }
+                if (parts.length < 4) continue;
 
                 try {
                     OrderLine orderLine = new OrderLine(
@@ -134,6 +129,4 @@ public class USEI02Executor {
         }
         return lines;
     }
-
-    // ✅ REMOVER o método debugOrderFile() completamente ou comentá-lo
 }
