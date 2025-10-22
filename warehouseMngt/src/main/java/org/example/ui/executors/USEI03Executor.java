@@ -10,13 +10,12 @@ import java.util.*;
 
 public class USEI03Executor {
 
-    public static void execute(ItemRepository itemRepo, List<OrderAllocationResult> allocationResults) {
-
-
+    // Alterado para devolver a lista de Trolleys (plano de picking)
+    public static List<Trolley> execute(ItemRepository itemRepo, List<OrderAllocationResult> allocationResults) {
         DisplayHelper.printHeader("USEI03 - Picking Plans");
 
         try {
-            // 1️⃣ Extrair todas as AllocationRows das OrderAllocationResults
+            // 1. Extrair todas as AllocationRows das OrderAllocationResults
             List<AllocationRow> allAllocations = new ArrayList<>();
             for (OrderAllocationResult result : allocationResults) {
                 allAllocations.addAll(result.getAllocations());
@@ -24,16 +23,16 @@ public class USEI03Executor {
 
             if (allAllocations.isEmpty()) {
                 DisplayHelper.printError("Nenhuma AllocationRow disponível para picking!");
-                return;
+                return Collections.emptyList(); // Devolve lista vazia se não houver nada a fazer
             }
 
-            // 2️⃣ Criar mapa de pesos unitários
+            // 2. Criar mapa de pesos unitários
             Map<String, Double> unitWeights = new HashMap<>();
             for (Item item : itemRepo.findAll()) {
                 unitWeights.put(item.getSku(), item.getUnitWeight());
             }
 
-            // 3️⃣ Converter AllocationRow → PickingItem
+            // 3. Converter AllocationRow -> PickingItem
             List<PickingItem> pickingItems = new ArrayList<>();
             for (AllocationRow row : allAllocations) {
                 double unitWeight = unitWeights.getOrDefault(row.getSku(), 1.0);
@@ -49,16 +48,16 @@ public class USEI03Executor {
                 ));
             }
 
-            // 4️⃣ Definir capacidade do trolley
+            // 4. Definir capacidade do trolley
             Trolley.setCapacity(638.96);
 
-            // 5️⃣ Gerar planos de picking
+            // 5. Gerar planos de picking
             PickingPlannerService planner = new PickingPlannerService();
             List<Trolley> planFF  = planner.generatePickingPlan(pickingItems, PickingPlannerService.Heuristic.FF);
             List<Trolley> planFFD = planner.generatePickingPlan(pickingItems, PickingPlannerService.Heuristic.FFD);
             List<Trolley> planBFD = planner.generatePickingPlan(pickingItems, PickingPlannerService.Heuristic.BFD);
 
-            // 6️⃣ Mostrar resultados
+            // 6. Mostrar resultados
             System.out.println("\n=== PICKING PLAN - FIRST FIT ===");
             PickingResult.printSummary("FIRST FIT", planFF);
 
@@ -68,7 +67,7 @@ public class USEI03Executor {
             System.out.println("\n=== PICKING PLAN - BEST FIT DECREASING ===");
             PickingResult.printSummary("BEST FIT DECREASING", planBFD);
 
-            // 7️⃣ Comparação final
+            // 7. Comparação final
             System.out.println("\n📊 Summary Comparison:");
             System.out.printf(" FF  → %d trolleys%n", planFF.size());
             System.out.printf(" FFD → %d trolleys%n", planFFD.size());
@@ -76,9 +75,13 @@ public class USEI03Executor {
 
             DisplayHelper.printSuccess("USEI03 completed successfully!");
 
+            // Devolve o plano FFD para ser usado na USEI04
+            return planFFD;
+
         } catch (Exception e) {
             DisplayHelper.printError("USEI03 execution failed: " + e.getMessage());
             e.printStackTrace();
+            return Collections.emptyList(); // Devolve lista vazia em caso de erro
         }
     }
 }
