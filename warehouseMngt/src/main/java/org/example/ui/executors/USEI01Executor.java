@@ -51,6 +51,7 @@ public class USEI01Executor {
             DisplayHelper.showFEFOValidation(warehouse);
 
             System.out.println("\n" + "═".repeat(60) + "\n");
+            System.out.println();
             DisplayHelper.printSuccess("USEI01 - Wagon Unloading completed successfully");
             DisplayHelper.printSuccess("Warehouse operational and ready for dispatch operations");
 

@@ -73,6 +73,7 @@ public class USEI03Executor {
             System.out.printf(" FFD → %d trolleys%n", planFFD.size());
             System.out.printf(" BFD → %d trolleys%n", planBFD.size());
 
+            System.out.println();
             DisplayHelper.printSuccess("USEI03 completed successfully!");
 
             // Devolve o plano FFD para ser usado na USEI04

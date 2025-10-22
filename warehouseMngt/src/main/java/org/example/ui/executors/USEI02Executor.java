@@ -74,6 +74,7 @@ public class USEI02Executor {
             System.out.printf(" 📦 Success rate: %.1f%%%n",
                     (eligible + partial) * 100.0 / results.size());
 
+            System.out.println();
             DisplayHelper.printSuccess("USEI02 completed successfully");
 
             return results; // 🔹 devolve a lista para ser usada na USEI03
