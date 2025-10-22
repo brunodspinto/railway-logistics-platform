@@ -6,7 +6,6 @@ skinparam classAttributeIconSize 0
 hide circle
 hide methods
 
-title Domain Model - Train Station Warehouse (Sprint 1)
 
 class Warehouse {
     warehouseId
@@ -19,6 +18,7 @@ class Aisle {
 class Bay {
     bayNumber
     capacityBoxes
+    currentBoxes
 }
 
 class Box {
@@ -27,6 +27,7 @@ class Box {
     qty
     expiryDate
     receivedAt
+    qtyAvailable
 }
 
 class Item {
@@ -46,7 +47,7 @@ class Wagon {
 }
 
 class Locomotive {
-    locomotiveId
+    locoId
 }
 
 class LocomotiveModel {
@@ -80,6 +81,7 @@ class LineSegment {
 }
 
 class ElectrifiedLineSegment {
+    electrified
 }
 
 class Endpoint {
@@ -131,8 +133,17 @@ class Quarantine {
 
 class User {
     userId
-    role
 }
+
+class TrainDriver
+
+class StationMaster
+
+class StationStorageManager
+
+class FreightManager
+
+class SchedulerPlanner
 
 Warehouse "1" -- "*" Aisle : contains
 Aisle "1" -- "*" Bay : contains
@@ -162,5 +173,10 @@ User "1" -- "*" Order : processes
 User "1" -- "*" Return : inspects
 User "1" -- "*" Box : manages
 Endpoint "1" -- "*" Warehouse : has
+User <|-- TrainDriver
+User <|-- StationMaster
+User <|-- StationStorageManager
+User <|-- FreightManager
+User <|-- SchedulerPlanner
 
 @enduml
