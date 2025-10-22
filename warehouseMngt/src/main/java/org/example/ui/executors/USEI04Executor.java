@@ -2,7 +2,6 @@ package org.example.ui.executors;
 
 import org.example.domain.Record;
 import org.example.service.PathSequencingService;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +17,6 @@ public class USEI04Executor implements Runnable {
     public void run() {
         System.out.println("\n### Executing USEI04: Pick Path Sequencing ###");
 
-        // Lista fictícia usando a nova classe 'Record'
         List<Record> mockPickingList = new ArrayList<>();
         mockPickingList.add(new Record(1, 8));
         mockPickingList.add(new Record(2, 2));
