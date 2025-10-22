@@ -27,6 +27,7 @@ public class USEI05Executor {
                     result.getErrorsCount());
 
             System.out.println("\n🧾 Audit log written to: logs/audit-log.txt");
+            System.out.println();
             DisplayHelper.printSuccess("USEI05 completed successfully");
 
         } catch (Exception e) {

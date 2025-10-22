@@ -63,6 +63,7 @@ public class USEI04Executor {
                 System.out.println("  -> Both strategies have the same total distance.");
             }
         }
+        System.out.println();
         DisplayHelper.printSuccess("USEI04 completed successfully!");
     }
 
