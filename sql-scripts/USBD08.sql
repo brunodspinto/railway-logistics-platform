@@ -1,6 +1,3 @@
--- USBD08 - Lista de todas as locomotivas de um dado tipo
--- Utiliza o valor 'Electric' ou 'Diesel'
-
 SELECT l.numberLocomotive      AS "Nº Locomotiva",
        l.name                  AS "Nome",
        l.yearOfEntry           AS "Ano Entrada",
