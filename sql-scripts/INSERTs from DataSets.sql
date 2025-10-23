@@ -42,12 +42,26 @@ INSERT INTO LineSegmentsType (id, description) VALUES (1,'single track');
 INSERT INTO LineSegmentsType (id, description) VALUES (2,'double track');
 
 INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (1,'Ramal São Bento - Campanhã','PT503933813',7,5,1);
-INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (2,'Ramal Camapanhã - Nine','PT503933813',5,20,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (2,'Ramal Campanhã - Nine','PT503933813',5,20,1);
 INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (3,'Ramal Nine - Barcelos','PT503933813',20,8,1);
 INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (4,'Ramal Barcelos - Viana','PT503933813',8,17,1);
 INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (5,'Ramal viana - Caminha','PT503933813',17,21,1);
 INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (6,'Ramal Caminha - Torre','PT503933813',21,16,1);
 INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (7,'Ramal Torre - Valença','PT503933813',16,11,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (8,'Ramal Campanhã - Contumil','PT503933813',5,13,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (9,'Ramal Contumil - Ermesinde','PT503933813',13,14,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (10,'Ramal Ermesinde - Lousado','PT503933813',14,4,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (11,'Ramal Lousado - Famalicão','PT503933813',4,18,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (12,'Ramal Famalicão - Nine','PT503933813',18,20,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (13,'Ramal Nine - Tamel','PT503933813',20,2,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (14,'Ramal Tamel - Barcelos','PT503933813',2,8,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (15,'Ramal Barcelos - Barroselas','PT503933813',8,19,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (16,'Ramal Barroselas - Darque','PT503933813',19,12,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (17,'Ramal Darque - Viana do Castelo','PT503933813',12,17,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (18,'Ramal Viana do Castelo - Carreço','PT503933813',17,23,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (19,'Ramal Carreço - Caminha','PT503933813',23,21,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (20,'Ramal Caminha - Vila Nova da Cerveira','PT503933813',21,9,1);
+INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (21,'Ramal Vila Nova da Cerveira - São Pedro da Torre','PT503933813',9,16,1);
 
 INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (1,8000,2618,1,1,2,1);
 INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (10,8000,29003,1,1,2,2);
