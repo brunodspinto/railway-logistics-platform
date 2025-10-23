@@ -10,4 +10,4 @@ JOIN LocomotiveModel lm
      ON l.model = lm.id
 JOIN LocomotiveFuelType lf 
      ON lm.locomotiveFuelTypeId = lf.id
-WHERE lf.description = '&tipo';
+WHERE lf.description = 'Diesel/Electric';
