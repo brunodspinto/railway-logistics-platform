@@ -28,7 +28,6 @@ public class ReturnsProcessingService {
         this.inventoryService = new InventoryService(warehouseRepository);
         this.inspectionService = new InspectionService(warehouseRepository);
 
-        // ✅ Corrigido: agora passamos o caminho do ficheiro explicitamente
         this.auditLogService = new AuditLogService("logs/audit-log.txt");
     }
 
@@ -38,20 +37,20 @@ public class ReturnsProcessingService {
     public ProcessingResult processReturns(String filePath) {
         int restocked = 0, discarded = 0, partial = 0, errors = 0;
 
-        // 1️⃣ Parse CSV
+        auditLogService.initializeLog();
+
         ReturnsCsvParser parser = new ReturnsCsvParser(itemRepository);
         List<ReturnRecord> records;
         try {
             records = parser.parse(filePath);
         } catch (ValidationException e) {
-            System.err.println("❌ CSV validation failed:\n" + e.getMessage());
+            System.err.println("CSV validation failed:\n" + e.getMessage());
             return new ProcessingResult(0, 0, 0, 0, 1);
         }
 
-        // 2️⃣ Load into quarantine
+
         Quarantine quarantine = new Quarantine(records);
 
-        // 3️⃣ Process queue
         while (!quarantine.isEmpty()) {
             ReturnRecord record = quarantine.poll();
             try {
@@ -69,13 +68,15 @@ public class ReturnsProcessingService {
                     }
                 }
 
-                auditLogService.log(result); // ✅ mantém compatibilidade total
+                auditLogService.log(result);
 
             } catch (Exception e) {
-                System.err.println("⚠️ Error processing " + record.getReturnId() + ": " + e.getMessage());
+                System.err.println("Error processing " + record.getReturnId() + ": " + e.getMessage());
                 errors++;
             }
         }
+
+        System.out.println("\nAudit log saved to: " + auditLogService.getLogPath());
 
         int total = restocked + discarded + partial + errors;
         return new ProcessingResult(total, restocked, discarded, partial, errors);
@@ -86,12 +87,11 @@ public class ReturnsProcessingService {
      */
     private void addToInventory(InspectionResult result) {
         try {
-            // ✅ Usa o tipo correto e os imports certos
             Box restockBox = new Box(
-                    result.getReturnId(), // boxId
+                    result.getReturnId(),
                     result.getSku(),
                     result.getQtyRestocked(),
-                    null, // expiryDate opcional
+                    null,
                     Instant.now(),
                     "RETURNS"
             );
@@ -107,7 +107,7 @@ public class ReturnsProcessingService {
             warehouseRepository.save(warehouse);
 
         } catch (Exception e) {
-            System.err.println("❌ Failed to restock SKU " + result.getSku() + ": " + e.getMessage());
+            System.err.println("Failed to restock SKU " + result.getSku() + ": " + e.getMessage());
         }
     }
 }

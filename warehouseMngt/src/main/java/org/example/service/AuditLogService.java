@@ -18,12 +18,10 @@ public class AuditLogService {
 
     private final Path logPath;
 
-    // Construtor por defeito usa logs/audit-log.txt
     public AuditLogService() {
         this(DEFAULT_LOG_FILE);
     }
 
-    // Construtor que permite customizar o ficheiro (opcional)
     public AuditLogService(String filePath) {
         if (filePath == null || filePath.trim().isEmpty()) {
             filePath = DEFAULT_LOG_FILE;
@@ -31,11 +29,24 @@ public class AuditLogService {
         this.logPath = Path.of(filePath);
     }
 
+    public void initializeLog() {
+        try {
+            Files.createDirectories(logPath.getParent());
+
+            try (BufferedWriter w = new BufferedWriter(new FileWriter(logPath.toFile(), false))) {
+            }
+
+            System.out.println("Audit log initialized: " + logPath);
+
+        } catch (IOException e) {
+            System.err.println("Failed to initialize audit log: " + e.getMessage());
+        }
+    }
+
     public void log(InspectionResult result) {
         if (result == null) throw new IllegalArgumentException("InspectionResult cannot be null");
 
         try {
-            // garante a diretoria existe
             Files.createDirectories(logPath.getParent());
 
             String timestamp = ZonedDateTime.now(ZoneId.systemDefault()).format(FORMATTER);
@@ -60,7 +71,6 @@ public class AuditLogService {
                 sb.append(" | expiryDate=").append(result.getExpiryDate().toString());
             }
 
-            // escreve em append
             try (BufferedWriter w = new BufferedWriter(new FileWriter(logPath.toFile(), true))) {
                 w.write(sb.toString());
                 w.newLine();
@@ -69,5 +79,8 @@ public class AuditLogService {
         } catch (IOException e) {
             System.err.println("⚠️ Failed to write audit log: " + e.getMessage());
         }
+    }
+    public String getLogPath() {
+        return logPath.toString();
     }
 }

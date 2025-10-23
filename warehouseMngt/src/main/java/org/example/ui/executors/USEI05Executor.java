@@ -20,13 +20,12 @@ public class USEI05Executor {
             ProcessingResult result = returnsService.processReturns(returnsPath);
 
             DisplayHelper.printHeader("Processing Summary");
-            System.out.printf("✅ Restocked: %d | 🗑 Discarded: %d | ♻ Partial Restocks: %d | ⚠ Errors: %d%n",
+            System.out.printf("Restocked: %d |  Discarded: %d |  Partial Restocks: %d | Errors: %d%n",
                     result.getRestockedCount(),
                     result.getDiscardedCount(),
                     result.getPartialRestockCount(),
                     result.getErrorsCount());
 
-            System.out.println("\n🧾 Audit log written to: logs/audit-log.txt");
             System.out.println();
             DisplayHelper.printSuccess("USEI05 completed successfully");
 
