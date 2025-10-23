@@ -6,8 +6,8 @@ SELECT l.numberLocomotive      AS "Nº Locomotiva",
        lm.modelName            AS "Modelo",
        lf.description          AS "Tipo Combustível"
 FROM Locomotive l
-JOIN LocomotiveModel lm 
+INNER JOIN LocomotiveModel lm
      ON l.model = lm.id
-JOIN LocomotiveFuelType lf 
+INNER JOIN LocomotiveFuelType lf
      ON lm.locomotiveFuelTypeId = lf.id
 WHERE lf.description = 'Diesel/Electric';
