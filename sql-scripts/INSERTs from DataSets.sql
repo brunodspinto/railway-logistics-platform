@@ -64,18 +64,19 @@ INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALU
 INSERT INTO Line (id, nameLine, ownerId, startStation, endStation, gaugeId) VALUES (21,'Ramal Vila Nova da Cerveira - São Pedro da Torre','PT503933813',9,16,1);
 
 INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (1,8000,2618,1,1,2,1);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (10,8000,29003,1,1,2,2);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (11,8000,10000,1,2,2,2);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (15,8000,5286,1,1,2,3);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (16,8000,6000,1,2,2,3);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (14,8000,10387,1,1,2,4);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (12,8000,12000,1,2,2,4);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (13,6400,8000,1,3,2,4);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (20,8000,6000,1,1,2,5);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (21,8000,3000,1,2,2,5);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (22,8000,15000,1,3,2,5);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (25,8000,20829,1,1,2,6);
-INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (26,8000,4264,1,1,2,7);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (10,8000,29003,1,1,1,2);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (11,8000,10000,1,2,1,2);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (15,8000,5286,1,1,1,3);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (16,8000,6000,1,2,1,3);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (14,8000,10387,1,1,1,4);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (12,8000,12000,1,2,1,4);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (13,6400,8000,1,3,1,4);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (20,8000,6000,1,1,1,5);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (21,8000,3000,1,2,1,5);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (22,8000,15000,1,3,1,5);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (25,8000,20829,1,1,1,6);
+INSERT INTO LineSegment (id, maximumWeigh, lenght, isElectrified, segmantesOrder,lineSegmentsTypeid, lineId) VALUES (26,8000,4264,1,1,1,7);
+
 
 INSERT INTO WagonsType (id, description) VALUES (1,'Cereal wagon');
 INSERT INTO WagonsType (id, description) VALUES (2,'Covered wagon with sliding door');
