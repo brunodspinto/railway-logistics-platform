@@ -35,8 +35,8 @@ INSERT INTO Bogies (id, nameBogie) VALUES (2, 'Co-Co');
 INSERT INTO Bogies (id, nameBogie) VALUES (3, 'Simples');
 INSERT INTO Bogies (id, nameBogie) VALUES (4, 'Duplo');
 
-INSERT INTO Gauge (idGauge, name, measure) VALUES (1,'Iberian gauge', '1668');
-INSERT INTO Gauge (idGauge, name, measure) VALUES (2,'Standard Gauge', '1435');
+INSERT INTO Gauge (idGauge, measure) VALUES (1,'1668');
+INSERT INTO Gauge (idGauge, measure) VALUES (2,'1435');
 
 INSERT INTO LineSegmentsType (id, description) VALUES (1,'single track');
 INSERT INTO LineSegmentsType (id, description) VALUES (2,'double track');
