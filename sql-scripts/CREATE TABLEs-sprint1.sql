@@ -8,7 +8,7 @@ CREATE TABLE LocomotiveFuelType (id number(10) NOT NULL, description varchar2(10
 CREATE TABLE WagonsType (id number(10) NOT NULL, description varchar2(100) NOT NULL, PRIMARY KEY (id));
 CREATE TABLE StationType (id number(10) NOT NULL, description varchar2(100) NOT NULL, PRIMARY KEY (id));
 CREATE TABLE Operator (vatNumber varchar2(100) NOT NULL, name varchar2(100) NOT NULL, shortName varchar2(100) NOT NULL, PRIMARY KEY (vatNumber));
-CREATE TABLE Gauge (idGauge number(10) NOT NULL, name varchar2(100) NOT NULL, measure number(10) NOT NULL, PRIMARY KEY (idGauge));
+CREATE TABLE Gauge (idGauge number(10) NOT NULL, measure number(10) NOT NULL, PRIMARY KEY (idGauge));
 CREATE TABLE Bogies (id number(10) NOT NULL, nameBogie varchar2(100) NOT NULL, PRIMARY KEY (id));
 CREATE TABLE LocomotiveModel (id number(10) NOT NULL, make varchar2(100) NOT NULL, modelName varchar2(100) NOT NULL, power number(10) NOT NULL, maxSpeed number(10) NOT NULL, weight number(10) NOT NULL, length number(10) NOT NULL, width number(10) NOT NULL, height number(10) NOT NULL, traction number(10) NOT NULL, locomotiveFuelTypeId number(10) NOT NULL, bogiesId number(10) NOT NULL, gaugeId number(10) NOT NULL, PRIMARY KEY (id));
 CREATE TABLE WagonModel (id number(10) NOT NULL, nameModel varchar2(100) NOT NULL, maker varchar2(100) NOT NULL, length number(10) NOT NULL, width number(10) NOT NULL, height number(10) NOT NULL, maxSpeed number(10) NOT NULL, payload number(10) NOT NULL, volume number(10) NOT NULL, bogiesId number(10) NOT NULL, wagonsTypeId number(10) NOT NULL, gaugeId number(10) NOT NULL, PRIMARY KEY (id));
