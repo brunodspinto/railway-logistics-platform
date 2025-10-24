@@ -22,7 +22,7 @@ public class TravelTimeUI {
         try {
             System.out.println(" Loading railway data...\n");
 
-            IRouteRepository repository = new CsvRouteRepository("data");
+            IRouteRepository repository = new CsvRouteRepository("freightMngt/data");
             TravelTimeUI ui = new TravelTimeUI(repository);
 
             ui.run();

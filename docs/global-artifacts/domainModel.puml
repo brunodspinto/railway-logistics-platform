@@ -6,7 +6,9 @@ skinparam classAttributeIconSize 0
 hide circle
 hide methods
 
+title Domain Model - Train Station Warehouse (Sprint 1) - Improved
 
+' --- CORE ENTITIES ---
 class Warehouse {
     warehouseId
 }
@@ -18,7 +20,6 @@ class Aisle {
 class Bay {
     bayNumber
     capacityBoxes
-    currentBoxes
 }
 
 class Box {
@@ -27,7 +28,6 @@ class Box {
     qty
     expiryDate
     receivedAt
-    qtyAvailable
 }
 
 class Item {
@@ -43,33 +43,45 @@ class Wagon {
     wagonId
     type
     gauge
-    capacity
+    payloadCapacity
+    tareWeight
 }
 
 class Locomotive {
-    locoId
-}
-
-class LocomotiveModel {
+    number
+    name
+    yearOfEntry
+    type
+    model
     make
     power
-    acceleration
-    type
-    maxWeight
+    maxSpeed
+    weight
+    width
+    height
+    lenght
     gauge
+    BogiesNumber
 }
 
 class Train {
     trainId
-    type
 }
 
-class DieselTrain
+class DieselTrain {
+    fuelCapacity
+}
 
-class ElectricTrain
+class ElectricTrain {
+    voltage
+    frequency
+}
 
 class RailLine {
     lineId
+    name
+    owner
+    gauge
 }
 
 class LineSegment {
@@ -78,10 +90,8 @@ class LineSegment {
     gauge
     maxWeight
     speedLimit
-}
-
-class ElectrifiedLineSegment {
-    electrified
+    length
+    isElectrified
 }
 
 class Endpoint {
@@ -99,84 +109,80 @@ class Order {
     orderId
     dueDate
     priority
-    status
 }
 
 class OrderLine {
     lineNo
-    sku
     qty
-    allocatedQty
+    status
 }
 
 class Allocation {
-    orderId
-    lineNo
-    boxId
-    qtyAllocated
-    aisle
-    bay
+    allocatedQty
 }
 
 class Return {
     returnId
-    sku
     qty
     reason
     timestamp
-    expiryDate
     status
 }
 
 class Quarantine {
 }
 
+
 class User {
     userId
+    name
+    email
 }
 
-class TrainDriver
 
-class StationMaster
 
-class StationStorageManager
-
-class FreightManager
-
-class SchedulerPlanner
-
+' --- RELATIONSHIPS ---
 Warehouse "1" -- "*" Aisle : contains
 Aisle "1" -- "*" Bay : contains
 Bay "1" -- "*" Box : stores
-Box "1" -- "1" Item : of
+Box "1" -- "1" Item : references
 Wagon "1" -- "*" Box : transports
 Wagon "0..*" -- "1" Operator : belongsTo
 Locomotive "0..*" -- "1" Operator : belongsTo
-Locomotive "1" -- "1" LocomotiveModel : has
-Train "1" -- "1..*" Locomotive : contains
-Train "1" -- "*" Wagon : contains
-Train "0..*" -- "1" Operator : belongsTo
-Train "*" -- "*" LineSegment : movesThrough
+Train "1" -- "1..*" Locomotive : pulledBy
+Train "1" -- "*" Wagon : carries
+Train "0..*" -- "1" Operator : operatedBy
+RailLine "1" -- "*" LineSegment : composedOf
+LineSegment "1" -- "1" Endpoint : startsAt
+LineSegment "1" -- "1" Endpoint : endsAt
+RailLine "1" -- "1" Operator : ownedBy
+ElectricTrain "*" -- "*" LineSegment : requiresElectrified
+Order "1" -- "*" OrderLine : contains
+OrderLine "1" -- "*" Allocation : has
+Allocation "1" -- "1" Box : from
+Return "1" -- "1" Item : references
+Quarantine "1" -- "*" Return : holds
+Endpoint "1" -- "*" Warehouse : has
+
+' --- USER RESPONSIBILITIES ---
+Planner "1" -- "*" Order : creates
+Planner "1" -- "*" Allocation : manages
+StorageManager "1" -- "*" Warehouse : manages
+StorageManager "1" -- "*" Box : handles
+QualityOperator "1" -- "*" Return : inspects
+QualityOperator "1" -- "*" Quarantine : manages
+TrainDriver "1" -- "*" Train : operates
+StationMaster "1" -- "*" Endpoint : supervises
+FreightManager "1" -- "*" Wagon : coordinates
+
+' --- INHERITANCE ---
 Train <|-- ElectricTrain
 Train <|-- DieselTrain
-RailLine "1" -- "*" LineSegment : composedOf
-LineSegment "2" -- "2" Endpoint : connects
-LineSegment <|-- ElectrifiedLineSegment
-RailLine "1" -- "1" Operator : ownedBy
-ElectricTrain "*" -- "*" ElectrifiedLineSegment : requires
-Order "1" -- "*" OrderLine : has
-OrderLine "1" -- "*" Allocation : allocatesFrom
-Allocation "1" -- "1" Box : from
-Return "1" -- "1" Item : of
-Quarantine "1" -- "*" Return : holds
-User "1" -- "*" Order : processes
-User "1" -- "*" Return : inspects
-User "1" -- "*" Box : manages
-Endpoint "1" -- "*" Warehouse : has
 User <|-- TrainDriver
 User <|-- StationMaster
-User <|-- StationStorageManager
+User <|-- StorageManager
 User <|-- FreightManager
-User <|-- SchedulerPlanner
+User <|-- Planner
+User <|-- QualityOperator
 
 @enduml
