@@ -164,6 +164,50 @@ public class Warehouse {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Finds all bays with SKU, sorted by FEFO GLOBAL + ascending location.
+     * CRITICAL for dispatch operations to maintain FEFO across multiple bays.
+     *
+     * Sorting priority:
+     * 1. First box in bay (FEFO/FIFO comparison)
+     * 2. Aisle ascending (tie-break)
+     * 3. Bay ascending (tie-break)
+     *
+     * @param sku the SKU to search for
+     * @return list of bays sorted by FEFO + location
+     */
+    public List<Bay> getBaysWithSkuSorted(String sku) {
+        return bays.values().stream()
+                .filter(bay -> bay.containsSku(sku))
+                .sorted((bay1, bay2) -> {
+                    // Get first box of SKU in each bay
+                    Box box1 = bay1.peekFirstBox(sku);
+                    Box box2 = bay2.peekFirstBox(sku);
+
+                    // Safety checks
+                    if (box1 == null && box2 == null) return 0;
+                    if (box1 == null) return 1;
+                    if (box2 == null) return -1;
+
+                    // Primary sort: FEFO/FIFO (using Box.compareTo)
+                    int fefoCompare = box1.compareTo(box2);
+                    if (fefoCompare != 0) return fefoCompare;
+
+                    // Tie-break: ascending location (aisle → bay)
+                    int aisleCompare = Integer.compare(
+                            bay1.getAisleNumber(),
+                            bay2.getAisleNumber()
+                    );
+                    if (aisleCompare != 0) return aisleCompare;
+
+                    return Integer.compare(
+                            bay1.getBayNumber(),
+                            bay2.getBayNumber()
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
     public void addBox(Box box) {
         if (box == null) {
             throw new IllegalArgumentException("Cannot add null box to warehouse");
@@ -230,6 +274,33 @@ public class Warehouse {
     }
 
     /**
+     * Groups bays by aisle number.
+     * Useful for Round-Robin allocation strategies.
+     *
+     * @return map of aisle number to list of bays in that aisle
+     */
+    public Map<Integer, List<Bay>> getBaysByAisle() {
+        return bays.values().stream()
+                .collect(Collectors.groupingBy(
+                        Bay::getAisleNumber,
+                        Collectors.toList()
+                ));
+    }
+
+    /**
+     * Gets all unique aisle numbers in this warehouse, sorted.
+     *
+     * @return sorted list of aisle numbers
+     */
+    public List<Integer> getAisleNumbers() {
+        return bays.values().stream()
+                .map(Bay::getAisleNumber)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Returns a summary of the warehouse's current state.
      *
      * @return summary string
@@ -255,3 +326,4 @@ public class Warehouse {
                 '}';
     }
 }
+
