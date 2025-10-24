@@ -10,7 +10,6 @@ public final class Record {
     private final int aisle;
     private final int bay;
 
-    // Constante para representar a entrada do armazém
     public static final Record ENTRANCE = new Record(0, 0);
 
     public Record(int aisle, int bay) {

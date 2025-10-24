@@ -44,12 +44,16 @@ public class PathSequencingService {
         if (path == null || path.isEmpty()) {
             return 0.0;
         }
+
         double totalDistance = 0.0;
+
         Record current = Record.ENTRANCE; // The path always starts at the entrance.
+
         for (Record next : path) {
             totalDistance += calculateDistance(current, next);
             current = next; // Update the current location for the next step.
         }
+
         return totalDistance;
     }
 
@@ -80,36 +84,31 @@ public class PathSequencingService {
                 .sorted(Comparator.comparingInt(Record::getAisle)
                         .thenComparingInt(Record::getBay))
                 .collect(Collectors.toList());
+
         double totalDistance = calculateTotalDistance(sortedPath);
+
         return new PickPathResult(sortedPath, totalDistance, "Strategy A (Deterministic Sweep)");
     }
 
-    /**
-     * Calculates the picking path using Strategy B (Nearest-Neighbour).
-     * This is a greedy algorithm that, at each step, chooses the nearest bay
-     * from the current location among those not yet visited.
-     *
-     * @param locationsToVisit The list of bays to visit.
-     * @return A PickPathResult containing the path and the total distance.
-     */
     public PickPathResult sequenceByStrategyB(List<Record> locationsToVisit) {
-        // We start with a list of all unique bays that need to be visited.
+        // Start with a list of all unique bays that need to be visited.
         List<Record> remaining = new ArrayList<>(mergeDuplicateBays(locationsToVisit));
 
-        // This list will store our final path.
+        // This list will store our final path, built step-by-step.
         List<Record> path = new ArrayList<>();
 
-        // The starting point is always the warehouse entrance.
+        // The starting point (the initial "previous") is always the warehouse entrance.
         Record current = Record.ENTRANCE;
 
-        // We continue until there are no more bays to visit.
+        // Continue until there are no more bays to visit.
         while (!remaining.isEmpty()) {
             Record nearest = null;
             double minDistance = Double.MAX_VALUE;
 
-            // For each remaining bay, calculate the distance from the CURRENT point.
+            // For each remaining bay, calculate the distance from the CURRENT point (the "previous" one).
             for (Record next : remaining) {
                 double distance = calculateDistance(current, next);
+
                 // If this bay is the closest one found so far...
                 if (distance < minDistance) {
                     minDistance = distance;
@@ -121,7 +120,7 @@ public class PathSequencingService {
             if (nearest != null) {
                 path.add(nearest);
                 remaining.remove(nearest); // Remove it from the list of bays to visit.
-                current = nearest; // Update our current location.
+                current = nearest; // UPDATE the "previous" location for the next iteration.
             }
         }
 
