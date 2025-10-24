@@ -2,7 +2,9 @@ package org.example.ui;
 
 import org.example.domain.*;
 import org.example.repository.*;
-import org.example.service.*;
+import org.example.usei04.service.TravelTimeCalculator;
+import org.example.usei04.service.TravelTimeResult;
+
 import java.util.*;
 import java.util.stream.Collectors;
 

@@ -1,4 +1,4 @@
-package org.example.service;
+package org.example.usei04.service;
 
 import org.example.domain.Quarantine;
 import org.example.domain.ReturnRecord;

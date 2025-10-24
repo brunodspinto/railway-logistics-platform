@@ -3,7 +3,7 @@ package org.example.ui.executors;
 import org.example.domain.PickingItem;
 import org.example.domain.Record;
 import org.example.domain.Trolley;
-import org.example.service.PathSequencingService;
+import org.example.usei04.service.PathSequencingService;
 import org.example.ui.menu.DisplayHelper;
 
 import java.util.ArrayList;
@@ -12,7 +12,6 @@ import java.util.stream.Collectors;
 
 public class USEI04Executor {
 
-    // O método agora recebe o plano de picking (lista de trolleys)
     public static void execute(List<Trolley> pickingPlan) {
         DisplayHelper.printHeader("USEI04 - Pick Path Sequencing");
 
@@ -23,13 +22,10 @@ public class USEI04Executor {
 
         PathSequencingService pathSequencingService = new PathSequencingService();
 
-        // Itera sobre cada trolley no plano de picking
         for (int i = 0; i < pickingPlan.size(); i++) {
             Trolley trolley = pickingPlan.get(i);
             System.out.printf("\n### Processing Trolley #%d ###\n", i + 1);
 
-            // 1. Extrai os locais (aisle, bay) dos itens do trolley
-            // Conforme a documentação, os locais duplicados são tratados pelo serviço.
             List<Record> baysToVisit = new ArrayList<>();
             for (PickingItem item : trolley.getItems()) {
                 baysToVisit.add(new Record(item.getAisle(), item.getBay()));
@@ -40,20 +36,16 @@ public class USEI04Executor {
                 continue;
             }
 
-            // Usa um Set para mostrar apenas os locais únicos, como pedido na documentação
             List<Record> uniqueBays = baysToVisit.stream().distinct().collect(Collectors.toList());
             System.out.println("Unique bays to visit: " + uniqueBays);
             System.out.println("--------------------------------------------------");
 
-            // 2. Executa a Estratégia A
             PathSequencingService.PickPathResult resultA = pathSequencingService.sequenceByStrategyA(baysToVisit);
             printResult(resultA);
 
-            // 3. Executa a Estratégia B
             PathSequencingService.PickPathResult resultB = pathSequencingService.sequenceByStrategyB(baysToVisit);
             printResult(resultB);
 
-            // 4. Comparação final para este trolley
             System.out.println("Comparison for Trolley #" + (i + 1) + ":");
             if (resultA.totalDistance < resultB.totalDistance) {
                 System.out.printf("  -> Strategy A is shorter by %.2f units.%n", (resultB.totalDistance - resultA.totalDistance));
@@ -63,6 +55,7 @@ public class USEI04Executor {
                 System.out.println("  -> Both strategies have the same total distance.");
             }
         }
+
         System.out.println();
         DisplayHelper.printSuccess("USEI04 completed successfully!");
     }

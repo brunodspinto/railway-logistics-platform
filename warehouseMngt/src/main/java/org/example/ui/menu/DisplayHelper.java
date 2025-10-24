@@ -2,7 +2,6 @@ package org.example.ui.menu;
 
 import org.example.domain.*;
 import org.example.results.*;
-import org.example.service.InventoryService;
 
 import java.util.*;
 

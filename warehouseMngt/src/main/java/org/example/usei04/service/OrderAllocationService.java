@@ -1,4 +1,4 @@
-package org.example.service;
+package org.example.usei04.service;
 
 import org.example.domain.Bay;
 import org.example.domain.Box;
