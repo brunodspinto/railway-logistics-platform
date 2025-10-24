@@ -28,9 +28,8 @@ public class InspectionService {
     }
 
     public InspectionResult inspect(ReturnRecord record) {
-        if (record == null) {
+        if (record == null)
             throw new IllegalArgumentException("Return record cannot be null");
-        }
 
         LocalDate today = LocalDate.now();
         String action;
@@ -39,35 +38,29 @@ public class InspectionService {
 
         // ============ DECISION LOGIC ============
 
-        // invalid or non-restockable reason
-        if (record.getReason() == null || !record.getReason().isRestockable()) {
-            action = "DISCARD";
-            qtyDiscarded = record.getQty();
-
-            // expired product
-        } else if (record.isExpired(today)) {
-            action = "DISCARD";
-            qtyDiscarded = record.getQty();
-
-            // partial restock (for large quantities of customer remorse or cycle count)
-        } else if ((record.getReason().name().equalsIgnoreCase("CUSTOMER_REMORSE")
-                || record.getReason().name().equalsIgnoreCase("CYCLE_COUNT"))
-                && record.getQty() >= 10) {
-
-            int restocked = (int) Math.ceil(record.getQty() * 0.6);
-            int discarded = record.getQty() - restocked;
-
-            action = "PARTIAL_RESTOCK";
-            qtyRestocked = restocked;
-            qtyDiscarded = discarded;
-
-            // full restock
-        } else {
-            action = "RESTOCK";
-            qtyRestocked = record.getQty();
+        switch (record.getReason()) {
+            case DAMAGED, EXPIRED -> {
+                action = "DISCARD";
+                qtyDiscarded = record.getQty();
+            }
+            case CUSTOMER_REMORSE, CYCLE_COUNT -> {
+                if (record.isExpired(today)) {
+                    action = "DISCARD";
+                    qtyDiscarded = record.getQty();
+                } else {
+                    // Exemplo de avaliação unitária: 80% aceites
+                    qtyRestocked = (int) Math.ceil(record.getQty() * 0.8);
+                    qtyDiscarded = record.getQty() - qtyRestocked;
+                    action = (qtyRestocked > 0 && qtyDiscarded > 0)
+                            ? "PARTIAL_RESTOCK" : "RESTOCK";
+                }
+            }
+            default -> {
+                action = "DISCARD";
+                qtyDiscarded = record.getQty();
+            }
         }
 
-        // ============ RESULT CONSTRUCTION ============
         return new InspectionResult(
                 record.getReturnId(),
                 record.getSku(),

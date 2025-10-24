@@ -27,27 +27,20 @@ public class ReturnsProcessingService {
         this.warehouseRepository = warehouseRepository;
         this.inventoryService = new InventoryService(warehouseRepository);
         this.inspectionService = new InspectionService(warehouseRepository);
-
         this.auditLogService = new AuditLogService("logs/audit-log.txt");
     }
 
-    /**
-     * Main entry point for USEI05.
-     */
     public ProcessingResult processReturns(String filePath) {
         int restocked = 0, discarded = 0, partial = 0, errors = 0;
-
-        auditLogService.initializeLog();
 
         ReturnsCsvParser parser = new ReturnsCsvParser(itemRepository);
         List<ReturnRecord> records;
         try {
             records = parser.parse(filePath);
         } catch (ValidationException e) {
-            System.err.println("CSV validation failed:\n" + e.getMessage());
+            System.err.println("❌ CSV validation failed:\n" + e.getMessage());
             return new ProcessingResult(0, 0, 0, 0, 1);
         }
-
 
         Quarantine quarantine = new Quarantine(records);
 
@@ -61,53 +54,53 @@ public class ReturnsProcessingService {
                         addToInventory(result);
                         restocked++;
                     }
-                    case "DISCARD" -> discarded++;
                     case "PARTIAL_RESTOCK" -> {
                         addToInventory(result);
                         partial++;
                     }
+                    case "DISCARD" -> discarded++;
                 }
 
                 auditLogService.log(result);
 
             } catch (Exception e) {
-                System.err.println("Error processing " + record.getReturnId() + ": " + e.getMessage());
+                System.err.println("⚠️ Error processing " + record.getReturnId() + ": " + e.getMessage());
                 errors++;
             }
         }
 
-        System.out.println("\nAudit log saved to: " + auditLogService.getLogPath());
+        System.out.println("\n🧾 Audit log saved to: " + auditLogService.getLogPath());
 
         int total = restocked + discarded + partial + errors;
         return new ProcessingResult(total, restocked, discarded, partial, errors);
     }
 
-    /**
-     * Adds a restocked return to warehouse inventory.
-     */
     private void addToInventory(InspectionResult result) {
         try {
-            Box restockBox = new Box(
-                    result.getReturnId(),
-                    result.getSku(),
-                    result.getQtyRestocked(),
-                    null,
-                    Instant.now(),
-                    "RETURNS"
+            if (result.getQtyRestocked() <= 0) return; // nothing to restock
+
+            Box newBox = new Box(
+                    result.getReturnId(),            // boxId
+                    result.getSku(),                 // sku
+                    result.getQtyRestocked(),        // qty
+                    result.getExpiryDate(),          // ✅ LocalDate directly
+                    Instant.now(),                   // receivedAt
+                    "RETURNS"                        // origin
             );
 
             Warehouse warehouse = warehouseRepository.findDefault();
-            Bay targetBay = warehouse.findBestAvailableBay(result.getSku());
+            Bay bestBay = warehouse.findBestAvailableBay(result.getSku());
 
-            if (targetBay == null) {
-                throw new IllegalStateException("No available bay to restock SKU " + result.getSku());
+            if (bestBay == null) {
+                throw new IllegalStateException("No available bay for SKU " + result.getSku());
             }
 
-            targetBay.addBox(restockBox);
+            bestBay.addBox(newBox);
             warehouseRepository.save(warehouse);
 
         } catch (Exception e) {
-            System.err.println("Failed to restock SKU " + result.getSku() + ": " + e.getMessage());
+            System.err.println("❌ Failed to restock SKU " + result.getSku() + ": " + e.getMessage());
         }
     }
+
 }
