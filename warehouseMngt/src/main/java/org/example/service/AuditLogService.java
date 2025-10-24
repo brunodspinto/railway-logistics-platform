@@ -1,6 +1,6 @@
-package org.example.service; // ajusta package conforme o teu projeto
+package org.example.service;
 
-import org.example.results.InspectionResult; // ajusta o import conforme o teu package real
+import org.example.results.InspectionResult;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -29,26 +29,23 @@ public class AuditLogService {
         this.logPath = Path.of(filePath);
     }
 
+    /** Just ensure the directory exists — DO NOT clear the file */
     public void initializeLog() {
         try {
             Files.createDirectories(logPath.getParent());
-
-            try (BufferedWriter w = new BufferedWriter(new FileWriter(logPath.toFile(), false))) {
-            }
-
-            System.out.println("Audit log initialized: " + logPath);
-
+            System.out.println("Audit log ready at: " + logPath);
         } catch (IOException e) {
-            System.err.println("Failed to initialize audit log: " + e.getMessage());
+            System.err.println("Failed to prepare audit log: " + e.getMessage());
         }
     }
 
+    /** Append-only logging (preserves history) */
     public void log(InspectionResult result) {
-        if (result == null) throw new IllegalArgumentException("InspectionResult cannot be null");
+        if (result == null)
+            throw new IllegalArgumentException("InspectionResult cannot be null");
 
         try {
             Files.createDirectories(logPath.getParent());
-
             String timestamp = ZonedDateTime.now(ZoneId.systemDefault()).format(FORMATTER);
 
             StringBuilder sb = new StringBuilder();
@@ -56,19 +53,13 @@ public class AuditLogService {
                     .append(" | returnId=").append(result.getReturnId())
                     .append(" | sku=").append(result.getSku())
                     .append(" | action=").append(result.getAction())
-                    .append(" | qty=").append(result.getQty());
+                    .append(" | qty=").append(result.getQty())
+                    .append(" | qtyRestocked=").append(result.getQtyRestocked())
+                    .append(" | qtyDiscarded=").append(result.getQtyDiscarded())
+                    .append(" | reason=").append(result.getReason());
 
-            if (result.getQtyRestocked() > 0) {
-                sb.append(" | qtyRestocked=").append(result.getQtyRestocked());
-            }
-            if (result.getQtyDiscarded() > 0) {
-                sb.append(" | qtyDiscarded=").append(result.getQtyDiscarded());
-            }
-            if (result.getReason() != null && !result.getReason().isEmpty()) {
-                sb.append(" | reason=").append(result.getReason());
-            }
             if (result.getExpiryDate() != null) {
-                sb.append(" | expiryDate=").append(result.getExpiryDate().toString());
+                sb.append(" | expiryDate=").append(result.getExpiryDate());
             }
 
             try (BufferedWriter w = new BufferedWriter(new FileWriter(logPath.toFile(), true))) {
@@ -80,7 +71,9 @@ public class AuditLogService {
             System.err.println("⚠️ Failed to write audit log: " + e.getMessage());
         }
     }
+
     public String getLogPath() {
         return logPath.toString();
     }
 }
+
