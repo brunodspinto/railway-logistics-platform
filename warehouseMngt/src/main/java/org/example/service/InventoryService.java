@@ -30,7 +30,6 @@ public class InventoryService {
 
         int remainingQty = requestedQty;
 
-        // ✅ CRÍTICO: Usar getBaysWithSkuSorted() em vez de getBaysWithSku()
         List<Bay> baysWithSku = warehouse.getBaysWithSkuSorted(sku);
 
         if (baysWithSku.isEmpty()) {
@@ -39,7 +38,6 @@ public class InventoryService {
             return result;
         }
 
-        // ✅ Debug: Mostrar ordem dos bays
         System.out.println("\n🔍 Dispatch order for SKU " + sku + ":");
         for (Bay bay : baysWithSku) {
             Box firstBox = bay.peekFirstBox(sku);
@@ -49,13 +47,13 @@ public class InventoryService {
                     firstBox.getExpiryDate());
         }
 
-        // ✅ Iterar pelos bays em ordem FEFO (partial dispatch across multiple bays)
+        // Iterar pelos bays em ordem FEFO (partial dispatch across multiple bays)
         for (Bay bay : baysWithSku) {
             if (remainingQty <= 0) break;
 
             System.out.println("\n📦 Processing bay: " + bay.getLocation().toFormattedString());
 
-            // ✅ Consumir boxes do bay em ordem FEFO/FIFO
+            // Consumir boxes do bay em ordem FEFO/FIFO
             while (remainingQty > 0 && bay.containsSku(sku)) {
                 Box box = bay.peekFirstBox(sku);
                 if (box == null) break;
@@ -66,11 +64,11 @@ public class InventoryService {
                         takeQty, box.getBoxId(), box.getQuantity());
 
                 if (takeQty == box.getQuantity()) {
-                    // ✅ Full dispatch - remove box
+                    // Full dispatch - remove box
                     bay.removeFirstBox(sku);
                     result.addDispatchedBox(box.getBoxId(), takeQty);
                 } else {
-                    // ✅ Partial dispatch - update quantity
+                    // Partial dispatch - update quantity
                     box.reduceQuantity(takeQty);
                     result.addDispatchedBox(box.getBoxId(), takeQty);
                 }
@@ -78,15 +76,14 @@ public class InventoryService {
                 remainingQty -= takeQty;
             }
 
-            // ✅ Loop continua automaticamente para próximo bay
-            //    "continue in the next bay, ascending number"
+            //    Loop continua automaticamente para próximo bay
         }
 
         if (remainingQty > 0) {
-            System.err.printf("⚠️  Partial fulfillment: %d/%d dispatched for SKU %s%n",
+            System.err.printf(" Partial fulfillment: %d/%d dispatched for SKU %s%n",
                     requestedQty - remainingQty, requestedQty, sku);
         } else {
-            System.out.printf("✅ Fully dispatched: %d units of SKU %s%n",
+            System.out.printf(" Fully dispatched: %d units of SKU %s%n",
                     requestedQty, sku);
         }
 

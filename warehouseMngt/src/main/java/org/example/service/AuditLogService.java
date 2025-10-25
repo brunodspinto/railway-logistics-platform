@@ -68,7 +68,7 @@ public class AuditLogService {
             }
 
         } catch (IOException e) {
-            System.err.println("⚠️ Failed to write audit log: " + e.getMessage());
+            System.err.println(" Failed to write audit log: " + e.getMessage());
         }
     }
 

@@ -6,6 +6,7 @@ import org.example.exception.ValidationException;
 import org.example.repository.ItemRepository;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,6 +54,21 @@ public class ReturnsCsvParser {
      * @throws ValidationException if file cannot be read or if validation errors occurred
      */
     public List<ReturnRecord> parse(String filePath) {
+        //alterações
+        if (filePath == null || filePath.trim().isEmpty()) {
+            throw new ValidationException("File path cannot be null or empty");
+        }
+
+        File file = new File(filePath);
+        if (!file.exists()) {
+            throw new ValidationException("File not found: " + filePath);
+        }
+
+        if (!file.canRead()) {
+            throw new ValidationException("Cannot read file: " + filePath);
+        }
+        //terminam aqui
+
         validationErrors.clear();
         seenReturnIds.clear();
         List<ReturnRecord> validRecords = new ArrayList<>();

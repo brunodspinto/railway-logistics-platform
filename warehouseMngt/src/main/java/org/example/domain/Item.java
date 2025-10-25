@@ -18,7 +18,6 @@ public class Item {
     public Item(String sku, String name, String category, String unit,
                 double volume, double unitWeight) {
 
-        // Validações essenciais mantidas
         if (sku == null || sku.trim().isEmpty()) {
             throw new IllegalArgumentException("SKU cannot be null or empty");
         }

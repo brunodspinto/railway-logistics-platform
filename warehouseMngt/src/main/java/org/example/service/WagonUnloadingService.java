@@ -16,14 +16,12 @@ import java.util.stream.Collectors;
  * This strategy balances load between aisles, enabling multiple pickers to work
  * simultaneously in different areas (critical for USEI04 pick path optimization).
  *
- * @author [Your Name]
- * @version 2.0 (Round-Robin)
  */
 public class WagonUnloadingService {
 
     private final WarehouseRepository warehouseRepository;
 
-    // ✅ Round-Robin state: tracks which aisle to use next
+    // Round-Robin state: tracks which aisle to use next
     private int currentAisleIndex = 0;
 
     public WagonUnloadingService(WarehouseRepository warehouseRepository) {
@@ -43,10 +41,10 @@ public class WagonUnloadingService {
             return result;
         }
 
-        // ✅ STEP 1: Collect ALL boxes from ALL wagons
+        // Collect ALL boxes from ALL wagons
         List<Box> allBoxes = new ArrayList<>();
 
-        // ✅ Track which wagon each box belongs to (for result tracking)
+        // Track which wagon each box belongs to (for result tracking)
         Map<String, String> boxToWagon = new HashMap<>();  // boxId -> wagonId
 
         for (Wagon wagon : wagons) {
@@ -58,14 +56,14 @@ public class WagonUnloadingService {
 
         System.out.println("📦 Total boxes to unload: " + allBoxes.size());
 
-        // ✅ STEP 2: Sort GLOBALLY by FEFO/FIFO
+        // Sort GLOBALLY by FEFO/FIFO
         allBoxes.sort(Box::compareTo);
         System.out.println("✅ Boxes sorted by FEFO/FIFO order");
 
-        // ✅ STEP 3: Reset Round-Robin counter
+        // Reset Round-Robin counter
         currentAisleIndex = 0;
 
-        // ✅ STEP 4: Distribute to bays using Round-Robin
+        // Distribute to bays using Round-Robin
         Map<String, Integer> successfulBoxesPerWagon = new HashMap<>();
         Map<String, Integer> totalBoxesPerWagon = new HashMap<>();  // Track expected count
         Map<String, String> errorPerWagon = new HashMap<>();
@@ -97,7 +95,7 @@ public class WagonUnloadingService {
             }
         }
 
-        // ✅ STEP 5: Build result
+        // Build result
         System.out.println("\n🔍 DEBUG: Building result...");
         System.out.println("  totalBoxesPerWagon: " + totalBoxesPerWagon);
         System.out.println("  successfulBoxesPerWagon: " + successfulBoxesPerWagon);
@@ -146,8 +144,7 @@ public class WagonUnloadingService {
      * @return selected bay, or null if no space available
      */
     private Bay selectBayRoundRobin(Warehouse warehouse, Box box) {
-        // ✅ PHASE 1: Try to co-locate with same SKU (SKU grouping)
-        // This improves picking efficiency (USEI04)
+        // Try to co-locate with same SKU (SKU grouping)
         List<Bay> baysWithSku = warehouse.getBaysWithSku(box.getSku()).stream()
                 .filter(Bay::hasAvailableSpace)
                 .toList();
@@ -159,7 +156,7 @@ public class WagonUnloadingService {
                     .orElse(null);
         }
 
-        // ✅ PHASE 2: Round-Robin across aisles
+        // Round-Robin across aisles
         // Group bays by aisle number
         Map<Integer, List<Bay>> baysByAisle = warehouse.getAllBays().stream()
                 .filter(Bay::hasAvailableSpace)
@@ -173,11 +170,11 @@ public class WagonUnloadingService {
         List<Integer> aisles = new ArrayList<>(baysByAisle.keySet());
         Collections.sort(aisles);
 
-        // ✅ Select aisle using Round-Robin
+        //  Select aisle using Round-Robin
         int targetAisle = aisles.get(currentAisleIndex % aisles.size());
         currentAisleIndex++; // Increment for next box
 
-        // ✅ Within selected aisle, get first available bay (by bay number)
+        //  Within selected aisle, get first available bay (by bay number)
         return baysByAisle.get(targetAisle).stream()
                 .sorted(Comparator.comparingInt(Bay::getBayNumber))
                 .filter(Bay::hasAvailableSpace)

@@ -48,7 +48,6 @@ public class InspectionService {
                     action = "DISCARD";
                     qtyDiscarded = record.getQty();
                 } else {
-                    // Exemplo de avaliação unitária: 80% aceites
                     qtyRestocked = (int) Math.ceil(record.getQty() * 0.8);
                     qtyDiscarded = record.getQty() - qtyRestocked;
                     action = (qtyRestocked > 0 && qtyDiscarded > 0)

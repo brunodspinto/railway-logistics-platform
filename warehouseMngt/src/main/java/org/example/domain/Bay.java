@@ -157,7 +157,7 @@ public class Bay {
             );
         }
 
-        // ✅ Check for duplicate boxId in this bay
+        // Check for duplicate boxId in this bay
         for (Box existing : boxes) {
             if (existing.getBoxId().equals(box.getBoxId())) {
                 throw new IllegalArgumentException(
@@ -167,7 +167,6 @@ public class Bay {
             }
         }
 
-        // ✅ Efficient ordered insertion using binary search
         int index = Collections.binarySearch(boxes, box);
         if (index < 0) {
             index = -index - 1;  // Convert to insertion point

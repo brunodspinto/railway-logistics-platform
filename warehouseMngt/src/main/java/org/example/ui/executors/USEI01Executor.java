@@ -38,12 +38,12 @@ public class USEI01Executor {
                 return;
             }
 
-            // ========== NOVO OUTPUT FORMATADO ==========
+            // ========== OUTPUT  ==========
 
-            // 1. Import Summary (com warnings se existirem)
+            // 1. Import Summary
             DisplayHelper.showImportSummary(result);
 
-            // 2. Warehouse Overview DETALHADO
+            // 2. Warehouse Overview
             System.out.println(inventoryService.generateWarehouseOverview());
 
             // 3. Inventory Summary by SKU

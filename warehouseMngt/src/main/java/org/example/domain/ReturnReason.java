@@ -22,7 +22,6 @@ public enum ReturnReason {
     private static final Map<String, ReturnReason> ALIASES = new HashMap<>();
 
     static {
-        // normalizações diretas
         for (ReturnReason r : values()) {
             ALIASES.put(r.name(), r);
         }
