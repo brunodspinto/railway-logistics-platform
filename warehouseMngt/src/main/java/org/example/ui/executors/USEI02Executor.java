@@ -4,7 +4,7 @@ import org.example.repository.*;
 import org.example.domain.*;
 import org.example.results.OrderAllocationResult;
 import org.example.ui.menu.DisplayHelper;
-import org.example.usei04.service.OrderAllocationService;
+import org.example.service.OrderAllocationService;
 
 import java.io.BufferedReader;
 import java.io.File;

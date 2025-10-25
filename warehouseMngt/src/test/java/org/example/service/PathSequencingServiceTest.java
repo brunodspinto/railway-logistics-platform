@@ -1,4 +1,4 @@
-package org.example.usei04.service;
+package org.example.service;
 
 import org.example.domain.Record;
 import org.junit.jupiter.api.BeforeEach;

@@ -4,7 +4,7 @@ import org.example.domain.*;
 import org.example.repository.*;
 import org.example.results.*;
 import org.example.ui.menu.DisplayHelper;
-import org.example.usei04.service.PickingPlannerService;
+import org.example.service.PickingPlannerService;
 
 import java.util.*;
 

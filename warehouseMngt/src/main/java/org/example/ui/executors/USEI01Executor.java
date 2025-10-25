@@ -4,9 +4,9 @@ import org.example.domain.*;
 import org.example.repository.*;
 import org.example.results.*;
 import org.example.ui.menu.DisplayHelper;
-import org.example.usei04.service.DataImportService;
-import org.example.usei04.service.InventoryService;
-import org.example.usei04.service.WagonUnloadingService;
+import org.example.service.DataImportService;
+import org.example.service.InventoryService;
+import org.example.service.WagonUnloadingService;
 
 public class USEI01Executor {
 

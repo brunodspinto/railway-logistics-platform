@@ -3,7 +3,7 @@ package org.example.ui.executors;
 import org.example.domain.PickingItem;
 import org.example.domain.Record;
 import org.example.domain.Trolley;
-import org.example.usei04.service.PathSequencingService;
+import org.example.service.PathSequencingService;
 import org.example.ui.menu.DisplayHelper;
 
 import java.util.ArrayList;

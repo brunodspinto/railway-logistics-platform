@@ -6,7 +6,7 @@ import org.example.domain.Warehouse;
 import org.example.domain.OrderLine;
 import org.example.results.OrderAllocationResult;
 import org.example.results.AllocationRow;
-import org.example.usei04.service.OrderAllocationService;
+import org.example.service.OrderAllocationService;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
