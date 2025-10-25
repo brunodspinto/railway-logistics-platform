@@ -54,6 +54,22 @@ public class UnloadingResult {
         return errors.size();
     }
 
+    /**
+     * Returns the number of successfully unloaded wagons.
+     * Alias for getSuccessfulWagons() to match test expectations.
+     */
+    public int getSuccessCount() {
+        return getSuccessfulWagons();
+    }
+
+    /**
+     * Returns the number of errors/failed wagons.
+     * Alias for getFailedWagons() to match test expectations.
+     */
+    public int getErrorCount() {
+        return getFailedWagons();
+    }
+
     public int getTotalWagons() {
         return successfulUnloads.size() + errors.size();
     }
@@ -110,7 +126,7 @@ public class UnloadingResult {
 
         if (hasErrors()) {
             sb.append("╠════════════════════════════════════════════════════╣\n");
-            sb.append("║   Errors:                                          ║\n");
+            sb.append("║ ❌ Errors:                                          ║\n");
             for (Map.Entry<String, String> entry : errors.entrySet()) {
                 String errorMsg = entry.getValue();
                 if (errorMsg.length() > 42) {

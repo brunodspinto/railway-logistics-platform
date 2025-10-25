@@ -33,14 +33,6 @@ public class WagonUnloadingService {
     /**
      * Unloads wagons into warehouse following GLOBAL FEFO/FIFO order
      * with Round-Robin distribution across aisles.
-     *
-     * Algorithm:
-     * 1. Collect all boxes from all wagons
-     * 2. Sort globally by FEFO/FIFO (ensures correct dispatch order)
-     * 3. Distribute using Round-Robin across aisles (balances load)
-     *
-     * @param wagons list of wagons to unload
-     * @return result containing success/error counts per wagon
      */
     public UnloadingResult unloadWagons(List<Wagon> wagons) {
         UnloadingResult result = new UnloadingResult();
@@ -53,66 +45,84 @@ public class WagonUnloadingService {
 
         // ✅ STEP 1: Collect ALL boxes from ALL wagons
         List<Box> allBoxes = new ArrayList<>();
+
+        // ✅ Track which wagon each box belongs to (for result tracking)
+        Map<String, String> boxToWagon = new HashMap<>();  // boxId -> wagonId
+
         for (Wagon wagon : wagons) {
-            allBoxes.addAll(wagon.getBoxes());
+            for (Box box : wagon.getBoxes()) {
+                allBoxes.add(box);
+                boxToWagon.put(box.getBoxId(), wagon.getWagonId());
+            }
         }
 
         System.out.println("📦 Total boxes to unload: " + allBoxes.size());
 
-        // ✅ STEP 2: Sort GLOBALLY by FEFO/FIFO (Box implements Comparable)
+        // ✅ STEP 2: Sort GLOBALLY by FEFO/FIFO
         allBoxes.sort(Box::compareTo);
         System.out.println("✅ Boxes sorted by FEFO/FIFO order");
 
-        // ✅ STEP 3: Reset Round-Robin counter for this unload operation
+        // ✅ STEP 3: Reset Round-Robin counter
         currentAisleIndex = 0;
 
         // ✅ STEP 4: Distribute to bays using Round-Robin
         Map<String, Integer> successfulBoxesPerWagon = new HashMap<>();
+        Map<String, Integer> totalBoxesPerWagon = new HashMap<>();  // Track expected count
         Map<String, String> errorPerWagon = new HashMap<>();
+
+        // Initialize counters for each wagon
+        for (Wagon wagon : wagons) {
+            totalBoxesPerWagon.put(wagon.getWagonId(), wagon.getBoxes().size());
+        }
 
         for (Box box : allBoxes) {
             try {
-                // ✅ Select bay using Round-Robin strategy
                 Bay targetBay = selectBayRoundRobin(warehouse, box);
 
                 if (targetBay == null) {
                     throw new CapacityExceededException(
-                            "No available bays for box " + box.getBoxId(),
-                            0
+                            "No available bays for box " + box.getBoxId(), 0
                     );
                 }
 
-                // Add box to bay (Bay.addBox will insert in correct FEFO/FIFO position)
                 targetBay.addBox(box);
 
-                // Track success
-                successfulBoxesPerWagon.merge(box.getWagonId(), 1, Integer::sum);
+                // Track success by wagon
+                String wagonId = box.getWagonId();
+                successfulBoxesPerWagon.merge(wagonId, 1, Integer::sum);
 
             } catch (Exception e) {
-                // Track error (only keep first error per wagon)
-                errorPerWagon.putIfAbsent(box.getWagonId(), e.getMessage());
+                String wagonId = box.getWagonId();
+                errorPerWagon.putIfAbsent(wagonId, e.getMessage());
             }
         }
 
         // ✅ STEP 5: Build result
-        for (Map.Entry<String, Integer> entry : successfulBoxesPerWagon.entrySet()) {
-            String wagonId = entry.getKey();
-            int boxCount = entry.getValue();
+        System.out.println("\n🔍 DEBUG: Building result...");
+        System.out.println("  totalBoxesPerWagon: " + totalBoxesPerWagon);
+        System.out.println("  successfulBoxesPerWagon: " + successfulBoxesPerWagon);
+        System.out.println("  errorPerWagon: " + errorPerWagon);
 
-            // Only mark as success if NO errors for this wagon
-            if (!errorPerWagon.containsKey(wagonId)) {
-                result.addSuccess(wagonId, boxCount);
+        for (String wagonId : totalBoxesPerWagon.keySet()) {
+            int expectedBoxes = totalBoxesPerWagon.get(wagonId);
+            int successfulBoxes = successfulBoxesPerWagon.getOrDefault(wagonId, 0);
+
+            System.out.println(String.format("\n  Wagon %s: %d/%d boxes placed",
+                    wagonId, successfulBoxes, expectedBoxes));
+
+            if (successfulBoxes == expectedBoxes && !errorPerWagon.containsKey(wagonId)) {
+                System.out.println("    → SUCCESS");
+                result.addSuccess(wagonId, successfulBoxes);
+            } else {
+                String error = errorPerWagon.getOrDefault(wagonId,
+                        String.format("Partial unload: %d/%d boxes placed",
+                                successfulBoxes, expectedBoxes));
+                System.out.println("    → ERROR: " + error);
+                result.addError(wagonId, error);
             }
         }
 
-        // Add errors
-        for (Map.Entry<String, String> entry : errorPerWagon.entrySet()) {
-            result.addError(entry.getKey(), entry.getValue());
-        }
-
         warehouseRepository.save(warehouse);
-
-        // ✅ Print distribution summary
         printDistributionSummary(warehouse);
 
         return result;

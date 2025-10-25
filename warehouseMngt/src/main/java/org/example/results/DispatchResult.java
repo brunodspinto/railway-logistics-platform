@@ -26,10 +26,19 @@ public class DispatchResult {
     public String getSku() { return sku; }
     public int getRequestedQty() { return requestedQty; }
     public int getDispatchedQty() { return dispatchedQty; }
+
+    /**
+     * Returns the total quantity dispatched.
+     * Alias for getDispatchedQty() to match test expectations.
+     */
+    public int getTotalDispatched() {
+        return getDispatchedQty();
+    }
+
     public int getRemainingQty() { return requestedQty - dispatchedQty; }
     public List<DispatchedBox> getDispatchedBoxes() { return dispatchedBoxes; }
 
-    // Status checkers
+    // ✅ Status checkers
     public boolean isFullyDispatched() {
         return dispatchedQty >= requestedQty;
     }
@@ -65,14 +74,14 @@ public class DispatchResult {
                 sb.append(String.format("║   - %-41s ║\n", box.toString()));
             }
         } else {
-            sb.append(String.format("║    NO STOCK AVAILABLE                       ║\n"));
+            sb.append(String.format("║ ⚠️  NO STOCK AVAILABLE                       ║\n"));
         }
 
         sb.append(String.format("╚═══════════════════════════════════════════════╝"));
         return sb.toString();
     }
 
-    // Inner class for type safety
+    // ✅ Inner class for type safety
     public static class DispatchedBox {
         private final String boxId;
         private final int quantity;
