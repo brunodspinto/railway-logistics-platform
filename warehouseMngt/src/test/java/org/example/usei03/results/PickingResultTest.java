@@ -1,4 +1,4 @@
-package org.example.usei03;
+package org.example.usei03.results;
 
 import org.example.domain.*;
 import org.example.results.PickingResult;

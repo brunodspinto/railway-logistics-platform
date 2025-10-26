@@ -1,4 +1,4 @@
-package org.example.usei03;
+package org.example.usei03.service;
 
 import org.example.domain.PickingItem;
 import org.example.domain.Trolley;

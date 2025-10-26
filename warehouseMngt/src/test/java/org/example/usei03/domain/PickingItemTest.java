@@ -1,4 +1,4 @@
-package org.example.usei03;
+package org.example.usei03.domain;
 
 import org.example.domain.PickingItem;
 import org.junit.jupiter.api.*;
