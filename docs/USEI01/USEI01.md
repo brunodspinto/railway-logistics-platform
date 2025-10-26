@@ -22,9 +22,61 @@ When wagons arrive at the terminal and are unloaded into warehouses, the sequenc
 
 ---
 
-## 3. Acceptance Criteria
+## 3. Bay Allocation Strategy  ← 🆕 NOVA SECÇÃO AQUI
 
-### 3.1 Stock Initialization/Unloading Wagons
+### 3.1 Allocation Goals
+The allocation strategy aims to:
+- **SKU Consolidation**: Keep same SKU products together for efficient picking
+- **Load Balancing**: Distribute boxes across aisles to enable parallel operations
+- **Deterministic Behavior**: Same input produces same allocation
+
+### 3.2 Allocation Algorithm
+
+The system uses a **two-phase allocation strategy**:
+
+#### Phase 1: SKU Consolidation (Priority)
+When a box arrives, the system first attempts to place it in a bay that **already contains the same SKU** and has available capacity.
+
+**Benefits:**
+- Reduces picking time (all units of same SKU in fewer locations)
+- Simplifies inventory management
+- Minimizes bay fragmentation
+
+**Selection Logic:**
+```
+1. Find all bays containing the SKU with available space
+2. Select the bay with the MOST available capacity
+3. Place box using FEFO/FIFO insertion
+```
+
+#### Phase 2: Round-Robin Distribution (Fallback)
+If no bay contains the SKU (or all are full), the system uses **Round-Robin across aisles** to balance load:
+
+**Benefits:**
+- Enables parallel picking operations (multiple pickers in different aisles)
+- Prevents aisle bottlenecks
+- Distributes wear across warehouse infrastructure
+
+**Selection Logic:**
+```
+1. Group available bays by aisle number
+2. Select aisle using Round-Robin counter (rotates: A1 → A2 → A3 → A1...)
+3. Within selected aisle, use first available bay (ascending bay number)
+4. Increment Round-Robin counter for next allocation
+```
+
+### 3.3 FEFO/FIFO Preservation
+**Critical:** Regardless of which bay is selected, boxes are **always inserted in FEFO/FIFO order within the bay**:
+- Perishable: Earliest expiry first
+- Non-perishable: Oldest receivedAt first
+- Tie-break: boxId ascending
+
+This ensures that **dispatch operations maintain FEFO/FIFO globally** by processing bays in order.
+
+
+## 4. Acceptance Criteria
+
+### 4.1 Stock Initialization/Unloading Wagons
 
 The file `wagons.csv` contains the available stock per SKU. Each wagon's contents should be assigned to an aisle/bay, and their products must be inserted into the correct position inside the bay according to the following rules:
 
@@ -33,7 +85,7 @@ The file `wagons.csv` contains the available stock per SKU. Each wagon's content
 2. **receivedAt** (oldest first)
 3. **boxId ASC** (tie-break)
 
-### 3.2 Dispatch Operation
+### 4.2 Dispatch Operation
 
 The operation `dispatch` must:
 - Always consume stock from the **"front"** of the bay list, guaranteeing FEFO/FIFO behaviour
@@ -41,7 +93,7 @@ The operation `dispatch` must:
 - **Only delete empty boxes, not bays**
 - Support **partial dispatch across multiple bays**: if the target bay runs out, continue in the next bay (ascending number) that holds that SKU
 
-### 3.3 Relocation
+### 4.3 Relocation
 
 The operation `relocation` must:
 - Update a box's `warehouseId`/`aisle`/`bay` only
@@ -50,7 +102,7 @@ The operation `relocation` must:
 
 ---
 
-## 4. Data Sources
+## 5. Data Sources
 
 ### Input Files:
 
@@ -81,7 +133,7 @@ Contains product information:
 
 ---
 
-## 5. Validation Rules
+## 6. Validation Rules
 
 During import, the system must validate:
 
