@@ -41,24 +41,33 @@ class Item {
 class Wagon {
     wagonId
     type
-    gauge
     payloadCapacity
+    volumeCapacity
     tareWeight
+    weight
+    width
+    height
+    length
+    gauge
+    BogiesNumber
 }
 
 class Locomotive {
     number
     name
     yearOfEntry
-    type
-    model
+}
+
+class LocomotiveModel {
     make
     power
-    maxSpeed
+    acceleration
+    type
+    maxWeight
     weight
     width
     height
-    lenght
+    length
     gauge
     BogiesNumber
 }
@@ -79,7 +88,6 @@ class ElectricTrain {
 class RailLine {
     lineId
     name
-    owner
     gauge
 }
 
@@ -87,10 +95,14 @@ class LineSegment {
     segmentId
     trackType
     gauge
+    orderLine
     maxWeight
     speedLimit
     length
     isElectrified
+}
+
+class ElectrifiedLineSegment {
 }
 
 class Endpoint {
@@ -100,7 +112,7 @@ class Endpoint {
 }
 
 class Operator {
-    operatorId
+    number
     name
 }
 
@@ -147,14 +159,13 @@ Box "1" -- "1" Item : references
 Wagon "1" -- "*" Box : transports
 Wagon "0..*" -- "1" Operator : belongsTo
 Locomotive "0..*" -- "1" Operator : belongsTo
-Train "1" -- "1..*" Locomotive : pulledBy
+Locomotive "1" -- "1" LocomotiveModel : has
+Train "1" -- "1..*" Locomotive : contains
 Train "1" -- "*" Wagon : carries
-Train "0..*" -- "1" Operator : operatedBy
 RailLine "1" -- "*" LineSegment : composedOf
-LineSegment "1" -- "1" Endpoint : startsAt
-LineSegment "1" -- "1" Endpoint : endsAt
+LineSegment "2" -- "2" Endpoint : connects
 RailLine "1" -- "1" Operator : ownedBy
-ElectricTrain "*" -- "*" LineSegment : requiresElectrified
+ElectricTrain "*" -- "*" ElectrifiedLineSegment : requires
 Order "1" -- "*" OrderLine : contains
 OrderLine "1" -- "*" Allocation : has
 Allocation "1" -- "1" Box : from
@@ -182,5 +193,6 @@ User <|-- StorageManager
 User <|-- FreightManager
 User <|-- Planner
 User <|-- QualityOperator
+LineSegment <|-- ElectrifiedLineSegment
 
 @enduml
