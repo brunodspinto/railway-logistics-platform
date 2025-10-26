@@ -6,7 +6,6 @@ skinparam classAttributeIconSize 0
 hide circle
 hide methods
 
-title Domain Model - Train Station Warehouse (Sprint 1) - Improved
 
 ' --- CORE ENTITIES ---
 class Warehouse {
@@ -135,8 +134,7 @@ class Quarantine {
 
 class User {
     userId
-    name
-    email
+    role
 }
 
 
