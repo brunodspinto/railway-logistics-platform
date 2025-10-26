@@ -13,7 +13,6 @@
     <modules>
         <module>warehouseMngt</module>
         <module>freightMngt</module>
-        <module>freightMngt</module>
     </modules>
 
     <properties>
