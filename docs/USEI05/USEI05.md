@@ -92,8 +92,37 @@ timestamp | returnId=... | sku=... | action=Restocked|Discarded | qty=...
 
 This log provides a clear history of all inspections and ensures that decisions can be reviewed later for auditing or troubleshooting purposes.
 
----
+### 3.5 Partial Restock Strategy
 
+Returned items are sometimes only partially suitable for reintegration into inventory. To ensure realistic and auditable handling of such cases, the following partial restock strategy was applied.
+
+#### Rationale
+
+Certain return reasons — particularly **Customer Remorse** and **Cycle Count** — can include mixed conditions:
+
+- Some units may be in perfect condition and suitable for resale
+- Others may be damaged, opened, or otherwise unsuitable
+
+Instead of applying a binary (restock/discard) rule, these reasons allow **partial acceptance** of items.
+
+#### Decision Rules Implemented
+
+The following table summarizes the partial restock logic:
+
+| Return Reason      | Eligible for Partial Restock? | Logic Applied                                      | Example                           |
+|--------------------|--------------------------------|----------------------------------------------------|-----------------------------------|
+| **Customer Remorse** | ✅ Yes                        | If quantity ≥ 10 units → 80% restocked, 20% discarded | 15 units → 12 restocked, 3 discarded |
+| **Cycle Count**      | ✅ Yes                        | If quantity ≥ 10 units → 80% restocked, 20% discarded | 12 units → 10 restocked, 2 discarded |
+| **Damaged**          | ❌ No                         | Always discarded                                   | All units discarded               |
+| **Expired**          | ❌ No                         | Always discarded                                   | All units discarded               |
+
+#### Implementation Details
+
+**Calculation Method:**
+```
+qtyRestocked = ceil(originalQty × 0.8)
+qtyDiscarded = originalQty - qtyRestocked
+```
 ## 4. Data Sources
 
 ### Input File:
