@@ -1,4 +1,4 @@
-package org.example.usei04;
+package org.example.usei04.service;
 
 import org.example.domain.Record;
 import org.example.service.PathSequencingService;
