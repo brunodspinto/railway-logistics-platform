@@ -1,6 +1,7 @@
-package org.example.service;
+package org.example.usei04;
 
 import org.example.domain.Record;
+import org.example.service.PathSequencingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
