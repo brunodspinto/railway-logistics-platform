@@ -1,4 +1,4 @@
-package org.example.usei02;
+package org.example.usei02.results;
 
 import org.example.results.AllocationRow;
 import org.junit.jupiter.api.DisplayName;

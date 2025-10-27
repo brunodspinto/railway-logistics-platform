@@ -1,4 +1,4 @@
-package org.example.usei02;
+package org.example.usei02.results;
 
 import org.example.domain.OrderLine;
 import org.example.results.AllocationRow;
