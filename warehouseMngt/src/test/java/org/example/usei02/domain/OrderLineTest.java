@@ -1,4 +1,4 @@
-package org.example.usei02;
+package org.example.usei02.domain;
 
 import org.example.domain.OrderLine;
 import org.junit.jupiter.api.DisplayName;
