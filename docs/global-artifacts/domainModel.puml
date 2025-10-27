@@ -19,6 +19,7 @@ class Aisle {
 class Bay {
     bayNumber
     capacityBoxes
+    currentBoxes
 }
 
 class Box {

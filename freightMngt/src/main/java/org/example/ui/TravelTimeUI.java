@@ -206,7 +206,7 @@ public class TravelTimeUI {
                 System.out.printf("  %d. %.1f km | %s | %d tracks | Max: %d km/h%n",
                         seg.getOrder(),
                         seg.getLengthKm(),
-                        seg.isElectrified() ? "⚡ Electrified" : "No power",
+                        seg.isElectrified() ? " Electrified" : "No power",
                         seg.getNumberTracks(),
                         seg.getMaxSpeedKmh());
             }
@@ -238,7 +238,7 @@ public class TravelTimeUI {
             System.out.printf("Manufacturer: %s %s (Year: %d)%n",
                     loco.getMake(), loco.getModel(), loco.getServiceYear());
             System.out.printf("Type: %s | Gauge: %d mm%n",
-                    loco.isElectric() ? "⚡ Electric" : "🛢️ Diesel",
+                    loco.isElectric() ? " Electric" : " Diesel",
                     loco.getGauge());
             System.out.printf("Max Speed: %d km/h | Operational: %d km/h%n",
                     loco.getMaxSpeed(), loco.getOperationalSpeed());
