@@ -52,6 +52,17 @@ class Wagon {
     BogiesNumber
 }
 
+class Trolley {
+    trolleyId
+    capacityWeight
+    usedWeight
+}
+
+class PickingPlan {
+    planId
+    heuristic
+}
+
 class Locomotive {
     number
     name
@@ -172,10 +183,13 @@ Allocation "1" -- "1" Box : from
 Return "1" -- "1" Item : references
 Quarantine "1" -- "*" Return : holds
 Endpoint "1" -- "*" Warehouse : has
+PickingPlan "1" -- "*" Trolley : uses
+Trolley "*" -- "*" Allocation : picks
 
 ' --- USER RESPONSIBILITIES ---
 Planner "1" -- "*" Order : creates
 Planner "1" -- "*" Allocation : manages
+Planner "1" -- "*" PickingPlan : creates
 StorageManager "1" -- "*" Warehouse : manages
 StorageManager "1" -- "*" Box : handles
 QualityOperator "1" -- "*" Return : inspects
