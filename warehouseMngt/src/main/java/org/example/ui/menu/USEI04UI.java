@@ -12,8 +12,7 @@ public class USEI04UI implements Runnable {
         try {
             System.out.println("\n=== Running USEI04 - Pick Path Sequencing ===\n");
 
-            // Idealmente, ler o plano já gerado pela USEI03
-            List<Trolley> pickingPlan = SharedContext.getLastPickingPlan(); // Exemplo
+            List<Trolley> pickingPlan = SharedContext.getLastPickingPlan();
 
             if (pickingPlan != null && !pickingPlan.isEmpty()) {
                 USEI04Executor.execute(pickingPlan);
