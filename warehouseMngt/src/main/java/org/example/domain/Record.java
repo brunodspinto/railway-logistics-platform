@@ -40,7 +40,6 @@ public final class Record {
 
     @Override
     public String toString() {
-        // formato simplificado (aisle,bay)
         return "(" + aisle + "," + bay + ")";
     }
 }
