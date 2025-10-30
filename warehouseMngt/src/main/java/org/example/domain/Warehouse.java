@@ -274,33 +274,6 @@ public class Warehouse {
     }
 
     /**
-     * Groups bays by aisle number.
-     * Useful for Round-Robin allocation strategies.
-     *
-     * @return map of aisle number to list of bays in that aisle
-     */
-    public Map<Integer, List<Bay>> getBaysByAisle() {
-        return bays.values().stream()
-                .collect(Collectors.groupingBy(
-                        Bay::getAisleNumber,
-                        Collectors.toList()
-                ));
-    }
-
-    /**
-     * Gets all unique aisle numbers in this warehouse, sorted.
-     *
-     * @return sorted list of aisle numbers
-     */
-    public List<Integer> getAisleNumbers() {
-        return bays.values().stream()
-                .map(Bay::getAisleNumber)
-                .distinct()
-                .sorted()
-                .collect(Collectors.toList());
-    }
-
-    /**
      * Returns a summary of the warehouse's current state.
      *
      * @return summary string
@@ -326,4 +299,3 @@ public class Warehouse {
                 '}';
     }
 }
-

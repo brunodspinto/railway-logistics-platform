@@ -1,6 +1,5 @@
 package org.example.service;
 
-
 import org.example.domain.*;
 import org.example.results.DispatchResult;
 import org.example.exception.BoxNotFoundException;
@@ -16,6 +15,10 @@ public class InventoryService {
         this.warehouseRepository = warehouseRepository;
     }
 
+    public Warehouse getWarehouse() {
+        return warehouseRepository.findDefault();
+    }
+
     /**
      * Dispatches boxes following FEFO/FIFO rules (USEI01 Acceptance Criteria #2).
      * Supports partial dispatch across multiple bays.
@@ -29,62 +32,52 @@ public class InventoryService {
         }
 
         int remainingQty = requestedQty;
+        List<Bay> baysWithSku = warehouse.getBaysWithSku(sku);
 
-        List<Bay> baysWithSku = warehouse.getBaysWithSkuSorted(sku);
-
-        if (baysWithSku.isEmpty()) {
-            // No stock available
-            System.out.println("⚠️  No stock available for SKU: " + sku);
-            return result;
-        }
-
-        System.out.println("\n🔍 Dispatch order for SKU " + sku + ":");
-        for (Bay bay : baysWithSku) {
-            Box firstBox = bay.peekFirstBox(sku);
-            System.out.printf("  → Bay %s: %s (exp: %s)%n",
-                    bay.getLocation().toFormattedString(),
-                    firstBox.getBoxId(),
-                    firstBox.getExpiryDate());
-        }
-
-        // Iterar pelos bays em ordem FEFO (partial dispatch across multiple bays)
         for (Bay bay : baysWithSku) {
             if (remainingQty <= 0) break;
 
-            System.out.println("\n📦 Processing bay: " + bay.getLocation().toFormattedString());
-
-            // Consumir boxes do bay em ordem FEFO/FIFO
+            // Process boxes in this bay
             while (remainingQty > 0 && bay.containsSku(sku)) {
                 Box box = bay.peekFirstBox(sku);
                 if (box == null) break;
 
                 int takeQty = Math.min(remainingQty, box.getQuantity());
 
-                System.out.printf("  → Dispatching %d units from %s (has %d)%n",
-                        takeQty, box.getBoxId(), box.getQuantity());
-
                 if (takeQty == box.getQuantity()) {
-                    // Full dispatch - remove box
+                    // Full dispatch - remove completely
                     bay.removeFirstBox(sku);
                     result.addDispatchedBox(box.getBoxId(), takeQty);
+
                 } else {
-                    // Partial dispatch - update quantity
-                    box.reduceQuantity(takeQty);
-                    result.addDispatchedBox(box.getBoxId(), takeQty);
+                    // Partial dispatch - create new box with remaining quantity
+                    Box originalBox = bay.removeFirstBox(sku);
+
+                    // Create new box with remaining quantity
+                    Box remainingBox = new Box(
+                            originalBox.getBoxId(),
+                            originalBox.getSku(),
+                            originalBox.getQuantity() - takeQty, // Remaining
+                            originalBox.getExpiryDate(),
+                            originalBox.getReceivedAt(),
+                            originalBox.getWagonId()
+                    );
+
+                    // Re-add with updated quantity (will re-sort correctly)
+                    bay.addBox(remainingBox);
+
+                    result.addDispatchedBox(originalBox.getBoxId(), takeQty);
                 }
 
                 remainingQty -= takeQty;
             }
-
-            //    Loop continua automaticamente para próximo bay
         }
 
+        // Log if request couldn't be fully satisfied
         if (remainingQty > 0) {
-            System.err.printf(" Partial fulfillment: %d/%d dispatched for SKU %s%n",
-                    requestedQty - remainingQty, requestedQty, sku);
-        } else {
-            System.out.printf(" Fully dispatched: %d units of SKU %s%n",
-                    requestedQty, sku);
+            System.err.println(" Partial fulfillment: " +
+                    (requestedQty - remainingQty) + "/" + requestedQty +
+                    " dispatched for SKU " + sku);
         }
 
         warehouseRepository.save(warehouse);
@@ -163,7 +156,7 @@ public class InventoryService {
         StringBuilder sb = new StringBuilder();
 
         sb.append("════════════════════════════════════════════════════════════\n");
-        sb.append("🏗️  WAREHOUSE OVERVIEW\n");
+        sb.append("  WAREHOUSE OVERVIEW\n");
         sb.append("════════════════════════════════════════════════════════════\n");
         sb.append(String.format(" Warehouse ID:    %s\n", warehouse.getWarehouseId()));
         sb.append(String.format(" Total bays:      %d\n", warehouse.getBayCount()));
@@ -175,7 +168,7 @@ public class InventoryService {
         sb.append(String.format(" Occupied bays:   %d\n", occupiedBays));
         sb.append(String.format(" Total boxes:     %d\n", warehouse.getTotalBoxCount()));
         sb.append(String.format(" Occupancy:       %.1f%%\n", warehouse.getOccupancyPercentage()));
-        sb.append("\n📍 Boxes by Bay (FEFO/FIFO Order)\n");
+        sb.append("\n Boxes by Bay (FEFO/FIFO Order)\n");
         sb.append("────────────────────────────────────────────────────────────\n\n");
 
         // Get occupied bays sorted by location
@@ -233,7 +226,7 @@ public class InventoryService {
 
         StringBuilder sb = new StringBuilder();
         sb.append("════════════════════════════════════════════════════════════\n");
-        sb.append("📊 INVENTORY SUMMARY BY SKU\n");
+        sb.append("INVENTORY SUMMARY BY SKU\n");
         sb.append("════════════════════════════════════════════════════════════\n");
 
         // Collect inventory data
@@ -261,7 +254,7 @@ public class InventoryService {
         for (String sku : sortedSkus) {
             SkuInventoryData data = skuData.get(sku);
             String expiredWarning = data.getExpiredCount() > 0
-                    ? String.format(" ⚠️ %d expired", data.getExpiredCount())
+                    ? String.format(" %d expired", data.getExpiredCount())
                     : "";
 
             sb.append(String.format(" %s → %4d units  (%d boxes across %d bays)%s\n",
@@ -276,49 +269,6 @@ public class InventoryService {
 
         sb.append("────────────────────────────────────────────────────────────\n");
         sb.append(String.format(" TOTAL:     %,d units across %d SKUs\n", totalUnits, skuData.size()));
-        sb.append("════════════════════════════════════════════════════════════\n");
-
-        return sb.toString();
-    }
-
-    /**
-     * Generates concise system validation summary.
-     * Replaces verbose FEFO/FIFO validation section.
-     */
-    public String generateSystemValidation() {
-        Warehouse warehouse = warehouseRepository.findDefault();
-        if (warehouse == null) {
-            return "";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("════════════════════════════════════════════════════════════\n");
-        sb.append("✅ SYSTEM VALIDATION\n");
-        sb.append("════════════════════════════════════════════════════════════\n");
-
-        // Count occupied bays
-        long occupiedBays = warehouse.getAllBays().stream()
-                .filter(bay -> !bay.isEmpty())
-                .count();
-
-        // Check for capacity violations
-        long overflowBays = warehouse.getAllBays().stream()
-                .filter(bay -> bay.getCurrentBoxCount() > bay.getCapacityBoxes())
-                .count();
-
-        // Count expired boxes
-        long expiredBoxes = warehouse.getAllBays().stream()
-                .flatMap(bay -> bay.getBoxes().stream())
-                .filter(Box::isFlaggedForInspection)
-                .count();
-
-        sb.append(String.format(" ✅ FEFO/FIFO order verified across all %d occupied bays\n",
-                occupiedBays));
-        sb.append(String.format(" ✅ All bay capacities respected (%d overflows)\n",
-                overflowBays));
-        sb.append(String.format(" ✅ %d expired boxes flagged for inspection\n",
-                expiredBoxes));
-        sb.append(" ✅ All boxes successfully placed\n");
         sb.append("════════════════════════════════════════════════════════════\n");
 
         return sb.toString();
@@ -358,4 +308,3 @@ public class InventoryService {
         public int getExpiredCount() { return expiredCount; }
     }
 }
-
