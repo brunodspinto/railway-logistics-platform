@@ -1,0 +1,51 @@
+country,time_zone,time_zone_group,station,latitude,longitude,is_city,is_main_station,is_airport
+PT,"('Europe/Lisbon',)",WET,Lisboa Santa Apolónia,38.71387,-9.122271,True,True,False
+PT,"('Europe/Lisbon',)",WET,Lisboa Oriente,38.71387,-9.122271,False,True,False
+PT,"('Europe/Lisbon',)",WET,Lisboa Entrecampos,38.749722,-9.145278,False,False,False
+PT,"('Europe/Lisbon',)",WET,Lisboa Cais do Sodré,38.706111,-9.144722,False,True,False
+PT,"('Europe/Lisbon',)",WET,Porto São Bento,41.145556,-8.610278,True,True,False
+PT,"('Europe/Lisbon',)",WET,Porto Campanhã,41.149174,-8.585675,True,True,False
+PT,"('Europe/Lisbon',)",WET,Porto Trindade,41.151944,-8.608333,False,False,False
+PT,"('Europe/Lisbon',)",WET,Coimbra-B,40.203503,-8.418317,False,True,False
+PT,"('Europe/Lisbon',)",WET,Faro,37.019444,-7.932222,True,True,False
+PT,"('Europe/Lisbon',)",WET,Braga,41.545556,-8.426389,True,True,False
+ES,"('Europe/Madrid',)",CET,Madrid Atocha,40.406819,-3.691235,True,True,False
+ES,"('Europe/Madrid',)",CET,Madrid Chamartín,40.472222,-3.679444,True,True,False
+ES,"('Europe/Madrid',)",CET,Barcelona Sants,41.379179,2.140326,True,True,False
+ES,"('Europe/Madrid',)",CET,Barcelona França,41.385278,2.185556,False,True,False
+ES,"('Europe/Madrid',)",CET,Sevilla Santa Justa,37.391944,-5.975833,True,True,False
+ES,"('Europe/Madrid',)",CET,Valencia Joaquín Sorolla,39.466389,-0.377222,True,True,False
+ES,"('Europe/Madrid',)",CET,Bilbao-Abando,43.262222,-2.923056,True,True,False
+FR,"('Europe/Paris',)",CET,Paris Gare du Nord,48.880931,2.355323,True,True,False
+FR,"('Europe/Paris',)",CET,Paris Gare de Lyon,48.844722,2.373611,False,True,False
+FR,"('Europe/Paris',)",CET,Paris Montparnasse,48.840556,2.318611,False,True,False
+FR,"('Europe/Paris',)",CET,Lyon Part-Dieu,45.760833,4.859167,True,True,False
+FR,"('Europe/Paris',)",CET,Lyon Perrache,45.749167,4.826111,False,True,False
+FR,"('Europe/Paris',)",CET,Marseille Saint-Charles,43.303056,5.380556,True,True,False
+FR,"('Europe/Paris',)",CET,Lille Europe,50.638889,3.075556,True,True,False
+FR,"('Europe/Paris',)",CET,Nice Ville,43.704722,7.261667,True,True,False
+DE,"('Europe/Berlin',)",CET,Berlin Hauptbahnhof,52.525589,13.369548,True,True,False
+DE,"('Europe/Berlin',)",CET,Berlin Ostbahnhof,52.510556,13.434722,False,True,False
+DE,"('Europe/Berlin',)",CET,München Hauptbahnhof,48.140232,11.558335,True,True,False
+DE,"('Europe/Berlin',)",CET,München Ost,48.127500,11.604722,False,False,False
+DE,"('Europe/Berlin',)",CET,Frankfurt (Main) Hbf,50.107145,8.663789,False,True,False
+DE,"('Europe/Berlin',)",CET,Hamburg Hauptbahnhof,53.552222,10.006944,True,True,False
+IT,"('Europe/Rome',)",CET,Roma Termini,41.900939,12.502222,True,True,False
+IT,"('Europe/Rome',)",CET,Roma Tiburtina,41.909722,12.531111,False,True,False
+IT,"('Europe/Rome',)",CET,Milano Centrale,45.486107,9.204152,True,True,False
+IT,"('Europe/Rome',)",CET,Milano Porta Garibaldi,45.485278,9.187778,False,True,False
+IT,"('Europe/Rome',)",CET,Venezia Santa Lucia,45.441050,12.321028,False,True,False
+IT,"('Europe/Rome',)",CET,Firenze Santa Maria Novella,43.776111,11.247778,True,True,False
+IT,"('Europe/Rome',)",CET,Napoli Centrale,40.853333,14.273889,True,True,False
+GR,"('Europe/Athens',)",EET,Athens,37.983810,23.727539,True,True,False
+GR,"('Europe/Athens',)",EET,Thessaloniki,40.632501,22.944611,True,True,False
+UK,"('Europe/London',)",GMT,London King's Cross,51.530833,-0.123611,True,True,False
+UK,"('Europe/London',)",GMT,London Paddington,51.515833,-0.176389,True,True,False
+UK,"('Europe/London',)",GMT,London Victoria,51.495278,-0.144444,True,True,False
+UK,"('Europe/London',)",GMT,Manchester Piccadilly,53.477778,-2.231389,True,True,False
+UK,"('Europe/London',)",GMT,Birmingham New Street,52.477778,-1.899167,True,True,False
+CH,"('Europe/Zurich',)",CET,Zürich Hauptbahnhof,47.378056,8.540278,True,True,False
+CH,"('Europe/Zurich',)",CET,Genève Cornavin,46.210556,6.142222,True,True,False
+CH,"('Europe/Zurich',)",CET,Bern Hauptbahnhof,46.949167,7.439167,True,True,False
+NL,"('Europe/Amsterdam',)",CET,Amsterdam Centraal,52.379189,4.900278,True,True,False
+NL,"('Europe/Amsterdam',)",CET,Rotterdam Centraal,51.925000,4.468889,True,True,False
