@@ -7,17 +7,10 @@ import org.example.repository.WarehouseRepository;
 import java.time.LocalDate;
 
 /**
- * Service responsible for inspecting returned products and deciding
- * whether they should be restocked, partially restocked, or discarded.
- *
- * Rules:
- *  - reason = DAMAGED → DISCARD
- *  - reason = EXPIRED → DISCARD
- *  - expiryDate < hoje → DISCARD
- *  - reason = CUSTOMER_REMORSE → RESTOCK (or PARTIAL if large qty)
- *  - reason = CYCLE_COUNT → RESTOCK (may also be PARTIAL)
- *  - reason = WRONG_ITEM → RESTOCK
- *  - reason = PACKAGE_OPENED → DISCARD
+ * Simplified InspectionService: only RESTOCK or DISCARD.
+ * - Damaged / Expired → DISCARD
+ * - Customer remorse / Cycle count → RESTOCK
+ * - Everything else → DISCARD
  */
 public class InspectionService {
 
@@ -37,25 +30,26 @@ public class InspectionService {
         int qtyDiscarded = 0;
 
         // ============ DECISION LOGIC ============
-
         switch (record.getReason()) {
             case DAMAGED, EXPIRED -> {
                 action = "DISCARD";
+                qtyRestocked = 0;
                 qtyDiscarded = record.getQty();
             }
             case CUSTOMER_REMORSE, CYCLE_COUNT -> {
                 if (record.isExpired(today)) {
                     action = "DISCARD";
+                    qtyRestocked = 0;
                     qtyDiscarded = record.getQty();
                 } else {
-                    qtyRestocked = (int) Math.ceil(record.getQty() * 0.8);
-                    qtyDiscarded = record.getQty() - qtyRestocked;
-                    action = (qtyRestocked > 0 && qtyDiscarded > 0)
-                            ? "PARTIAL_RESTOCK" : "RESTOCK";
+                    action = "RESTOCK";
+                    qtyRestocked = record.getQty();
+                    qtyDiscarded = 0;
                 }
             }
             default -> {
                 action = "DISCARD";
+                qtyRestocked = 0;
                 qtyDiscarded = record.getQty();
             }
         }

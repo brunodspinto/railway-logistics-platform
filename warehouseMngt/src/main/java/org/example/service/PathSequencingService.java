@@ -47,7 +47,6 @@ public class PathSequencingService {
      * Remove bays duplicadas da lista de localizações.
      */
     private List<Record> mergeDuplicateBays(List<Record> locations) {
-        // LinkedHashSet preserva a ordem de inserção
         return new ArrayList<>(new LinkedHashSet<>(locations));
     }
 

@@ -21,10 +21,7 @@ class PathSequencingServiceTest {
         service = new PathSequencingService();
     }
 
-    // ----------------------------------------------------------
     // TESTES DO CÁLCULO DE DISTÂNCIAS
-    // ----------------------------------------------------------
-
     @Test
     void testDistanceSameAisle() {
         Record r1 = new Record(1, 2);
@@ -46,13 +43,10 @@ class PathSequencingServiceTest {
                 "A distância entre corredores deve seguir a fórmula b1 + |a1 - a2|*3 + b2");
     }
 
-    // ----------------------------------------------------------
     // TESTES DAS ESTRATÉGIAS
-    // ----------------------------------------------------------
-
     @Test
     void testStrategyAExampleFromSpecification() {
-        // Exemplo do enunciado USEI04 (pág. 14)
+        // Exemplo do enunciado USEI04
         List<Record> bays = List.of(
                 new Record(1, 8),
                 new Record(2, 2),
@@ -96,10 +90,7 @@ class PathSequencingServiceTest {
                 "A distância total da Estratégia B deve ser 35 (segundo o exemplo do enunciado).");
     }
 
-    // ----------------------------------------------------------
     // TESTES DE CENÁRIOS SIMPLES
-    // ----------------------------------------------------------
-
     @Test
     void testSingleBay() {
         List<Record> bays = List.of(new Record(1, 5));

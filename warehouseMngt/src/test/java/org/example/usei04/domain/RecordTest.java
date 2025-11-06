@@ -10,10 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class RecordTest {
 
-    // ----------------------------------------------------------
     // TESTES DO CONSTRUTOR E GETTERS
-    // ----------------------------------------------------------
-
     @Test
     void testConstructorAndGetters() {
         Record record = new Record(5, 10);
@@ -32,10 +29,7 @@ class RecordTest {
         );
     }
 
-    // ----------------------------------------------------------
     // TESTES DO MÉTODO equals()
-    // ----------------------------------------------------------
-
     @Test
     void testEqualsContract() {
         Record r1 = new Record(3, 7);
@@ -62,10 +56,7 @@ class RecordTest {
     }
 
 
-    // ----------------------------------------------------------
     // TESTES DO MÉTODO hashCode()
-    // ----------------------------------------------------------
-
     @Test
     void testHashCodeContract() {
         Record r1 = new Record(10, 20);
@@ -75,17 +66,14 @@ class RecordTest {
         assertEquals(r1.hashCode(), r2.hashCode(), "Objetos iguais devem ter o mesmo hashCode.");
     }
 
-    // ----------------------------------------------------------
     // TESTES DO MÉTODO toString()
-    // ----------------------------------------------------------
-
     @Test
     void testToStringFormat() {
         Record record = new Record(9, 15);
         String expected = "(9,15)";
         assertEquals(expected, record.toString(), "O método toString() deve retornar a string no formato (aisle,bay).");
 
-        // Testa também com a constante
+        // Teste também com a constante
         assertEquals("(0,0)", Record.ENTRANCE.toString(), "O toString() de ENTRANCE deve ser (0,0).");
     }
 }

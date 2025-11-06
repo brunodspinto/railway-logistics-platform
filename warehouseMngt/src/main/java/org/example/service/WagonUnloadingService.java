@@ -6,31 +6,19 @@ import org.example.exception.CapacityExceededException;
 import org.example.repository.WarehouseRepository;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-/**
- * Service for unloading wagons into warehouse.
- *
- * ALLOCATION STRATEGY: Round-Robin (USEI01)
- * Distributes boxes across multiple aisles to support parallel picking operations.
- * This strategy balances load between aisles, enabling multiple pickers to work
- * simultaneously in different areas (critical for USEI04 pick path optimization).
- *
- */
 public class WagonUnloadingService {
 
     private final WarehouseRepository warehouseRepository;
-
-    // Round-Robin state: tracks which aisle to use next
-    private int currentAisleIndex = 0;
 
     public WagonUnloadingService(WarehouseRepository warehouseRepository) {
         this.warehouseRepository = warehouseRepository;
     }
 
     /**
-     * Unloads wagons into warehouse following GLOBAL FEFO/FIFO order
-     * with Round-Robin distribution across aisles.
+     * Unloads wagons into warehouse following GLOBAL FEFO/FIFO order.
+     * All boxes from all wagons are sorted BEFORE distribution to ensure
+     * correct dispatch order across multiple bays.
      */
     public UnloadingResult unloadWagons(List<Wagon> wagons) {
         UnloadingResult result = new UnloadingResult();
@@ -41,185 +29,61 @@ public class WagonUnloadingService {
             return result;
         }
 
-        // Collect ALL boxes from ALL wagons
+        // ✅ STEP 1: Collect ALL boxes from ALL wagons
         List<Box> allBoxes = new ArrayList<>();
-
-        // Track which wagon each box belongs to (for result tracking)
-        Map<String, String> boxToWagon = new HashMap<>();  // boxId -> wagonId
-
         for (Wagon wagon : wagons) {
-            for (Box box : wagon.getBoxes()) {
-                allBoxes.add(box);
-                boxToWagon.put(box.getBoxId(), wagon.getWagonId());
-            }
+            allBoxes.addAll(wagon.getBoxes());
         }
 
-        System.out.println("📦 Total boxes to unload: " + allBoxes.size());
-
-        // Sort GLOBALLY by FEFO/FIFO
+        // ✅ STEP 2: Sort GLOBALLY by FEFO/FIFO (Box implements Comparable)
         allBoxes.sort(Box::compareTo);
-        System.out.println("✅ Boxes sorted by FEFO/FIFO order");
 
-        // Reset Round-Robin counter
-        currentAisleIndex = 0;
-
-        // Distribute to bays using Round-Robin
+        // ✅ STEP 3: Distribute to bays in sorted order
         Map<String, Integer> successfulBoxesPerWagon = new HashMap<>();
-        Map<String, Integer> totalBoxesPerWagon = new HashMap<>();  // Track expected count
         Map<String, String> errorPerWagon = new HashMap<>();
-
-        // Initialize counters for each wagon
-        for (Wagon wagon : wagons) {
-            totalBoxesPerWagon.put(wagon.getWagonId(), wagon.getBoxes().size());
-        }
 
         for (Box box : allBoxes) {
             try {
-                Bay targetBay = selectBayRoundRobin(warehouse, box);
+                // Find best bay for this SKU
+                Bay availableBay = warehouse.findBestAvailableBay(box.getSku());
 
-                if (targetBay == null) {
+                if (availableBay == null) {
                     throw new CapacityExceededException(
-                            "No available bays for box " + box.getBoxId(), 0
+                            "No available bays for box " + box.getBoxId(),
+                            0
                     );
                 }
 
-                targetBay.addBox(box);
+                // Add box to bay (Bay.addBox will insert in correct position)
+                availableBay.addBox(box);
 
-                // Track success by wagon
-                String wagonId = box.getWagonId();
-                successfulBoxesPerWagon.merge(wagonId, 1, Integer::sum);
+                // Track success
+                successfulBoxesPerWagon.merge(box.getWagonId(), 1, Integer::sum);
 
             } catch (Exception e) {
-                String wagonId = box.getWagonId();
-                errorPerWagon.putIfAbsent(wagonId, e.getMessage());
+                // Track error (only keep first error per wagon)
+                errorPerWagon.putIfAbsent(box.getWagonId(), e.getMessage());
             }
         }
 
-        // Build result
-        System.out.println("\n🔍 DEBUG: Building result...");
-        System.out.println("  totalBoxesPerWagon: " + totalBoxesPerWagon);
-        System.out.println("  successfulBoxesPerWagon: " + successfulBoxesPerWagon);
-        System.out.println("  errorPerWagon: " + errorPerWagon);
+        // ✅ STEP 4: Build result
+        for (Map.Entry<String, Integer> entry : successfulBoxesPerWagon.entrySet()) {
+            String wagonId = entry.getKey();
+            int boxCount = entry.getValue();
 
-        for (String wagonId : totalBoxesPerWagon.keySet()) {
-            int expectedBoxes = totalBoxesPerWagon.get(wagonId);
-            int successfulBoxes = successfulBoxesPerWagon.getOrDefault(wagonId, 0);
-
-            System.out.println(String.format("\n  Wagon %s: %d/%d boxes placed",
-                    wagonId, successfulBoxes, expectedBoxes));
-
-            if (successfulBoxes == expectedBoxes && !errorPerWagon.containsKey(wagonId)) {
-                System.out.println("    → SUCCESS");
-                result.addSuccess(wagonId, successfulBoxes);
-            } else {
-                String error = errorPerWagon.getOrDefault(wagonId,
-                        String.format("Partial unload: %d/%d boxes placed",
-                                successfulBoxes, expectedBoxes));
-                System.out.println("    → ERROR: " + error);
-                result.addError(wagonId, error);
+            // Only mark as success if NO errors for this wagon
+            if (!errorPerWagon.containsKey(wagonId)) {
+                result.addSuccess(wagonId, boxCount);
             }
+        }
+
+        // Add errors
+        for (Map.Entry<String, String> entry : errorPerWagon.entrySet()) {
+            result.addError(entry.getKey(), entry.getValue());
         }
 
         warehouseRepository.save(warehouse);
-        printDistributionSummary(warehouse);
-
         return result;
     }
-
-    /**
-     * Round-Robin bay selection strategy.
-     *
-     * Algorithm:
-     * 1. Try to co-locate boxes with same SKU (if bay has space)
-     * 2. Otherwise, rotate between aisles using Round-Robin
-     * 3. Within each aisle, select first available bay
-     *
-     * This ensures:
-     * - SKU consolidation (easier picking)
-     * - Load balancing across aisles (parallel operations)
-     * - Deterministic allocation (same input = same output)
-     *
-     * @param warehouse the warehouse to allocate in
-     * @param box the box to allocate
-     * @return selected bay, or null if no space available
-     */
-    private Bay selectBayRoundRobin(Warehouse warehouse, Box box) {
-        // Try to co-locate with same SKU (SKU grouping)
-        List<Bay> baysWithSku = warehouse.getBaysWithSku(box.getSku()).stream()
-                .filter(Bay::hasAvailableSpace)
-                .toList();
-
-        if (!baysWithSku.isEmpty()) {
-            // Prefer bay with most available space (reduces fragmentation)
-            return baysWithSku.stream()
-                    .max(Comparator.comparingInt(Bay::getAvailableCapacity))
-                    .orElse(null);
-        }
-
-        // Round-Robin across aisles
-        // Group bays by aisle number
-        Map<Integer, List<Bay>> baysByAisle = warehouse.getAllBays().stream()
-                .filter(Bay::hasAvailableSpace)
-                .collect(Collectors.groupingBy(Bay::getAisleNumber));
-
-        if (baysByAisle.isEmpty()) {
-            return null; // No space available anywhere
-        }
-
-        // Get sorted list of aisle numbers
-        List<Integer> aisles = new ArrayList<>(baysByAisle.keySet());
-        Collections.sort(aisles);
-
-        //  Select aisle using Round-Robin
-        int targetAisle = aisles.get(currentAisleIndex % aisles.size());
-        currentAisleIndex++; // Increment for next box
-
-        //  Within selected aisle, get first available bay (by bay number)
-        return baysByAisle.get(targetAisle).stream()
-                .sorted(Comparator.comparingInt(Bay::getBayNumber))
-                .filter(Bay::hasAvailableSpace)
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
-     * Prints a summary of how boxes were distributed across aisles.
-     * Useful for debugging and verifying Round-Robin behavior.
-     */
-    private void printDistributionSummary(Warehouse warehouse) {
-        Map<Integer, Integer> boxesPerAisle = new HashMap<>();
-        Map<Integer, Integer> baysPerAisle = new HashMap<>();
-
-        for (Bay bay : warehouse.getAllBays()) {
-            int aisle = bay.getAisleNumber();
-            int boxCount = bay.getCurrentBoxCount();
-
-            if (boxCount > 0) {
-                boxesPerAisle.merge(aisle, boxCount, Integer::sum);
-                baysPerAisle.merge(aisle, 1, Integer::sum);
-            }
-        }
-
-        System.out.println("\n📊 Distribution Summary (Round-Robin):");
-        System.out.println("─".repeat(50));
-
-        List<Integer> sortedAisles = new ArrayList<>(boxesPerAisle.keySet());
-        Collections.sort(sortedAisles);
-
-        for (int aisle : sortedAisles) {
-            int boxes = boxesPerAisle.get(aisle);
-            int bays = baysPerAisle.get(aisle);
-            System.out.printf("  Aisle %d: %d boxes in %d bay(s)%n", aisle, boxes, bays);
-        }
-
-        System.out.println("─".repeat(50));
-    }
-
-    /**
-     * Resets the Round-Robin counter.
-     * Useful for testing to ensure deterministic behavior.
-     */
-    public void resetRoundRobin() {
-        currentAisleIndex = 0;
-    }
 }
+
