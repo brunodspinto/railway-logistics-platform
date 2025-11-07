@@ -3,109 +3,84 @@ package org.example.trees;
 import org.example.domain.Station;
 import java.util.*;
 
-/**
- * Container for the three AVL indexes required by USEI06:
- * 1. Latitude index
- * 2. Longitude index
- * 3. TimeZone + Country index
- *
- * This class encapsulates all indexes and provides build functionality.
- */
 public class StationIndexes {
-    private final AVLTree<Double, Station> latitudeIndex;
-    private final AVLTree<Double, Station> longitudeIndex;
-    private final AVLTree<CompositeKey, Station> timeZoneIndex;
+    private final AVLTree<Double, Station> latIndex;
+    private final AVLTree<Double, Station> lonIndex;
+    private final AVLTree<CompositeKey, Station> tzIndex;
 
-    private long buildTimeMs;
-    private int totalStations;
+    private long buildTime;
+    private int total;
 
     public StationIndexes() {
-        this.latitudeIndex = new AVLTree<>();
-        this.longitudeIndex = new AVLTree<>();
-        this.timeZoneIndex = new AVLTree<>();
+        this.latIndex = new AVLTree<>();
+        this.lonIndex = new AVLTree<>();
+        this.tzIndex = new AVLTree<>();
     }
 
-    /**
-     * Build all three indexes from list of stations.
-     * Validates stations and rejects invalid ones.
-     *
-     * @param stations List of stations to index
-     * @return Map of rejected stations (Station -> error message)
-     */
     public Map<Station, String> buildIndexes(List<Station> stations) {
-        long startTime = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
         Map<Station, String> rejected = new HashMap<>();
-        int validCount = 0;
+        int valid = 0;
 
-        for (Station station : stations) {
-            String error = station.getValidationError();
-            if (error != null) {
-                rejected.put(station, error);
+        for (Station s : stations) {
+            String err = s.getValidationError();
+            if (err != null) {
+                rejected.put(s, err);
                 continue;
             }
 
-            // Insert into all three indexes
-            latitudeIndex.insert(station.getLatitude(), station);
-            longitudeIndex.insert(station.getLongitude(), station);
+            latIndex.insert(s.getLatitude(), s);
+            lonIndex.insert(s.getLongitude(), s);
 
-            CompositeKey tzKey = new CompositeKey(
-                    station.getTimeZoneGroup(),
-                    station.getCountry()
-            );
-            timeZoneIndex.insert(tzKey, station);
+            CompositeKey key = new CompositeKey(s.getTimeZoneGroup(), s.getCountry());
+            tzIndex.insert(key, s);
 
-            validCount++;
+            valid++;
         }
 
-        this.totalStations = validCount;
-        this.buildTimeMs = System.currentTimeMillis() - startTime;
+        this.total = valid;
+        this.buildTime = System.currentTimeMillis() - start;
 
         return rejected;
     }
 
-    // Getters for indexes
     public AVLTree<Double, Station> getLatitudeIndex() {
-        return latitudeIndex;
+        return latIndex;
     }
 
     public AVLTree<Double, Station> getLongitudeIndex() {
-        return longitudeIndex;
+        return lonIndex;
     }
 
     public AVLTree<CompositeKey, Station> getTimeZoneIndex() {
-        return timeZoneIndex;
+        return tzIndex;
     }
 
-    /**
-     * Get performance metrics for all indexes.
-     */
-    public String getPerformanceReport() {
+    public String getReport() {
         StringBuilder sb = new StringBuilder();
-        sb.append("=== STATION INDEXES PERFORMANCE ===\n");
-        sb.append(String.format("Total stations indexed: %d\n", totalStations));
-        sb.append(String.format("Build time: %d ms\n\n", buildTimeMs));
+        sb.append("Index Statistics\n");
+        sb.append(String.format("Stations: %d | Build time: %d ms\n\n", total, buildTime));
 
         sb.append("Latitude Index:\n");
-        sb.append("  ").append(latitudeIndex.getComplexityAnalysis()).append("\n");
-        sb.append("  Bucket sizes: ").append(latitudeIndex.getBucketSizeDistribution()).append("\n\n");
+        sb.append("  Size: ").append(latIndex.size()).append(" nodes\n");
+        sb.append("  Height: ").append(latIndex.height()).append("\n\n");
 
         sb.append("Longitude Index:\n");
-        sb.append("  ").append(longitudeIndex.getComplexityAnalysis()).append("\n");
-        sb.append("  Bucket sizes: ").append(longitudeIndex.getBucketSizeDistribution()).append("\n\n");
+        sb.append("  Size: ").append(lonIndex.size()).append(" nodes\n");
+        sb.append("  Height: ").append(lonIndex.height()).append("\n\n");
 
         sb.append("TimeZone Index:\n");
-        sb.append("  ").append(timeZoneIndex.getComplexityAnalysis()).append("\n");
-        sb.append("  Bucket sizes: ").append(timeZoneIndex.getBucketSizeDistribution()).append("\n");
+        sb.append("  Size: ").append(tzIndex.size()).append(" nodes\n");
+        sb.append("  Height: ").append(tzIndex.height()).append("\n");
 
         return sb.toString();
     }
 
     public int getTotalStations() {
-        return totalStations;
+        return total;
     }
 
     public long getBuildTimeMs() {
-        return buildTimeMs;
+        return buildTime;
     }
 }
-

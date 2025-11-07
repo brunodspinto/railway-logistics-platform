@@ -3,12 +3,7 @@ package org.example.queries;
 import org.example.domain.Station;
 import org.example.trees.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
-/**
- * Executes time zone related queries on station indexes.
- * Implements USEI06 requirements for time zone group queries.
- */
 public class TimeZoneQuery {
     private final StationIndexes indexes;
 
@@ -16,153 +11,130 @@ public class TimeZoneQuery {
         this.indexes = indexes;
     }
 
-    /**
-     * Query all stations of a specific time zone group, ordered by country ASC.
-     *
-     * Example: queryByTimeZoneGroup("CET")
-     * Returns all CET stations ordered by country name.
-     *
-     * Complexity: O(k log n) where k = number of results, n = total stations
-     */
-    public QueryResult queryByTimeZoneGroup(String timeZoneGroup) {
-        long startTime = System.nanoTime();
+    public QueryResult queryByTimeZoneGroup(String tzGroup) {
+        long start = System.nanoTime();
         List<Station> results = new ArrayList<>();
-        int nodesVisited = 0;
+        int visited = 0;
 
-        // Get all entries from timeZone index
         AVLTree<CompositeKey, Station> tzIndex = indexes.getTimeZoneIndex();
-        List<Station> allStations = tzIndex.inOrder();
+        List<Station> all = tzIndex.inOrder();
 
-        // Filter by time zone group
-        for (Station station : allStations) {
-            nodesVisited++;
-            if (station.getTimeZoneGroup().equals(timeZoneGroup)) {
-                results.add(station);
+        for (Station s : all) {
+            visited++;
+            if (s.getTimeZoneGroup().equals(tzGroup)) {
+                results.add(s);
             }
         }
 
-        // Sort by country ASC, then by name ASC
-        results.sort(Comparator
-                .comparing(Station::getCountry)
-                .thenComparing(Station::getName));
+        Collections.sort(results, new Comparator<Station>() {
+            @Override
+            public int compare(Station s1, Station s2) {
+                int countryCompare = s1.getCountry().compareTo(s2.getCountry());
+                if (countryCompare != 0) {
+                    return countryCompare;
+                }
+                return s1.getName().compareTo(s2.getName());
+            }
+        });
 
-        long executionTime = (System.nanoTime() - startTime) / 1_000_000;
+        long time = (System.nanoTime() - start) / 1_000_000;
 
-        return new QueryResult.Builder()
-                .queryType("TIME_ZONE_GROUP")
-                .stations(results)
-                .executionTimeMs(executionTime)
-                .nodesVisited(nodesVisited)
-                .metadata("timeZoneGroup", timeZoneGroup)
-                .metadata("complexity", "O(k log n)")
-                .build();
+        QueryResult r = new QueryResult("TIME_ZONE_GROUP", results, time, visited);
+        r.addMeta("timeZoneGroup", tzGroup);
+        r.addMeta("complexity", "O(k log n)");
+        return r;
     }
 
-    /**
-     * Query all stations of a specific time zone group AND country.
-     *
-     * Example: queryByTimeZoneGroupAndCountry("WET", "PT")
-     * Returns all Portuguese WET stations.
-     *
-     * Complexity: O(log n + k) where k = number of results
-     */
-    public QueryResult queryByTimeZoneGroupAndCountry(String timeZoneGroup, String country) {
-        long startTime = System.nanoTime();
+    public QueryResult queryByTimeZoneGroupAndCountry(String tzGroup, String country) {
+        long start = System.nanoTime();
 
-        CompositeKey key = new CompositeKey(timeZoneGroup, country);
+        CompositeKey key = new CompositeKey(tzGroup, country);
         AVLTree<CompositeKey, Station> tzIndex = indexes.getTimeZoneIndex();
 
         List<Station> results = tzIndex.search(key);
 
-        // Results already sorted by name (AVL node maintains sorted list)
+        long time = (System.nanoTime() - start) / 1_000_000;
 
-        long executionTime = (System.nanoTime() - startTime) / 1_000_000;
-
-        return new QueryResult.Builder()
-                .queryType("TIME_ZONE_GROUP_AND_COUNTRY")
-                .stations(results)
-                .executionTimeMs(executionTime)
-                .nodesVisited(1)  // Direct search in AVL
-                .metadata("timeZoneGroup", timeZoneGroup)
-                .metadata("country", country)
-                .metadata("complexity", "O(log n + k)")
-                .build();
+        QueryResult r = new QueryResult("TIME_ZONE_COUNTRY", results, time, 1);
+        r.addMeta("timeZoneGroup", tzGroup);
+        r.addMeta("country", country);
+        r.addMeta("complexity", "O(log n + k)");
+        return r;
     }
 
-    /**
-     * Query stations in a time zone window (multiple time zone groups).
-     *
-     * Example: queryByTimeZoneWindow(["CET", "WET/GMT"])
-     * Returns all stations from both time zones, ordered by country ASC.
-     *
-     * Complexity: O(m * log n + k) where m = window size, k = results
-     */
-    public QueryResult queryByTimeZoneWindow(List<String> timeZoneGroups) {
-        long startTime = System.nanoTime();
+    public QueryResult queryByTimeZoneWindow(List<String> tzGroups) {
+        long start = System.nanoTime();
         List<Station> results = new ArrayList<>();
-        int nodesVisited = 0;
+        int visited = 0;
 
         AVLTree<CompositeKey, Station> tzIndex = indexes.getTimeZoneIndex();
 
-        // For each time zone in the window, get all stations
-        for (String tzGroup : timeZoneGroups) {
-            List<Station> allStations = tzIndex.inOrder();
+        for (String tzGroup : tzGroups) {
+            List<Station> all = tzIndex.inOrder();
 
-            for (Station station : allStations) {
-                nodesVisited++;
-                if (station.getTimeZoneGroup().equals(tzGroup)) {
-                    results.add(station);
+            for (Station s : all) {
+                visited++;
+                if (s.getTimeZoneGroup().equals(tzGroup)) {
+                    results.add(s);
                 }
             }
         }
 
-        // Remove duplicates (if any)
-        results = results.stream()
-                .distinct()
-                .collect(Collectors.toList());
+        Set<Station> uniqueStations = new HashSet<>(results);
+        results = new ArrayList<>(uniqueStations);
 
-        // Sort by country ASC, then by name ASC
-        results.sort(Comparator
-                .comparing(Station::getCountry)
-                .thenComparing(Station::getName));
+        Collections.sort(results, new Comparator<Station>() {
+            @Override
+            public int compare(Station s1, Station s2) {
+                int countryCompare = s1.getCountry().compareTo(s2.getCountry());
+                if (countryCompare != 0) {
+                    return countryCompare;
+                }
+                return s1.getName().compareTo(s2.getName());
+            }
+        });
 
-        long executionTime = (System.nanoTime() - startTime) / 1_000_000;
+        long time = (System.nanoTime() - start) / 1_000_000;
 
-        return new QueryResult.Builder()
-                .queryType("TIME_ZONE_WINDOW")
-                .stations(results)
-                .executionTimeMs(executionTime)
-                .nodesVisited(nodesVisited)
-                .metadata("timeZoneWindow", timeZoneGroups.toString())
-                .metadata("windowSize", timeZoneGroups.size())
-                .metadata("complexity", "O(m * log n + k)")
-                .build();
+        QueryResult r = new QueryResult("TIME_ZONE_WINDOW", results, time, visited);
+        r.addMeta("timeZoneWindow", tzGroups.toString());
+        r.addMeta("windowSize", tzGroups.size());
+        r.addMeta("complexity", "O(m * log n + k)");
+        return r;
     }
 
-    /**
-     * Get summary statistics by country for a time zone group.
-     */
-    public Map<String, Long> getCountryDistribution(String timeZoneGroup) {
-        QueryResult result = queryByTimeZoneGroup(timeZoneGroup);
+    public Map<String, Long> getCountryDistribution(String tzGroup) {
+        QueryResult result = queryByTimeZoneGroup(tzGroup);
+        List<Station> stations = result.getStations();
 
-        return result.getStations().stream()
-                .collect(Collectors.groupingBy(
-                        Station::getCountry,
-                        Collectors.counting()
-                ));
+        Map<String, Long> distribution = new HashMap<>();
+        for (Station station : stations) {
+            String country = station.getCountry();
+            Long count = distribution.get(country);
+            if (count == null) {
+                distribution.put(country, 1L);
+            } else {
+                distribution.put(country, count + 1);
+            }
+        }
+
+        return distribution;
     }
 
-    /**
-     * Get summary statistics by time zone group.
-     */
     public Map<String, Long> getTimeZoneDistribution() {
-        List<Station> allStations = indexes.getTimeZoneIndex().inOrder();
+        List<Station> all = indexes.getTimeZoneIndex().inOrder();
 
-        return allStations.stream()
-                .collect(Collectors.groupingBy(
-                        Station::getTimeZoneGroup,
-                        Collectors.counting()
-                ));
+        Map<String, Long> distribution = new HashMap<>();
+        for (Station station : all) {
+            String timeZone = station.getTimeZoneGroup();
+            Long count = distribution.get(timeZone);
+            if (count == null) {
+                distribution.put(timeZone, 1L);
+            } else {
+                distribution.put(timeZone, count + 1);
+            }
+        }
+
+        return distribution;
     }
 }
-

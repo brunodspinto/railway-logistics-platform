@@ -3,12 +3,7 @@ package org.example.queries;
 import org.example.domain.Station;
 import org.example.trees.*;
 import java.util.*;
-import java.util.stream.Collectors;
 
-/**
- * Executes coordinate-based queries on station indexes.
- * Implements USEI06 requirements for latitude/longitude queries.
- */
 public class CoordinateQuery {
     private final StationIndexes indexes;
 
@@ -16,20 +11,11 @@ public class CoordinateQuery {
         this.indexes = indexes;
     }
 
-    /**
-     * Query all stations within a latitude range [minLat, maxLat].
-     *
-     * Example: queryByLatitudeRange(38.0, 42.0)
-     * Returns all stations between latitudes 38°N and 42°N.
-     *
-     * Complexity: O(log n + k) where k = number of results
-     */
     public QueryResult queryByLatitudeRange(double minLat, double maxLat) {
-        long startTime = System.nanoTime();
+        long start = System.nanoTime();
 
-        // Validate input
         if (minLat < -90 || minLat > 90 || maxLat < -90 || maxLat > 90) {
-            throw new IllegalArgumentException("Latitude must be in range [-90, 90]");
+            throw new IllegalArgumentException("Latitude must be in [-90, 90]");
         }
         if (minLat > maxLat) {
             throw new IllegalArgumentException("minLat must be <= maxLat");
@@ -38,38 +24,31 @@ public class CoordinateQuery {
         AVLTree<Double, Station> latIndex = indexes.getLatitudeIndex();
         List<Station> results = latIndex.rangeSearch(minLat, maxLat);
 
-        // Sort by latitude ASC, then by name ASC
-        results.sort(Comparator
-                .comparing(Station::getLatitude)
-                .thenComparing(Station::getName));
+        Collections.sort(results, new Comparator<Station>() {
+            @Override
+            public int compare(Station s1, Station s2) {
+                int latCompare = Double.compare(s1.getLatitude(), s2.getLatitude());
+                if (latCompare != 0) {
+                    return latCompare;
+                }
+                return s1.getName().compareTo(s2.getName());
+            }
+        });
 
-        long executionTime = (System.nanoTime() - startTime) / 1_000_000;
+        long time = (System.nanoTime() - start) / 1_000_000;
 
-        return new QueryResult.Builder()
-                .queryType("LATITUDE_RANGE")
-                .stations(results)
-                .executionTimeMs(executionTime)
-                .nodesVisited(results.size())  // Approximation
-                .metadata("minLatitude", minLat)
-                .metadata("maxLatitude", maxLat)
-                .metadata("complexity", "O(log n + k)")
-                .build();
+        QueryResult r = new QueryResult("LATITUDE_RANGE", results, time, results.size());
+        r.addMeta("minLatitude", minLat);
+        r.addMeta("maxLatitude", maxLat);
+        r.addMeta("complexity", "O(log n + k)");
+        return r;
     }
 
-    /**
-     * Query all stations within a longitude range [minLon, maxLon].
-     *
-     * Example: queryByLongitudeRange(-10.0, 0.0)
-     * Returns all stations between longitudes 10°W and 0°.
-     *
-     * Complexity: O(log n + k) where k = number of results
-     */
     public QueryResult queryByLongitudeRange(double minLon, double maxLon) {
-        long startTime = System.nanoTime();
+        long start = System.nanoTime();
 
-        // Validate input
         if (minLon < -180 || minLon > 180 || maxLon < -180 || maxLon > 180) {
-            throw new IllegalArgumentException("Longitude must be in range [-180, 180]");
+            throw new IllegalArgumentException("Longitude must be in [-180, 180]");
         }
         if (minLon > maxLon) {
             throw new IllegalArgumentException("minLon must be <= maxLon");
@@ -78,170 +57,167 @@ public class CoordinateQuery {
         AVLTree<Double, Station> lonIndex = indexes.getLongitudeIndex();
         List<Station> results = lonIndex.rangeSearch(minLon, maxLon);
 
-        // Sort by longitude ASC, then by name ASC
-        results.sort(Comparator
-                .comparing(Station::getLongitude)
-                .thenComparing(Station::getName));
+        Collections.sort(results, new Comparator<Station>() {
+            @Override
+            public int compare(Station s1, Station s2) {
+                int lonCompare = Double.compare(s1.getLongitude(), s2.getLongitude());
+                if (lonCompare != 0) {
+                    return lonCompare;
+                }
+                return s1.getName().compareTo(s2.getName());
+            }
+        });
 
-        long executionTime = (System.nanoTime() - startTime) / 1_000_000;
+        long time = (System.nanoTime() - start) / 1_000_000;
 
-        return new QueryResult.Builder()
-                .queryType("LONGITUDE_RANGE")
-                .stations(results)
-                .executionTimeMs(executionTime)
-                .nodesVisited(results.size())  // Approximation
-                .metadata("minLongitude", minLon)
-                .metadata("maxLongitude", maxLon)
-                .metadata("complexity", "O(log n + k)")
-                .build();
+        QueryResult r = new QueryResult("LONGITUDE_RANGE", results, time, results.size());
+        r.addMeta("minLongitude", minLon);
+        r.addMeta("maxLongitude", maxLon);
+        r.addMeta("complexity", "O(log n + k)");
+        return r;
     }
 
-    /**
-     * Query all stations within a bounding box (rectangular geographic area).
-     *
-     * Example: queryByBoundingBox(38.0, 42.0, -10.0, -5.0)
-     * Returns all stations in the rectangle defined by these coordinates.
-     *
-     * Complexity: O(log n + k) where k = number of results
-     */
     public QueryResult queryByBoundingBox(double minLat, double maxLat,
                                           double minLon, double maxLon) {
-        long startTime = System.nanoTime();
+        long start = System.nanoTime();
 
-        // Get stations in latitude range
-        List<Station> latResults = indexes.getLatitudeIndex()
-                .rangeSearch(minLat, maxLat);
+        List<Station> latResults = indexes.getLatitudeIndex().rangeSearch(minLat, maxLat);
 
-        // Filter by longitude range
-        List<Station> results = latResults.stream()
-                .filter(s -> s.getLongitude() >= minLon && s.getLongitude() <= maxLon)
-                .sorted(Comparator
-                        .comparing(Station::getLatitude)
-                        .thenComparing(Station::getLongitude)
-                        .thenComparing(Station::getName))
-                .collect(Collectors.toList());
+        List<Station> results = new ArrayList<>();
+        for (Station station : latResults) {
+            if (station.getLongitude() >= minLon && station.getLongitude() <= maxLon) {
+                results.add(station);
+            }
+        }
 
-        long executionTime = (System.nanoTime() - startTime) / 1_000_000;
+        Collections.sort(results, new Comparator<Station>() {
+            @Override
+            public int compare(Station s1, Station s2) {
+                int latCompare = Double.compare(s1.getLatitude(), s2.getLatitude());
+                if (latCompare != 0) {
+                    return latCompare;
+                }
+                int lonCompare = Double.compare(s1.getLongitude(), s2.getLongitude());
+                if (lonCompare != 0) {
+                    return lonCompare;
+                }
+                return s1.getName().compareTo(s2.getName());
+            }
+        });
 
-        return new QueryResult.Builder()
-                .queryType("BOUNDING_BOX")
-                .stations(results)
-                .executionTimeMs(executionTime)
-                .nodesVisited(latResults.size())
-                .metadata("minLatitude", minLat)
-                .metadata("maxLatitude", maxLat)
-                .metadata("minLongitude", minLon)
-                .metadata("maxLongitude", maxLon)
-                .metadata("complexity", "O(log n + k)")
-                .build();
+        long time = (System.nanoTime() - start) / 1_000_000;
+
+        QueryResult r = new QueryResult("BOUNDING_BOX", results, time, latResults.size());
+        r.addMeta("minLatitude", minLat);
+        r.addMeta("maxLatitude", maxLat);
+        r.addMeta("minLongitude", minLon);
+        r.addMeta("maxLongitude", maxLon);
+        r.addMeta("complexity", "O(log n + k)");
+        return r;
     }
 
-    /**
-     * Query stations at exact coordinates.
-     * Handles duplicate coordinates (e.g., Lisboa Santa Apolónia & Oriente).
-     *
-     * Example: queryByExactCoordinates(38.71387, -9.122271)
-     * Returns all stations at these exact coordinates (sorted by name).
-     *
-     * Complexity: O(log n)
-     */
-    public QueryResult queryByExactCoordinates(double latitude, double longitude) {
-        long startTime = System.nanoTime();
+    public QueryResult queryByExactCoordinates(double lat, double lon) {
+        long start = System.nanoTime();
 
-        // Search by latitude first
         AVLTree<Double, Station> latIndex = indexes.getLatitudeIndex();
-        List<Station> latResults = latIndex.search(latitude);
+        List<Station> latResults = latIndex.search(lat);
 
-        // Filter by exact longitude
-        List<Station> results = latResults.stream()
-                .filter(s -> Math.abs(s.getLongitude() - longitude) < 0.000001)
-                .sorted(Comparator.comparing(Station::getName))
-                .collect(Collectors.toList());
+        List<Station> results = new ArrayList<>();
+        for (Station station : latResults) {
+            if (Math.abs(station.getLongitude() - lon) < 0.000001) {
+                results.add(station);
+            }
+        }
 
-        long executionTime = (System.nanoTime() - startTime) / 1_000_000;
+        Collections.sort(results, new Comparator<Station>() {
+            @Override
+            public int compare(Station s1, Station s2) {
+                return s1.getName().compareTo(s2.getName());
+            }
+        });
 
-        return new QueryResult.Builder()
-                .queryType("EXACT_COORDINATES")
-                .stations(results)
-                .executionTimeMs(executionTime)
-                .nodesVisited(1)
-                .metadata("latitude", latitude)
-                .metadata("longitude", longitude)
-                .metadata("complexity", "O(log n)")
-                .build();
+        long time = (System.nanoTime() - start) / 1_000_000;
+
+        QueryResult r = new QueryResult("EXACT_COORDINATES", results, time, 1);
+        r.addMeta("latitude", lat);
+        r.addMeta("longitude", lon);
+        r.addMeta("complexity", "O(log n)");
+        return r;
     }
 
-    /**
-     * Query stations by country within a coordinate range.
-     * Combines geographic and country filters.
-     *
-     * Complexity: O(log n + k) where k = number of results
-     */
     public QueryResult queryByBoundingBoxAndCountry(double minLat, double maxLat,
                                                     double minLon, double maxLon,
                                                     String country) {
-        long startTime = System.nanoTime();
+        long start = System.nanoTime();
 
-        // Get bounding box results first
         QueryResult boxResult = queryByBoundingBox(minLat, maxLat, minLon, maxLon);
 
-        // Filter by country
-        List<Station> results = boxResult.getStations().stream()
-                .filter(s -> s.getCountry().equalsIgnoreCase(country))
-                .collect(Collectors.toList());
+        List<Station> results = new ArrayList<>();
+        for (Station station : boxResult.getStations()) {
+            if (station.getCountry().equalsIgnoreCase(country)) {
+                results.add(station);
+            }
+        }
 
-        long executionTime = (System.nanoTime() - startTime) / 1_000_000;
+        long time = (System.nanoTime() - start) / 1_000_000;
 
-        return new QueryResult.Builder()
-                .queryType("BOUNDING_BOX_AND_COUNTRY")
-                .stations(results)
-                .executionTimeMs(executionTime)
-                .nodesVisited(boxResult.getNodesVisited())
-                .metadata("minLatitude", minLat)
-                .metadata("maxLatitude", maxLat)
-                .metadata("minLongitude", minLon)
-                .metadata("maxLongitude", maxLon)
-                .metadata("country", country)
-                .metadata("complexity", "O(log n + k)")
-                .build();
+        QueryResult r = new QueryResult("BOUNDING_BOX_COUNTRY", results, time, boxResult.getNodesVisited());
+        r.addMeta("minLatitude", minLat);
+        r.addMeta("maxLatitude", maxLat);
+        r.addMeta("minLongitude", minLon);
+        r.addMeta("maxLongitude", maxLon);
+        r.addMeta("country", country);
+        r.addMeta("complexity", "O(log n + k)");
+        return r;
     }
 
-    /**
-     * Get latitude distribution summary.
-     */
     public Map<String, Object> getLatitudeDistributionSummary() {
-        List<Station> allStations = indexes.getLatitudeIndex().inOrder();
+        List<Station> all = indexes.getLatitudeIndex().inOrder();
 
-        DoubleSummaryStatistics stats = allStations.stream()
-                .mapToDouble(Station::getLatitude)
-                .summaryStatistics();
+        double min = Double.MAX_VALUE;
+        double max = Double.MIN_VALUE;
+        double sum = 0;
+        int count = 0;
+
+        for (Station station : all) {
+            double lat = station.getLatitude();
+            if (lat < min) min = lat;
+            if (lat > max) max = lat;
+            sum += lat;
+            count++;
+        }
 
         Map<String, Object> summary = new HashMap<>();
-        summary.put("count", stats.getCount());
-        summary.put("min", stats.getMin());
-        summary.put("max", stats.getMax());
-        summary.put("average", stats.getAverage());
+        summary.put("count", count);
+        summary.put("min", min);
+        summary.put("max", max);
+        summary.put("average", count > 0 ? sum / count : 0);
 
         return summary;
     }
 
-    /**
-     * Get longitude distribution summary.
-     */
     public Map<String, Object> getLongitudeDistributionSummary() {
-        List<Station> allStations = indexes.getLongitudeIndex().inOrder();
+        List<Station> all = indexes.getLongitudeIndex().inOrder();
 
-        DoubleSummaryStatistics stats = allStations.stream()
-                .mapToDouble(Station::getLongitude)
-                .summaryStatistics();
+        double min = Double.MAX_VALUE;
+        double max = Double.MIN_VALUE;
+        double sum = 0;
+        int count = 0;
+
+        for (Station station : all) {
+            double lon = station.getLongitude();
+            if (lon < min) min = lon;
+            if (lon > max) max = lon;
+            sum += lon;
+            count++;
+        }
 
         Map<String, Object> summary = new HashMap<>();
-        summary.put("count", stats.getCount());
-        summary.put("min", stats.getMin());
-        summary.put("max", stats.getMax());
-        summary.put("average", stats.getAverage());
+        summary.put("count", count);
+        summary.put("min", min);
+        summary.put("max", max);
+        summary.put("average", count > 0 ? sum / count : 0);
 
         return summary;
     }
 }
-
