@@ -34,7 +34,6 @@ public class USEI06Menu {
         System.out.println("1. Time Zone Queries");
         System.out.println("2. Coordinate Queries");
         System.out.println("3. Sample Queries");
-        System.out.println("4. Statistics");
         System.out.println("0. Exit");
         System.out.print("\nOption: ");
     }
@@ -48,7 +47,6 @@ public class USEI06Menu {
                 case 1: timeZoneMenu(); break;
                 case 2: coordMenu(); break;
                 case 3: sampleMenu(); break;
-                case 4: statsMenu(); break;
                 case 0: running = false; break;
                 default: System.out.println("Invalid option");
             }
@@ -195,28 +193,6 @@ public class USEI06Menu {
         pause();
     }
 
-    private void statsMenu() {
-        System.out.println("\n[STATISTICS]");
-        System.out.println("1. Index Performance");
-        System.out.println("2. Import Report");
-        System.out.println("0. Back");
-        System.out.print("\nOption: ");
-
-        try {
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (choice) {
-                case 1: System.out.println("\n" + service.getPerformanceReport()); break;
-                case 2: System.out.println("\n" + service.getImportReport()); break;
-                case 0: return;
-            }
-        } catch (InputMismatchException e) {
-            System.out.println("Invalid input");
-            scanner.nextLine();
-        }
-        pause();
-    }
 
     private void show(QueryResult r) {
         System.out.println("\n" + r.toString());

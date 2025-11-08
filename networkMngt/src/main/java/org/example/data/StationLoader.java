@@ -19,149 +19,176 @@ public class StationLoader {
         errors.clear();
         totalLines = 0;
 
-        BufferedReader br = new BufferedReader(new FileReader(path));
-        String line;
-        boolean header = true;
+        try (BufferedReader br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(path), "UTF-8"))) {
 
-        while ((line = br.readLine()) != null) {
-            totalLines++;
-            if (header) {
-                header = false;
-                continue;
-            }
-            if (line.trim().isEmpty()) continue;
+            String line;
+            boolean header = true;
 
-            try {
-                Station s = parseLine(line, totalLines);
-                if (s != null) stations.add(s);
-            } catch (Exception e) {
-                errors.put(totalLines, e.getMessage());
+            while ((line = br.readLine()) != null) {
+                totalLines++;
+                if (header) {
+                    header = false;
+                    continue;
+                }
+                if (line.trim().isEmpty()) continue;
+
+                try {
+                    Station station = parseLine(line, totalLines);
+                    if (station != null) {
+                        stations.add(station);
+                    }
+                } catch (Exception e) {
+                    errors.put(totalLines, "Parse error: " + e.getMessage());
+                }
             }
         }
-        br.close();
 
-        stations.sort(Comparator.comparing(Station::getName));
+        Collections.sort(stations, new Comparator<Station>() {
+            @Override
+            public int compare(Station s1, Station s2) {
+                return s1.getName().compareTo(s2.getName());
+            }
+        });
+
         return new ArrayList<>(stations);
     }
 
-    private Station parseLine(String line, int num) {
+    private Station parseLine(String line, int lineNumber) {
         String[] fields = parseCSV(line);
 
         if (fields.length < 9) {
-            errors.put(num, "Expected 9 fields, got " + fields.length);
+            errors.put(lineNumber, "Insufficient fields: " + fields.length);
             return null;
         }
 
         try {
             String country = fields[0].trim();
-            String tz = cleanTZ(fields[1]);
-            String tzGroup = fields[2].trim();
+            String timezone = cleanTimezoneField(fields[1]);
+            String timezoneGroup = fields[2].trim();
             String name = fields[3].trim();
-            String latStr = fields[4].trim();
-            String lonStr = fields[5].trim();
-            boolean city = parseBool(fields[6].trim());
-            boolean main = parseBool(fields[7].trim());
-            boolean airport = parseBool(fields[8].trim());
+            String latitudeStr = fields[4].trim();
+            String longitudeStr = fields[5].trim();
+            boolean isCity = parseBoolean(fields[6].trim());
+            boolean isMainStation = parseBoolean(fields[7].trim());
+            boolean isAirport = parseBoolean(fields[8].trim());
 
-            if (latStr.isEmpty() || lonStr.isEmpty()) {
-                errors.put(num, "Empty coordinates");
+            if (name.isEmpty()) {
+                errors.put(lineNumber, "Station name cannot be empty");
                 return null;
             }
 
-            double lat = Double.parseDouble(latStr);
-            double lon = Double.parseDouble(lonStr);
-
-            Station s = new Station(name, lat, lon, country, tz, tzGroup, city, main, airport);
-
-            String err = s.getValidationError();
-            if (err != null) {
-                errors.put(num, err);
+            if (latitudeStr.isEmpty() || longitudeStr.isEmpty()) {
+                errors.put(lineNumber, "Missing coordinates");
                 return null;
             }
 
-            return s;
+            double latitude = Double.parseDouble(latitudeStr);
+            double longitude = Double.parseDouble(longitudeStr);
+
+            if (latitude < -90 || latitude > 90) {
+                errors.put(lineNumber, "Invalid latitude: " + latitude);
+                return null;
+            }
+            if (longitude < -180 || longitude > 180) {
+                errors.put(lineNumber, "Invalid longitude: " + longitude);
+                return null;
+            }
+
+            Station station = new Station(name, latitude, longitude, country, timezone, timezoneGroup, isCity, isMainStation, isAirport);
+
+            return station;
 
         } catch (NumberFormatException e) {
-            errors.put(num, "Invalid number: " + e.getMessage());
+            errors.put(lineNumber, "Invalid numeric format: " + e.getMessage());
+            return null;
+        } catch (Exception e) {
+            errors.put(lineNumber, "Unexpected error: " + e.getMessage());
             return null;
         }
     }
 
     private String[] parseCSV(String line) {
         List<String> fields = new ArrayList<>();
-        StringBuilder field = new StringBuilder();
-        boolean inQuotes = false;
-        int parenLevel = 0;
+        StringBuilder currentField = new StringBuilder();
+        boolean insideQuotes = false;
 
-        for (char c : line.toCharArray()) {
-            if (c == '"' && parenLevel == 0) {
-                inQuotes = !inQuotes;
-                field.append(c);
-            } else if (c == '(' && !inQuotes) {
-                parenLevel++;
-                field.append(c);
-            } else if (c == ')' && !inQuotes) {
-                parenLevel--;
-                field.append(c);
-            } else if (c == ',' && !inQuotes && parenLevel == 0) {
-                fields.add(field.toString());
-                field = new StringBuilder();
+        for (int i = 0; i < line.length(); i++) {
+            char currentChar = line.charAt(i);
+
+            if (currentChar == '"') {
+                insideQuotes = !insideQuotes;
+                currentField.append(currentChar);
+            } else if (currentChar == ',' && !insideQuotes) {
+                fields.add(currentField.toString());
+                currentField.setLength(0);
             } else {
-                field.append(c);
+                currentField.append(currentChar);
             }
         }
-        fields.add(field.toString());
 
+        fields.add(currentField.toString());
         return fields.toArray(new String[0]);
     }
 
-    private String cleanTZ(String s) {
-        if (s == null || s.isEmpty()) return "";
-
-        s = s.trim();
-
-        while (s.startsWith("(") && s.endsWith(")")) {
-            s = s.substring(1, s.length() - 1).trim();
+    private String cleanTimezoneField(String field) {
+        if (field == null || field.isEmpty()) {
+            return "";
         }
 
-        while (s.startsWith("'") && s.endsWith("'")) {
-            s = s.substring(1, s.length() - 1).trim();
+        field = field.trim();
+
+        if (field.startsWith("(") && field.endsWith(")")) {
+            field = field.substring(1, field.length() - 1).trim();
         }
 
-        if (s.endsWith(",")) {
-            s = s.substring(0, s.length() - 1).trim();
+        if (field.startsWith("'") && field.endsWith("'")) {
+            field = field.substring(1, field.length() - 1).trim();
         }
 
-        return s;
+        if (field.endsWith(",")) {
+            field = field.substring(0, field.length() - 1).trim();
+        }
+
+        return field;
     }
 
-    private boolean parseBool(String s) {
-        if (s == null || s.isEmpty()) return false;
-        String v = s.toLowerCase();
-        return v.equals("true") || v.equals("1") || v.equals("yes") || v.equals("t");
+    private boolean parseBoolean(String value) {
+        if (value == null || value.isEmpty()) {
+            return false;
+        }
+
+        String lowerValue = value.toLowerCase();
+        return lowerValue.equals("true") || lowerValue.equals("1") ||
+                lowerValue.equals("yes") || lowerValue.equals("t");
     }
 
     public String getReport() {
-        int valid = stations.size();
-        int invalid = errors.size();
-        int total = totalLines - 1;
+        int validStations = stations.size();
+        int errorCount = errors.size();
+        int totalProcessed = totalLines - 1;
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("CSV Import Report\n");
-        sb.append(String.format("Total: %d | Valid: %d (%.1f%%) | Invalid: %d (%.1f%%)\n",
-                total, valid, 100.0 * valid / total, invalid, 100.0 * invalid / total));
+        StringBuilder report = new StringBuilder();
+        report.append("=== CSV IMPORT REPORT ===\n");
+        report.append(String.format("Total lines processed: %d\n", totalProcessed));
+        report.append(String.format("Valid stations: %d (%.1f%%)\n", validStations, totalProcessed > 0 ? 100.0 * validStations / totalProcessed : 0));
+        report.append(String.format("Invalid lines: %d (%.1f%%)\n", errorCount, totalProcessed > 0 ? 100.0 * errorCount / totalProcessed : 0));
 
         if (!errors.isEmpty()) {
-            sb.append("\nFirst 10 errors:\n");
-            errors.entrySet().stream().limit(10)
-                    .forEach(e -> sb.append(String.format("Line %d: %s\n", e.getKey(), e.getValue())));
+            report.append("\n=== ERRORS (first 10) ===\n");
+            int displayedErrors = 0;
+            for (Map.Entry<Integer, String> error : errors.entrySet()) {
+                if (displayedErrors >= 10) break;
+                report.append(String.format("Line %d: %s\n", error.getKey(), error.getValue()));
+                displayedErrors++;
+            }
 
             if (errors.size() > 10) {
-                sb.append(String.format("... and %d more\n", errors.size() - 10));
+                report.append(String.format("... and %d more errors\n", errors.size() - 10));
             }
         }
 
-        return sb.toString();
+        return report.toString();
     }
 
     public List<Station> getStations() {

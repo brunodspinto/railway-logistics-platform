@@ -40,8 +40,7 @@ public class CompositeKey implements Comparable<CompositeKey> {
         if (this == o) return true;
         if (!(o instanceof CompositeKey)) return false;
         CompositeKey that = (CompositeKey) o;
-        return Objects.equals(timeZoneGroup, that.timeZoneGroup) &&
-                Objects.equals(country, that.country);
+        return Objects.equals(timeZoneGroup, that.timeZoneGroup) && Objects.equals(country, that.country);
     }
 
     @Override
