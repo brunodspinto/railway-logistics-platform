@@ -1,4 +1,4 @@
-package org.example.ui;
+package org.example.ui.usei06;
 
 import org.example.queries.QueryResult;
 import org.example.service.StationService;

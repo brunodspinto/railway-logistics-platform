@@ -1,7 +1,6 @@
-package org.example.ui;
+package org.example.ui.usei06;
 
 import org.example.service.StationService;
-import org.example.ui.USEI06Menu;
 
 public class USEI06Main {
     private static final String DEFAULT_CSV = "res/train_stations_europe.csv";
