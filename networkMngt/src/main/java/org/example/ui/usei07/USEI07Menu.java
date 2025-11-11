@@ -138,7 +138,6 @@ public class USEI07Menu {
     // --- USEI07 Stats ---
     private void showBuildStats() {
         System.out.println("\n[USEI07: Index Build Report]");
-        // O getPerformanceReport() já contém as estatísticas da 2D-Tree
         System.out.println(service.getPerformanceReport());
         pause();
     }

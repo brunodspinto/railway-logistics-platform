@@ -29,7 +29,7 @@ public class Node2D {
      */
     public Node2D(Station station, int axis) {
         this.stations = new ArrayList<>();
-        this.stations.add(station); // Adiciona a primeira
+        this.stations.add(station);
         this.axis = axis;
         this.splitCoordinate = getCoordinate(station, axis);
         this.left = null;
@@ -48,10 +48,7 @@ public class Node2D {
             // Insere na posição correta para manter a ordem
             stations.add(-pos - 1, station);
         }
-        // Se pos >= 0, a estação exata (mesmo nome) já existe, ignoramos.
     }
-
-    // --- Getters ---
 
     public List<Station> getStations() {
         return stations;

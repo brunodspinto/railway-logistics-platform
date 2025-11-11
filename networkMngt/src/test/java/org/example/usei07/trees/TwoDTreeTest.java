@@ -73,7 +73,6 @@ class TwoDTreeTest {
 
     @Test
     void testBuildWithDuplicateCoordinates() {
-        // O teste de aceitação principal da USEI07 [687]
         latSorted = List.of(faro, lisbonOriente, lisbonSantaApolonia, porto); // Ordenado por Lat
         lonSorted = List.of(porto, lisbonOriente, lisbonSantaApolonia, faro); // Ordenado por Lon
 
