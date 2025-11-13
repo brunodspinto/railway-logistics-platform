@@ -33,7 +33,6 @@ public class StationService {
             }
 
             indexes.buildIndexes(stations);
-            System.out.println(indexes.getReport());
 
             this.tzQuery = new TimeZoneQuery(indexes);
             this.coordQuery = new CoordinateQuery(indexes);
