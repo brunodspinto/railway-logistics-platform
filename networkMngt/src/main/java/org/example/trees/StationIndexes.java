@@ -89,7 +89,7 @@ public class StationIndexes {
 
         sb.append("TimeZone Index:\n");
         sb.append("  Size: ").append(tzIndex.size()).append(" nodes\n");
-        sb.append("  Height: ").append(tzIndex.height()).append("\n");
+        sb.append("  Height: ").append(tzIndex.height()).append("\n\n");
 
         sb.append("Spatial Index (2D-Tree):\n");
         sb.append("  Size (Nodes): ").append(spatialIndex.size()).append("\n");
