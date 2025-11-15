@@ -1,8 +1,14 @@
-ID,Name,Owner,Start ID,Start,End ID,End,Gauge
+id,name,owner,startId,start,endId,end,gauge
 1,Ramal São Bento - Campanhã,IP,7,Porto São Bento,5,Porto Campanhã,1668
-2,Ramal Camapanhã - Nine,IP,5,Porto Campanhã,20,Nine,1668
-3,Ramal Nine - Barcelos,IP,20,Nine,8,Barcelos,1668
-4,Ramal Barcelos - Viana,IP,8,Barcelos,17,Viana do Castelo,1668
-5,Ramal viana - Caminha,IP,17,Viana do Castelo,21,Caminha,1668
-6,Ramal Caminha - Torre,IP,21,Caminha,16,São Pedro da Torre,1668
-7,Ramal Torre - Valença,IP,16,São Pedro da Torre,11,Valença,1668
+2,Ramal Camapanhã - Contumil,IP,5,Porto Campanhã,13,Contumil,1668
+3,Ramal Contumil - Nine,IP,13,Contumil,20,Nine,1668
+4,Ramal Nine - Barcelos,IP,20,Nine,8,Barcelos,1668
+5,Ramal Barcelos - Darque,IP,8,Barcelos,12,Darque,1668
+6,Ramal Darque - Viana,IP,12,Darque,17,Viana do Castelo,1668
+7,Ramal Viana - Caminha,IP,17,Viana do Castelo,21,Caminha,1668
+8,Ramal Caminha - Torre,IP,21,Caminha,16,São Pedro da Torre,1668
+9,Ramal Torre - Valença,IP,16,São Pedro da Torre,11,Valença,1668
+21,Ramal Contumil - São Gemil,IP,13,Contumil,43,São Gemil,1668
+22,Ramal São Gemil - São Mamede de Infesta,IP,43,São Gemil,45,São Mamede de Infesta,1668
+23,Ramal São Mamede de Infesta - Leça do Balio,IP,45,São Mamede de Infesta,48,Leça do Balio,1668
+24,Ramal Leça do Balio - Leixões,IP,48,Leça do Balio,50,Leixões,1668
