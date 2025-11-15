@@ -17,16 +17,22 @@ public class StationIndexes {
         this.latIndex = new AVLTree<>();
         this.lonIndex = new AVLTree<>();
         this.tzIndex = new AVLTree<>();
-
         this.spatialIndex = new TwoDTree();
     }
 
+    /**
+     * Build all indexes (AVL trees + 2D-tree).
+     *
+     * @param stations list of stations to index
+     * @return map of rejected stations with error messages
+     */
     public Map<Station, String> buildIndexes(List<Station> stations) {
         long start = System.currentTimeMillis();
         Map<Station, String> rejected = new HashMap<>();
 
         List<Station> validStations = new ArrayList<>();
 
+        // Separate valid from invalid stations
         for (Station s : stations) {
             String err = s.getValidationError();
             if (err != null) {
@@ -36,6 +42,7 @@ public class StationIndexes {
             validStations.add(s);
         }
 
+        // Build USEI06 indexes (AVL trees)
         for (Station s : validStations) {
             latIndex.insert(s.getLatitude(), s);
             lonIndex.insert(s.getLongitude(), s);
@@ -44,13 +51,11 @@ public class StationIndexes {
             tzIndex.insert(key, s);
         }
 
-        System.out.println("Building 2D-Tree index (using AVL pre-sort)...");
-        long start2D = System.currentTimeMillis();
+        // Build 2D-tree silently (for USEI07)
+        // Using AVL in-order for efficient pre-sorted construction
         List<Station> stationsSortedByLat = latIndex.inOrder();
         List<Station> stationsSortedByLon = lonIndex.inOrder();
         spatialIndex.build(stationsSortedByLat, stationsSortedByLon);
-        long time2D = System.currentTimeMillis() - start2D;
-        System.out.println("2D-Tree build complete in " + time2D + " ms.");
 
         this.total = validStations.size();
         this.buildTime = System.currentTimeMillis() - start;

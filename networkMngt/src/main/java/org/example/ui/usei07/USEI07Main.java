@@ -18,10 +18,17 @@ public class USEI07Main {
 
         StationService service = new StationService();
 
+        // Show 2D-Tree build progress (USEI07 only)
+        System.out.println("\nBuilding 2D-Tree index (using AVL pre-sort)...");
+        long start2D = System.currentTimeMillis();
+
         if (!service.initialize(path)) {
             System.err.println("Initialization failed");
             System.exit(1);
         }
+
+        long time2D = System.currentTimeMillis() - start2D;
+        System.out.println("2D-Tree build complete in " + time2D + " ms.\n");
 
         USEI07Menu menu = new USEI07Menu(service);
         menu.start();

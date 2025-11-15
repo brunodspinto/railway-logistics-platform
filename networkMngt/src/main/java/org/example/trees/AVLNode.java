@@ -4,18 +4,27 @@ import java.util.*;
 
 /**
  * Node for AVL Tree supporting multiple values per key.
- * Values are kept sorted for deterministic behavior.
+ * Values are kept sorted (ASC) for deterministic behavior.
  *
- * @param <K> Key type
+ * Used for duplicate coordinates: multiple stations at same (lat, lon).
+ * Example: Lisboa Santa Apolónia and Lisboa Oriente share coordinates.
+ *
+ * @param <K> Key type (must be Comparable)
  * @param <V> Value type (must be Comparable for sorting)
  */
 class AVLNode<K extends Comparable<K>, V extends Comparable<V>> {
     K key;
-    List<V> values;  // Multiple values for same key (e.g., Lisbon stations)
+    List<V> values;  // Multiple values for same key, sorted ASC
     AVLNode<K, V> left;
     AVLNode<K, V> right;
     int height;
 
+    /**
+     * Creates a new AVL node with given key and initial value.
+     *
+     * @param key the key for this node
+     * @param value the first value to store
+     */
     public AVLNode(K key, V value) {
         this.key = key;
         this.values = new ArrayList<>();
@@ -25,45 +34,47 @@ class AVLNode<K extends Comparable<K>, V extends Comparable<V>> {
         this.height = 1;
     }
 
-    /**
-     * Add value to this node, keeping list sorted (ASC).
-     * Critical for duplicate coordinates: sorted by Station name.
-     */
+
     public void addValue(V value) {
-        // Binary search for insertion point
-        int pos = Collections.binarySearch(values, value);
-        if (pos < 0) {
-            // Not found - insert at correct position
-            values.add(-pos - 1, value);
+        int i = 0;
+        while (i < values.size()) {
+            int cmp = value.compareTo(values.get(i));
+
+            if (cmp == 0) {
+                return;
+            }
+
+            if (cmp < 0) {
+                break;
+            }
+
+            i++;
         }
-        // If found, we could ignore (no duplicates) or allow
-        // For stations: same coords + same name = truly duplicate, ignore
+
+        values.add(i, value);
     }
 
     /**
-     * Get all values (sorted).
+     * Get all values stored at this node (sorted ASC).
+     * Returns a defensive copy to prevent external modification.
+     *
+     * @return sorted list of values
      */
     public List<V> getValues() {
-        return new ArrayList<>(values);  // Defensive copy
+        return new ArrayList<>(values);
     }
 
-    /**
-     * Update height based on children.
-     */
+
     public void updateHeight() {
         int leftHeight = (left == null) ? 0 : left.height;
         int rightHeight = (right == null) ? 0 : right.height;
         this.height = 1 + Math.max(leftHeight, rightHeight);
     }
 
-    /**
-     * Get balance factor (left height - right height).
-     * > 1 = left-heavy, < -1 = right-heavy
-     */
+
     public int getBalance() {
         int leftHeight = (left == null) ? 0 : left.height;
         int rightHeight = (right == null) ? 0 : right.height;
-        return leftHeight - rightHeight;
+        return rightHeight - leftHeight;  // RIGHT - LEFT (correct formula)
     }
 }
-
