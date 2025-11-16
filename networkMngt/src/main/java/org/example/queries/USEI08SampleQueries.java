@@ -53,8 +53,7 @@ public class USEI08SampleQueries {
     // SAMPLE QUERY 1
     public void sample1_PortugalAll() {
         List<Station> result = spatialQueryService.queryArea(
-                36.5, 42.5, -9.5, -6.0,
-                null, null, "PT"
+                36.5, 42.5, -9.5, -6.0, null, null, "PT"
         );
         printResults(
                 "SAMPLE QUERY 1: All Portuguese Stations",
@@ -67,8 +66,7 @@ public class USEI08SampleQueries {
     // SAMPLE QUERY 2
     public void sample2_SpainMainCities() {
         List<Station> result = spatialQueryService.queryArea(
-                36.0, 44.0, -10.0, 4.0,
-                true, true, "ES"
+                36.0, 44.0, -10.0, 4.0, true, true, "ES"
         );
         printResults(
                 "SAMPLE QUERY 2: Main City Stations in Spain",
@@ -81,8 +79,7 @@ public class USEI08SampleQueries {
     // SAMPLE QUERY 3
     public void sample3_WesternEuropeBand() {
         List<Station> result = spatialQueryService.queryArea(
-                35.0, 60.0, -10.0, 10.0,
-                null, null, "all"
+                35.0, 60.0, -10.0, 10.0, null, null, "all"
         );
         printResults(
                 "SAMPLE QUERY 3: Western Europe Longitude Band",
@@ -95,8 +92,7 @@ public class USEI08SampleQueries {
     // SAMPLE QUERY 4
     public void sample4_LisbonArea() {
         List<Station> result = spatialQueryService.queryArea(
-                38.6, 38.8, -9.3, -9.0,
-                null, null, "PT"
+                38.6, 38.8, -9.3, -9.0, null, null, "PT"
         );
         printResults(
                 "SAMPLE QUERY 4: Lisbon Area Stations",
@@ -113,6 +109,6 @@ public class USEI08SampleQueries {
         sample3_WesternEuropeBand();
         sample4_LisbonArea();
 
-        System.out.println("\nAll sample queries executed successfully.\n");
+        System.out.println("\nAll sample queries were executed successfully.\n");
     }
 }

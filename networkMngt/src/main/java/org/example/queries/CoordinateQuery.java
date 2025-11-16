@@ -24,16 +24,7 @@ public class CoordinateQuery {
         AVLTree<Double, Station> latIndex = indexes.getLatitudeIndex();
         List<Station> results = latIndex.rangeSearch(minLat, maxLat);
 
-        Collections.sort(results, new Comparator<Station>() {
-            @Override
-            public int compare(Station s1, Station s2) {
-                int latCompare = Double.compare(s1.getLatitude(), s2.getLatitude());
-                if (latCompare != 0) {
-                    return latCompare;
-                }
-                return s1.getName().compareTo(s2.getName());
-            }
-        });
+        sortByLatitudeThenName(results);
 
         long time = (System.nanoTime() - start) / 1_000_000;
 
@@ -57,59 +48,11 @@ public class CoordinateQuery {
         AVLTree<Double, Station> lonIndex = indexes.getLongitudeIndex();
         List<Station> results = lonIndex.rangeSearch(minLon, maxLon);
 
-        Collections.sort(results, new Comparator<Station>() {
-            @Override
-            public int compare(Station s1, Station s2) {
-                int lonCompare = Double.compare(s1.getLongitude(), s2.getLongitude());
-                if (lonCompare != 0) {
-                    return lonCompare;
-                }
-                return s1.getName().compareTo(s2.getName());
-            }
-        });
+        sortByLongitudeThenName(results);
 
         long time = (System.nanoTime() - start) / 1_000_000;
 
         QueryResult r = new QueryResult("LONGITUDE_RANGE", results, time, results.size());
-        r.addMeta("minLongitude", minLon);
-        r.addMeta("maxLongitude", maxLon);
-        r.addMeta("complexity", "O(log n + k)");
-        return r;
-    }
-
-    public QueryResult queryByBoundingBox(double minLat, double maxLat,
-                                          double minLon, double maxLon) {
-        long start = System.nanoTime();
-
-        List<Station> latResults = indexes.getLatitudeIndex().rangeSearch(minLat, maxLat);
-
-        List<Station> results = new ArrayList<>();
-        for (Station station : latResults) {
-            if (station.getLongitude() >= minLon && station.getLongitude() <= maxLon) {
-                results.add(station);
-            }
-        }
-
-        Collections.sort(results, new Comparator<Station>() {
-            @Override
-            public int compare(Station s1, Station s2) {
-                int latCompare = Double.compare(s1.getLatitude(), s2.getLatitude());
-                if (latCompare != 0) {
-                    return latCompare;
-                }
-                int lonCompare = Double.compare(s1.getLongitude(), s2.getLongitude());
-                if (lonCompare != 0) {
-                    return lonCompare;
-                }
-                return s1.getName().compareTo(s2.getName());
-            }
-        });
-
-        long time = (System.nanoTime() - start) / 1_000_000;
-
-        QueryResult r = new QueryResult("BOUNDING_BOX", results, time, latResults.size());
-        r.addMeta("minLatitude", minLat);
-        r.addMeta("maxLatitude", maxLat);
         r.addMeta("minLongitude", minLon);
         r.addMeta("maxLongitude", maxLon);
         r.addMeta("complexity", "O(log n + k)");
@@ -129,12 +72,7 @@ public class CoordinateQuery {
             }
         }
 
-        Collections.sort(results, new Comparator<Station>() {
-            @Override
-            public int compare(Station s1, Station s2) {
-                return s1.getName().compareTo(s2.getName());
-            }
-        });
+        sortByName(results);
 
         long time = (System.nanoTime() - start) / 1_000_000;
 
@@ -142,32 +80,6 @@ public class CoordinateQuery {
         r.addMeta("latitude", lat);
         r.addMeta("longitude", lon);
         r.addMeta("complexity", "O(log n)");
-        return r;
-    }
-
-    public QueryResult queryByBoundingBoxAndCountry(double minLat, double maxLat,
-                                                    double minLon, double maxLon,
-                                                    String country) {
-        long start = System.nanoTime();
-
-        QueryResult boxResult = queryByBoundingBox(minLat, maxLat, minLon, maxLon);
-
-        List<Station> results = new ArrayList<>();
-        for (Station station : boxResult.getStations()) {
-            if (station.getCountry().equalsIgnoreCase(country)) {
-                results.add(station);
-            }
-        }
-
-        long time = (System.nanoTime() - start) / 1_000_000;
-
-        QueryResult r = new QueryResult("BOUNDING_BOX_COUNTRY", results, time, boxResult.getNodesVisited());
-        r.addMeta("minLatitude", minLat);
-        r.addMeta("maxLatitude", maxLat);
-        r.addMeta("minLongitude", minLon);
-        r.addMeta("maxLongitude", maxLon);
-        r.addMeta("country", country);
-        r.addMeta("complexity", "O(log n + k)");
         return r;
     }
 
@@ -219,5 +131,85 @@ public class CoordinateQuery {
         summary.put("average", count > 0 ? sum / count : 0);
 
         return summary;
+    }
+
+
+    /**
+     * Sort stations by name (ascending).
+     */
+    private void sortByName(List<Station> stations) {
+        int n = stations.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                Station s1 = stations.get(j);
+                Station s2 = stations.get(j + 1);
+
+                if (s1.getName().compareTo(s2.getName()) > 0) {
+                    stations.set(j, s2);
+                    stations.set(j + 1, s1);
+                }
+            }
+        }
+    }
+
+    /**
+     * Sort stations by latitude (ascending), then by name.
+     */
+    private void sortByLatitudeThenName(List<Station> stations) {
+        int n = stations.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                Station s1 = stations.get(j);
+                Station s2 = stations.get(j + 1);
+
+                int latCompare = Double.compare(s1.getLatitude(), s2.getLatitude());
+
+                boolean shouldSwap = false;
+                if (latCompare > 0) {
+                    shouldSwap = true;
+                } else if (latCompare == 0) {
+
+                    if (s1.getName().compareTo(s2.getName()) > 0) {
+                        shouldSwap = true;
+                    }
+                }
+
+                if (shouldSwap) {
+                    stations.set(j, s2);
+                    stations.set(j + 1, s1);
+                }
+            }
+        }
+    }
+
+    /**
+     * Sort stations by longitude (ascending), then by name.
+     * Uses bubble sort with two-level comparison.
+     */
+    private void sortByLongitudeThenName(List<Station> stations) {
+        int n = stations.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                Station s1 = stations.get(j);
+                Station s2 = stations.get(j + 1);
+
+                int lonCompare = Double.compare(s1.getLongitude(), s2.getLongitude());
+
+                boolean shouldSwap = false;
+                if (lonCompare > 0) {
+                    shouldSwap = true;
+                } else if (lonCompare == 0) {
+                    // Same longitude - compare by name
+                    if (s1.getName().compareTo(s2.getName()) > 0) {
+                        shouldSwap = true;
+                    }
+                }
+
+                if (shouldSwap) {
+                    stations.set(j, s2);
+                    stations.set(j + 1, s1);
+                }
+            }
+        }
     }
 }

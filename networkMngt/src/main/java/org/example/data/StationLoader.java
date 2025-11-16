@@ -44,12 +44,7 @@ public class StationLoader {
             }
         }
 
-        Collections.sort(stations, new Comparator<Station>() {
-            @Override
-            public int compare(Station s1, Station s2) {
-                return s1.getName().compareTo(s2.getName());
-            }
-        });
+        sortStationsByName(stations);
 
         return new ArrayList<>(stations);
     }
@@ -161,6 +156,25 @@ public class StationLoader {
         String lowerValue = value.toLowerCase();
         return lowerValue.equals("true") || lowerValue.equals("1") ||
                 lowerValue.equals("yes") || lowerValue.equals("t");
+    }
+
+    /**
+     * Sort stations by name.
+     */
+    private void sortStationsByName(List<Station> stationList) {
+        int n = stationList.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                Station s1 = stationList.get(j);
+                Station s2 = stationList.get(j + 1);
+
+                if (s1.getName().compareTo(s2.getName()) > 0) {
+                    // Swap
+                    stationList.set(j, s2);
+                    stationList.set(j + 1, s1);
+                }
+            }
+        }
     }
 
     public String getReport() {

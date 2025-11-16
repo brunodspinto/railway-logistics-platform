@@ -26,16 +26,7 @@ public class TimeZoneQuery {
             }
         }
 
-        Collections.sort(results, new Comparator<Station>() {
-            @Override
-            public int compare(Station s1, Station s2) {
-                int countryCompare = s1.getCountry().compareTo(s2.getCountry());
-                if (countryCompare != 0) {
-                    return countryCompare;
-                }
-                return s1.getName().compareTo(s2.getName());
-            }
-        });
+        sortByCountryThenName(results);
 
         long time = (System.nanoTime() - start) / 1_000_000;
 
@@ -80,19 +71,9 @@ public class TimeZoneQuery {
             }
         }
 
-        Set<Station> uniqueStations = new HashSet<>(results);
-        results = new ArrayList<>(uniqueStations);
+        results = removeDuplicates(results);
 
-        Collections.sort(results, new Comparator<Station>() {
-            @Override
-            public int compare(Station s1, Station s2) {
-                int countryCompare = s1.getCountry().compareTo(s2.getCountry());
-                if (countryCompare != 0) {
-                    return countryCompare;
-                }
-                return s1.getName().compareTo(s2.getName());
-            }
-        });
+        sortByCountryThenName(results);
 
         long time = (System.nanoTime() - start) / 1_000_000;
 
@@ -136,5 +117,60 @@ public class TimeZoneQuery {
         }
 
         return distribution;
+    }
+
+
+    /**
+     * Sort stations by country (ascending), then by name.
+     */
+    private void sortByCountryThenName(List<Station> stations) {
+        int n = stations.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                Station s1 = stations.get(j);
+                Station s2 = stations.get(j + 1);
+
+                int countryCompare = s1.getCountry().compareTo(s2.getCountry());
+
+                boolean shouldSwap = false;
+                if (countryCompare > 0) {
+                    shouldSwap = true;
+                } else if (countryCompare == 0) {
+                    // Same country - compare by name
+                    if (s1.getName().compareTo(s2.getName()) > 0) {
+                        shouldSwap = true;
+                    }
+                }
+
+                if (shouldSwap) {
+                    stations.set(j, s2);
+                    stations.set(j + 1, s1);
+                }
+            }
+        }
+    }
+
+    /**
+     * Remove duplicate stations from list.
+     */
+    private List<Station> removeDuplicates(List<Station> stations) {
+        List<Station> unique = new ArrayList<>();
+
+        for (Station station : stations) {
+            boolean found = false;
+
+            for (Station existing : unique) {
+                if (existing.equals(station)) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                unique.add(station);
+            }
+        }
+
+        return unique;
     }
 }

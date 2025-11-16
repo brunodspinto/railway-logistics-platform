@@ -2,8 +2,18 @@ package org.example.trees;
 
 import java.util.*;
 
+/**
+ * AVL Tree implementation supporting multiple values per key.
+ * Self-balancing binary search tree with O(log n) guaranteed operations.
+ *
+ * Used for USEI06 to index stations by coordinates and time zones.
+ * Handles duplicate coordinates (e.g., Lisboa stations at same lat/lon).
+ *
+ * @param <K> Key type (must be Comparable)
+ * @param <V> Value type (must be Comparable for sorted storage)
+ */
 public class AVLTree<K extends Comparable<K>, V extends Comparable<V>> {
-    private Node<K, V> root;
+    private AVLNode<K, V> root;
     private int size;
 
     public AVLTree() {
@@ -11,14 +21,15 @@ public class AVLTree<K extends Comparable<K>, V extends Comparable<V>> {
         this.size = 0;
     }
 
+
     public void insert(K key, V value) {
         root = insert(root, key, value);
     }
 
-    private Node<K, V> insert(Node<K, V> node, K key, V value) {
+    private AVLNode<K, V> insert(AVLNode<K, V> node, K key, V value) {
         if (node == null) {
             size++;
-            return new Node<>(key, value);
+            return new AVLNode<>(key, value);
         }
 
         int cmp = key.compareTo(node.key);
@@ -31,21 +42,28 @@ public class AVLTree<K extends Comparable<K>, V extends Comparable<V>> {
             return node;
         }
 
-        node.height = 1 + Math.max(height(node.left), height(node.right));
-        int balance = getBalance(node);
+        node.updateHeight();
 
-        if (balance > 1 && key.compareTo(node.left.key) < 0)
+        int balance = node.getBalance();
+
+
+        if (balance < -1 && key.compareTo(node.left.key) < 0) {
             return rightRotate(node);
+        }
 
-        if (balance < -1 && key.compareTo(node.right.key) > 0)
+
+        if (balance > 1 && key.compareTo(node.right.key) > 0) {
             return leftRotate(node);
+        }
 
-        if (balance > 1 && key.compareTo(node.left.key) > 0) {
+
+        if (balance < -1 && key.compareTo(node.left.key) > 0) {
             node.left = leftRotate(node.left);
             return rightRotate(node);
         }
 
-        if (balance < -1 && key.compareTo(node.right.key) < 0) {
+
+        if (balance > 1 && key.compareTo(node.right.key) < 0) {
             node.right = rightRotate(node.right);
             return leftRotate(node);
         }
@@ -53,17 +71,24 @@ public class AVLTree<K extends Comparable<K>, V extends Comparable<V>> {
         return node;
     }
 
+
     public List<V> search(K key) {
-        Node<K, V> node = search(root, key);
-        return node == null ? new ArrayList<>() : node.values;
+        AVLNode<K, V> node = search(root, key);
+        return node == null ? new ArrayList<>() : node.getValues();
     }
 
-    private Node<K, V> search(Node<K, V> node, K key) {
-        if (node == null) return null;
+    private AVLNode<K, V> search(AVLNode<K, V> node, K key) {
+        if (node == null) {
+            return null;
+        }
 
         int cmp = key.compareTo(node.key);
-        if (cmp < 0) return search(node.left, key);
-        if (cmp > 0) return search(node.right, key);
+        if (cmp < 0) {
+            return search(node.left, key);
+        }
+        if (cmp > 0) {
+            return search(node.right, key);
+        }
         return node;
     }
 
@@ -73,16 +98,20 @@ public class AVLTree<K extends Comparable<K>, V extends Comparable<V>> {
         return result;
     }
 
-    private void rangeSearch(Node<K, V> node, K min, K max, List<V> result) {
-        if (node == null) return;
+    private void rangeSearch(AVLNode<K, V> node, K min, K max, List<V> result) {
+        if (node == null) {
+            return;
+        }
 
         if (node.key.compareTo(min) < 0) {
             rangeSearch(node.right, min, max, result);
-        } else if (node.key.compareTo(max) > 0) {
+        }
+        else if (node.key.compareTo(max) > 0) {
             rangeSearch(node.left, min, max, result);
-        } else {
+        }
+        else {
             rangeSearch(node.left, min, max, result);
-            result.addAll(node.values);
+            result.addAll(node.getValues());
             rangeSearch(node.right, min, max, result);
         }
     }
@@ -93,74 +122,54 @@ public class AVLTree<K extends Comparable<K>, V extends Comparable<V>> {
         return result;
     }
 
-    private void inOrder(Node<K, V> node, List<V> result) {
-        if (node == null) return;
+    private void inOrder(AVLNode<K, V> node, List<V> result) {
+        if (node == null) {
+            return;
+        }
         inOrder(node.left, result);
-        result.addAll(node.values);
+        result.addAll(node.getValues());
         inOrder(node.right, result);
     }
 
-    private Node<K, V> rightRotate(Node<K, V> y) {
-        Node<K, V> x = y.left;
-        Node<K, V> T2 = x.right;
+    private AVLNode<K, V> rightRotate(AVLNode<K, V> y) {
+        AVLNode<K, V> x = y.left;
+        AVLNode<K, V> B = x.right;
 
         x.right = y;
-        y.left = T2;
+        y.left = B;
 
-        y.height = 1 + Math.max(height(y.left), height(y.right));
-        x.height = 1 + Math.max(height(x.left), height(x.right));
+        y.updateHeight();
+        x.updateHeight();
 
         return x;
     }
 
-    private Node<K, V> leftRotate(Node<K, V> x) {
-        Node<K, V> y = x.right;
-        Node<K, V> T2 = y.left;
+    private AVLNode<K, V> leftRotate(AVLNode<K, V> x) {
+        AVLNode<K, V> y = x.right;
+        AVLNode<K, V> B = y.left;
+
 
         y.left = x;
-        x.right = T2;
+        x.right = B;
 
-        x.height = 1 + Math.max(height(x.left), height(x.right));
-        y.height = 1 + Math.max(height(y.left), height(y.right));
+        x.updateHeight();
+        y.updateHeight();
 
         return y;
     }
 
-    private int height(Node<K, V> node) {
+
+    private int height(AVLNode<K, V> node) {
         return node == null ? 0 : node.height;
     }
 
-    private int getBalance(Node<K, V> node) {
-        return node == null ? 0 : height(node.left) - height(node.right);
-    }
 
     public int size() {
         return size;
     }
 
+
     public int height() {
         return height(root);
-    }
-
-    static class Node<K extends Comparable<K>, V extends Comparable<V>> {
-        K key;
-        List<V> values;
-        Node<K, V> left;
-        Node<K, V> right;
-        int height;
-
-        Node(K key, V value) {
-            this.key = key;
-            this.values = new ArrayList<>();
-            this.values.add(value);
-            this.height = 1;
-        }
-
-        void addValue(V value) {
-            int pos = Collections.binarySearch(values, value);
-            if (pos < 0) {
-                values.add(-pos - 1, value);
-            }
-        }
     }
 }
