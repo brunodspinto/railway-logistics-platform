@@ -15,6 +15,7 @@ public class StationService {
     private CoordinateQuery coordQuery;
     private SampleQueries samples;
     private boolean ready;
+    private NearestNQuery nearestQuery;
 
     public StationService() {
         this.loader = new StationLoader();
@@ -37,6 +38,8 @@ public class StationService {
             this.tzQuery = new TimeZoneQuery(indexes);
             this.coordQuery = new CoordinateQuery(indexes);
             this.samples = new SampleQueries(indexes);
+
+            this.nearestQuery = new NearestNQuery(indexes.getSpatialIndex());
 
             this.ready = true;
             return true;
@@ -122,5 +125,10 @@ public class StationService {
 
     public StationIndexes getIndexes() {
         return indexes;
+    }
+
+    public List<NearestNQuery.StationDistance> queryNearestN(double lat, double lon, int n, String tzGroupFilter, String countryFilter) {
+        check();
+        return nearestQuery.nearestN(lat, lon, n, tzGroupFilter, countryFilter);
     }
 }
