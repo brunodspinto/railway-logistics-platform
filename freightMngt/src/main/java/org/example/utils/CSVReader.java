@@ -4,6 +4,20 @@ import java.io.*;
 import java.util.*;
 
 public class CSVReader {
+
+    /**
+     * Lê um ficheiro CSV e retorna lista de registos (cada registo = Map<header, value>)
+     *
+     * Suporta:
+     * - Delimitadores: vírgula ou tab
+     * - Campos com aspas: "valor1,valor2,valor3"
+     * - BOM (Byte Order Mark) UTF-8
+     * - Linhas vazias (ignoradas)
+     *
+     * @param filepath Caminho do ficheiro CSV
+     * @return Lista de registos
+     * @throws IOException Se erro ao ler ficheiro
+     */
     public static List<Map<String, String>> readCsv(String filepath) throws IOException {
         List<Map<String, String>> records = new ArrayList<>();
 
