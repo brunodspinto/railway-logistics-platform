@@ -27,11 +27,8 @@ public class SpatialQueryService {
     }
 
     // Travessia recursiva da 2D-Tree com pruning por eixo
-    private void rangeSearch(Node2D node,
-                             BoundingBoxQuery query,
-                             List<Station> out,
-                             double minLat, double maxLat,
-                             double minLon, double maxLon) {
+    private void rangeSearch(Node2D node, BoundingBoxQuery query, List<Station> out, double minLat, double maxLat, double minLon, double maxLon) {
+
         if (node == null) return;
 
         // Coordenadas do bucket (todas as estações do nó partilham estas coords)
