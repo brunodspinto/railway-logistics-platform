@@ -8,8 +8,7 @@ public class BoundingBoxQuery {
     private final Boolean isCity, isMain;
     private final String country;
 
-    public BoundingBoxQuery(double minLat, double maxLat, double minLon, double maxLon,
-                            Boolean isCity, Boolean isMain, String country) {
+    public BoundingBoxQuery(double minLat, double maxLat, double minLon, double maxLon, Boolean isCity, Boolean isMain, String country) {
         this.minLat = minLat;
         this.maxLat = maxLat;
         this.minLon = minLon;
