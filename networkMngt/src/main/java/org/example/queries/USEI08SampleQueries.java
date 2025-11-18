@@ -16,14 +16,12 @@ public class USEI08SampleQueries {
         this.spatialQueryService = new SpatialQueryService(indexes);
     }
 
-    // Utilitário comum para imprimir os resultados com o mesmo formato
     private void printResults(String queryName, String description, String queryCode, List<Station> list) {
         System.out.println("\n=== " + queryName + " ===");
         System.out.println("Description: " + description);
         System.out.println("Query: " + queryCode);
         System.out.printf("Results: %d stations%n%n", list.size());
 
-        // Ordenação por longitude crescente
         Collections.sort(list, Comparator.comparingDouble(Station::getLongitude));
 
         if (list.isEmpty()) {
@@ -50,65 +48,73 @@ public class USEI08SampleQueries {
         }
     }
 
-    // SAMPLE QUERY 1
-    public void sample1_PortugalAll() {
-        List<Station> result = spatialQueryService.queryArea(
-                36.5, 42.5, -9.5, -6.0, null, null, "PT"
-        );
+    // 1. Hubs Urbanos Ibéricos
+    public void sample1_IberianUrbanHubs() {
+        List<Station> result = spatialQueryService.queryArea(37.0, 43.0, -10.0, 4.0, true, true, "all");
+
         printResults(
-                "SAMPLE QUERY 1: All Portuguese Stations",
-                "Find all stations in Portugal.",
-                "USEI08_PT_ALL",
+                "SAMPLE QUERY 1: Iberian Cities",
+                "Main city stations in PT and ES.",
+                "USEI08_IBERIAN_URBAN",
                 result
         );
     }
 
-    // SAMPLE QUERY 2
-    public void sample2_SpainMainCities() {
-        List<Station> result = spatialQueryService.queryArea(
-                36.0, 44.0, -10.0, 4.0, true, true, "ES"
-        );
+    // 2. Faixa Atlântica PT–ES
+    public void sample2_AtlanticBand() {
+        List<Station> result = spatialQueryService.queryArea(36.0, 44.0, -10.0, -5.0, null, null, "all");
+
         printResults(
-                "SAMPLE QUERY 2: Main City Stations in Spain",
-                "Find all main city stations in Spain.",
-                "USEI08_ES_MAIN",
+                "SAMPLE QUERY 2: Atlantic Strip",
+                "All stations from PT and North ES coastline.",
+                "USEI08_ATLANTIC",
                 result
         );
     }
 
-    // SAMPLE QUERY 3
-    public void sample3_WesternEuropeBand() {
-        List<Station> result = spatialQueryService.queryArea(
-                35.0, 60.0, -10.0, 10.0, null, null, "all"
-        );
+    // 3. Grandes Estações de França
+    public void sample3_FranceMainStations() {
+        List<Station> result = spatialQueryService.queryArea(41.0, 51.5, -5.5, 10.0, null, true, "FR");
+
         printResults(
-                "SAMPLE QUERY 3: Western Europe Longitude Band",
-                "Find stations between longitudes -10 and 10 across PT, ES, and FR.",
-                "USEI08_WEST_BAND",
+                "SAMPLE QUERY 3: Major French Stations",
+                "All main stations in France.",
+                "USEI08_FR_MAIN",
                 result
         );
     }
 
-    // SAMPLE QUERY 4
-    public void sample4_LisbonArea() {
-        List<Station> result = spatialQueryService.queryArea(
-                38.6, 38.8, -9.3, -9.0, null, null, "PT"
-        );
+    // 4. Região de Paris
+    public void sample4_ParisDenseArea() {
+        List<Station> result = spatialQueryService.queryArea(48.7, 48.95, 2.2, 2.45, null, null, "FR");
+
         printResults(
-                "SAMPLE QUERY 4: Lisbon Area Stations",
-                "Find all stations near Lisbon coordinates.",
-                "USEI08_LISBON",
+                "SAMPLE QUERY 4: Paris Zone",
+                "Stations in a dense region around Paris.",
+                "USEI08_PARIS",
                 result
         );
     }
 
-    // Run all
+    // 5. Fronteira PT–ES
+    public void sample5_IberianBorder() {
+        List<Station> result = spatialQueryService.queryArea(38.0, 43.0, -7.5, -6.0, null, null, "all");
+
+        printResults(
+                "SAMPLE QUERY 5: Iberian Border",
+                "Stations along the border between PT and ES.",
+                "USEI08_BORDER",
+                result
+        );
+    }
+
     public void runAllSamples() {
-        sample1_PortugalAll();
-        sample2_SpainMainCities();
-        sample3_WesternEuropeBand();
-        sample4_LisbonArea();
+        sample1_IberianUrbanHubs();
+        sample2_AtlanticBand();
+        sample3_FranceMainStations();
+        sample4_ParisDenseArea();
+        sample5_IberianBorder();
 
-        System.out.println("\nAll sample queries were executed successfully.\n");
+        System.out.println("\nAll Sample Queries were executed successfully.\n");
     }
 }
