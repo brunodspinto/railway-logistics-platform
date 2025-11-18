@@ -16,9 +16,7 @@ public class SpatialQueryService {
         this.indexes = indexes;
     }
 
-    public List<Station> queryArea(double minLat, double maxLat,
-                                   double minLon, double maxLon,
-                                   Boolean isCity, Boolean isMain, String country) {
+    public List<Station> queryArea(double minLat, double maxLat,  double minLon, double maxLon,  Boolean isCity, Boolean isMain, String country) {
 
         BoundingBoxQuery query = new BoundingBoxQuery(minLat, maxLat, minLon, maxLon, isCity, isMain, country);
 
