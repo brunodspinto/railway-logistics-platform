@@ -124,7 +124,7 @@ public class USEI08Menu {
             List<Station> list = spatialService.queryArea(minLat, maxLat, minLon, maxLon, isCity, isMain, country);
 
             long elapsedNs = System.nanoTime() - t0;
-            long durationMs = Math.max(1, (elapsedNs + 999_999) / 1_000_000); // arredonda e evita 0 ms
+            double durationMs = elapsedNs / 1_000_000.0;
 
             // Ordenação por longitude crescente
             Collections.sort(list, Comparator.comparingDouble(Station::getLongitude));
@@ -155,8 +155,9 @@ public class USEI08Menu {
                 }
             }
 
-            // Tempo no fim
-            System.out.printf("%nSearch Time: %d ms%n", durationMs);
+            // Tempo de Pesquisa
+            System.out.printf("%nSearch Time: %.3f ms%n", durationMs);
+
 
         } catch (NumberFormatException e) {
             System.out.println("Invalid numeric input. Try again.");

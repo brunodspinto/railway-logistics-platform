@@ -16,45 +16,49 @@ public class SpatialQueryService {
         this.indexes = indexes;
     }
 
-    public List<Station> queryArea(double minLat, double maxLat,  double minLon, double maxLon,  Boolean isCity, Boolean isMain, String country) {
+    public List<Station> queryArea(double minLat, double maxLat, double minLon, double maxLon, Boolean isCity, Boolean isMain, String country) {
 
         BoundingBoxQuery query = new BoundingBoxQuery(minLat, maxLat, minLon, maxLon, isCity, isMain, country);
 
         List<Station> results = new ArrayList<>();
         Node2D root = indexes.getSpatialIndex().getRoot();
-        rangeSearch(root, query, results, minLat, maxLat, minLon, maxLon);
+
+        rangeSearch(root, query, results);
         return results;
     }
 
-    // Travessia recursiva da 2D-Tree com pruning por eixo
-    private void rangeSearch(Node2D node, BoundingBoxQuery query, List<Station> out, double minLat, double maxLat, double minLon, double maxLon) {
-
+    private void rangeSearch(Node2D node, BoundingBoxQuery query, List<Station> out) {
         if (node == null) return;
 
-        // Coordenadas do bucket (todas as estações do nó partilham estas coords)
         Station pivot = node.getStations().get(0);
         double lat = pivot.getLatitude();
         double lon = pivot.getLongitude();
 
-        // Se o pivot está dentro da caixa, testar todas as estações do bucket
-        boolean inLat = (lat >= minLat && lat <= maxLat);
-        boolean inLon = (lon >= minLon && lon <= maxLon);
-        if (inLat && inLon) {
+        boolean insideLat = (lat >= query.getMinLat() && lat <= query.getMaxLat());
+        boolean insideLon = (lon >= query.getMinLon() && lon <= query.getMaxLon());
+
+        if (insideLat && insideLon) {
             for (Station s : node.getStations()) {
                 if (query.matches(s)) out.add(s);
             }
         }
 
-        int axis = node.getAxis(); // 0 -> latitude, 1 -> longitude
+        int axis = node.getAxis();
 
-        if (axis == 0) {
-            // Divisão por latitude
-            if (minLat <= lat) rangeSearch(node.getLeft(),  query, out, minLat, maxLat, minLon, maxLon);
-            if (maxLat >= lat) rangeSearch(node.getRight(), query, out, minLat, maxLat, minLon, maxLon);
-        } else {
-            // Divisão por longitude
-            if (minLon <= lon) rangeSearch(node.getLeft(),  query, out, minLat, maxLat, minLon, maxLon);
-            if (maxLon >= lon) rangeSearch(node.getRight(), query, out, minLat, maxLat, minLon, maxLon);
+        if (axis == 0) { // latitude
+            if (query.getMinLat() <= lat) {
+                rangeSearch(node.getLeft(), query, out);
+            }
+            if (query.getMaxLat() >= lat) {
+                rangeSearch(node.getRight(), query, out);
+            }
+        } else { // longitude
+            if (query.getMinLon() <= lon) {
+                rangeSearch(node.getLeft(), query, out);
+            }
+            if (query.getMaxLon() >= lon) {
+                rangeSearch(node.getRight(), query, out);
+            }
         }
     }
 }
