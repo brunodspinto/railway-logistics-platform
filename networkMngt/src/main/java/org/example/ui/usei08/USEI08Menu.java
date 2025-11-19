@@ -53,29 +53,33 @@ public class USEI08Menu {
 
         while (true) {
             System.out.println("\n[SAMPLE QUERIES]");
-            System.out.println("1. All Portuguese Stations");
-            System.out.println("2. Main City Stations in Spain");
-            System.out.println("3. Western Europe Longitude Band");
-            System.out.println("4. Lisbon Area Stations");
-            System.out.println("5. Run All");
+            System.out.println("1. Iberian Cities");
+            System.out.println("2. Atlantic Strip");
+            System.out.println("3. Major French Stations");
+            System.out.println("4. Paris Zone");
+            System.out.println("5. Iberian Border");
+            System.out.println("6. Run All");
             System.out.println("0. Back");
             System.out.print("\nOption: ");
 
             String opt = input.nextLine().trim();
             switch (opt) {
                 case "1":
-                    samples.sample1_PortugalAll();
+                    samples.sample1_IberianUrbanHubs();
                     break;
                 case "2":
-                    samples.sample2_SpainMainCities();
+                    samples.sample2_AtlanticBand();
                     break;
                 case "3":
-                    samples.sample3_WesternEuropeBand();
+                    samples.sample3_FranceMainStations();
                     break;
                 case "4":
-                    samples.sample4_LisbonArea();
+                    samples.sample4_ParisDenseArea();
                     break;
                 case "5":
+                    samples.sample5_IberianBorder();
+                    break;
+                case "6":
                     samples.runAllSamples();
                     break;
                 case "0":
@@ -86,14 +90,14 @@ public class USEI08Menu {
         }
     }
 
-    // --------- PESQUISA NORMAL (o teu fluxo anterior) ----------
+    // --------- PESQUISA NORMAL ----------
     private void runSearchFlow() {
         try {
             double minLat, maxLat, minLon, maxLon;
 
             // Validação de latitudes
             while (true) {
-                minLat = readValidatedDouble("Minimum latitude (-90 a 90): ", -90, 90);
+                minLat = readValidatedDouble("\nMinimum latitude (-90 a 90): ", -90, 90);
                 maxLat = readValidatedDouble("Maximum latitude (-90 a 90): ", -90, 90);
                 if (maxLat < minLat) {
                     System.out.println("Maximum latitude cannot be less than minimum latitude. Try again.\n");
@@ -117,12 +121,10 @@ public class USEI08Menu {
             if (country.length() == 0) country = "all";
 
             long t0 = System.nanoTime();
-            List<Station> list = spatialService.queryArea(
-                    minLat, maxLat, minLon, maxLon,
-                    isCity, isMain, country
-            );
+            List<Station> list = spatialService.queryArea(minLat, maxLat, minLon, maxLon, isCity, isMain, country);
+
             long elapsedNs = System.nanoTime() - t0;
-            long durationMs = Math.max(1, (elapsedNs + 999_999) / 1_000_000); // arredonda e evita 0 ms
+            double durationMs = elapsedNs / 1_000_000.0;
 
             // Ordenação por longitude crescente
             Collections.sort(list, Comparator.comparingDouble(Station::getLongitude));
@@ -153,8 +155,9 @@ public class USEI08Menu {
                 }
             }
 
-            // Tempo no fim
-            System.out.printf("%nSearch Time: %d ms%n", durationMs);
+            // Tempo de Pesquisa
+            System.out.printf("%nSearch Time: %.3f ms%n", durationMs);
+
 
         } catch (NumberFormatException e) {
             System.out.println("Invalid numeric input. Try again.");

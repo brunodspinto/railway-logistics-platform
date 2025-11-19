@@ -162,19 +162,7 @@ public class StationLoader {
      * Sort stations by name.
      */
     private void sortStationsByName(List<Station> stationList) {
-        int n = stationList.size();
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
-                Station s1 = stationList.get(j);
-                Station s2 = stationList.get(j + 1);
-
-                if (s1.getName().compareTo(s2.getName()) > 0) {
-                    // Swap
-                    stationList.set(j, s2);
-                    stationList.set(j + 1, s1);
-                }
-            }
-        }
+        stationList.sort(Comparator.comparing(Station::getName));
     }
 
     public String getReport() {

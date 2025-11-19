@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "sort_array.h"
+#include "median.h"
 
 int main(void) {
 
