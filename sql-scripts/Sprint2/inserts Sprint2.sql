@@ -417,3 +417,42 @@ INSERT INTO Path (freightsId, stationId, inicialStation) VALUES (2051,43,11);
 INSERT INTO Path (freightsId, stationId, inicialStation) VALUES (2051,45,11);
 INSERT INTO Path (freightsId, stationId, inicialStation) VALUES (2051,48,11);
 INSERT INTO Path (freightsId, stationId, inicialStation) VALUES (2051,50,11);
+
+
+INSERT INTO AreaType (id, name) VALUES (1, 'warehouse');
+INSERT INTO AreaType (id, name) VALUES (2, 'refrigerated area');
+INSERT INTO AreaType (id, name) VALUES (3, 'grain silo');
+
+
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,2);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,5);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,9);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,11);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,13);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,16);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,17);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,18);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,21);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,50);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,45);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,48);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (1,43);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (2,3);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (2,5);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (2,7);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (2,11);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (2,12);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (2,13);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (2,16);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (2,19);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (2,21);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (2,50);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (2,45);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (3,6);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (3,11);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (3,13);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (3,20);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (3,23);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (3,50);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (3,45);
+INSERT INTO AreaTypeStation (areaId, stationId) VALUES (3,43);
