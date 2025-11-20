@@ -23,7 +23,7 @@ public class USEI08Menu {
     }
 
     // --------- MAIN MENU ----------
-    public void run() {
+    public void start() {
         while (true) {
             System.out.println("\n[MAIN MENU]");
             System.out.println("1. Search by Geographical Area");

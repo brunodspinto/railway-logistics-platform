@@ -16,7 +16,7 @@ public class USEI09Menu {
         this.scanner = new Scanner(System.in);
     }
 
-    public void run() {
+    public void start() {
         System.out.println("\n===== USEI09 – Nearest-N Search =====\n");
 
         try {

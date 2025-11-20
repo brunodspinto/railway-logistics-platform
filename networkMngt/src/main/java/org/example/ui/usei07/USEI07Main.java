@@ -10,9 +10,9 @@ public class USEI07Main {
     private static final String DEFAULT_CSV = "res/train_stations_europe.csv";
 
     public static void main(String[] args) {
-        System.out.println("════════════════════════════════════════════");
+        System.out.println("============================================");
         System.out.println("USEI07 - Spatial Queries (2D-Tree)");
-        System.out.println("════════════════════════════════════════════");
+        System.out.println("============================================");
 
         String path = args.length > 0 ? args[0] : DEFAULT_CSV;
 

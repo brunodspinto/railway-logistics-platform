@@ -19,6 +19,6 @@ public class USEI09Main {
         }
 
         USEI09Menu menu = new USEI09Menu(service);
-        menu.run();
+        menu.start();
     }
 }

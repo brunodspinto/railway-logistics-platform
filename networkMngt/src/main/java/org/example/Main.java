@@ -4,6 +4,8 @@ import org.example.service.StationService;
 import org.example.ui.usei06.USEI06Menu;
 import org.example.ui.usei07.USEI07Menu;
 import org.example.ui.usei08.USEI08Menu;
+import org.example.ui.usei09.USEI09Menu;
+import org.example.ui.usei10.USEI10Menu;
 
 import java.util.Scanner;
 
@@ -42,6 +44,12 @@ public class Main {
                 case "3":
                     runUSEI08();
                     break;
+                case "4":
+                    runUSEI09();
+                    break;
+                case "5":
+                    runUSEI10();
+                    break;
                 case "0":
                     running = false;
                     System.out.println("\nA encerrar aplicação...");
@@ -55,30 +63,32 @@ public class Main {
     }
 
     private static void printMainMenu() {
-        System.out.println("\n════════════════════════════════════════════");
+        System.out.println("\n============================================");
         System.out.println("               MENU PRINCIPAL");
-        System.out.println("════════════════════════════════════════════");
+        System.out.println("============================================");
         System.out.println("1 - Run USEI06");
         System.out.println("2 - Run USEI07");
         System.out.println("3 - Run USEI08");
+        System.out.println("4 - Run USEI09");
+        System.out.println("5 - Run USEI10");
         System.out.println("0 - Sair");
-        System.out.println("════════════════════════════════════════════");
+        System.out.println("============================================");
         System.out.print("Escolha uma opção: ");
     }
 
     private static void runUSEI06() {
-        System.out.println("\n════════════════════════════════════════════");
+        System.out.println("\n============================================");
         System.out.println("USEI06 - Time-Zone Index & Windowed Queries");
-        System.out.println("════════════════════════════════════════════");
+        System.out.println("============================================");
 
         USEI06Menu menu = new USEI06Menu(service);
         menu.start();
     }
 
     private static void runUSEI07() {
-        System.out.println("\n════════════════════════════════════════════");
+        System.out.println("\n============================================");
         System.out.println("USEI07 - Spatial Queries (2D-Tree)");
-        System.out.println("════════════════════════════════════════════");
+        System.out.println("============================================");
 
         USEI07Menu menu = new USEI07Menu(service);
         menu.start();
@@ -90,6 +100,24 @@ public class Main {
         System.out.println("=======================================\n");
 
         USEI08Menu menu = new USEI08Menu(service);
-        menu.run();
+        menu.start();
+    }
+
+    private static void runUSEI09() {
+        System.out.println("\n=======================================");
+        System.out.println(" USEI09 - Nearest-N Spatial Search");
+        System.out.println("=======================================\n");
+
+        USEI09Menu menu = new USEI09Menu(service);
+        menu.start();
+    }
+
+    private static void runUSEI10() {
+        System.out.println("\n=======================================");
+        System.out.println(" USEI09 - Nearest-N Spatial Search");
+        System.out.println("=======================================\n");
+
+        USEI10Menu menu = new USEI10Menu(service);
+        menu.start();
     }
 }

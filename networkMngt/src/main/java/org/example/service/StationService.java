@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.Results.RadiusResult;
 import org.example.data.StationLoader;
 import org.example.domain.Station;
 import org.example.queries.*;
@@ -16,6 +17,7 @@ public class StationService {
     private SampleQueries samples;
     private boolean ready;
     private NearestNQuery nearestQuery;
+    private RadiusSearchQuery radiusQuery;
 
     public StationService() {
         this.loader = new StationLoader();
@@ -40,6 +42,7 @@ public class StationService {
             this.samples = new SampleQueries(indexes);
 
             this.nearestQuery = new NearestNQuery(indexes.getSpatialIndex());
+            this.radiusQuery = new RadiusSearchQuery(indexes.getSpatialIndex());
 
             this.ready = true;
             return true;
@@ -130,5 +133,10 @@ public class StationService {
     public List<NearestNQuery.StationDistance> queryNearestN(double lat, double lon, int n, String tzGroupFilter, String countryFilter) {
         check();
         return nearestQuery.nearestN(lat, lon, n, tzGroupFilter, countryFilter);
+    }
+
+    public RadiusResult queryRadius(double lat, double lon, double radiusKm) {
+        check();
+        return radiusQuery.search(lat, lon, radiusKm);
     }
 }
