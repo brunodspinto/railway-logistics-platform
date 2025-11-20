@@ -22,6 +22,6 @@ public class USEI08Main {
         System.out.println("=======================================\n");
 
         USEI08Menu menu = new USEI08Menu(service);
-        menu.run();
+        menu.start();
     }
 }
