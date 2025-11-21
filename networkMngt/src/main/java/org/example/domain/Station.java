@@ -71,6 +71,14 @@ public class Station implements Comparable<Station> {
                 name, country, latitude, longitude, timeZoneGroup);
     }
 
+    public boolean isValid() {
+        return name != null && !name.trim().isEmpty() &&
+                latitude >= -90 && latitude <= 90 &&
+                longitude >= -180 && longitude <= 180 &&
+                country != null && !country.trim().isEmpty() &&
+                timeZoneGroup != null && !timeZoneGroup.trim().isEmpty();
+    }
+
     public String getValidationError() {
         if (name == null || name.trim().isEmpty()) {
             return "Station name cannot be empty";
