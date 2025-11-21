@@ -5,7 +5,7 @@ import java.util.*;
 
 /**
  * USEI06 - Sample queries demonstrating functionality.
- * Provides 4 example queries as required by the assignment.
+ * Provides 4 example queries.
  */
 public class SampleQueries {
     private final StationIndexes indexes;
@@ -77,7 +77,7 @@ public class SampleQueries {
      */
     public String runAllSamples() {
         System.out.println("╔══════════════════════════════════════════════════════════════╗");
-        System.out.println("║          USEI06 - SAMPLE QUERIES DEMONSTRATION              ║");
+        System.out.println("║          USEI06 - SAMPLE QUERIES DEMONSTRATION               ║");
         System.out.println("╚══════════════════════════════════════════════════════════════╝");
 
         sample1_AllCETStations();
@@ -86,48 +86,5 @@ public class SampleQueries {
         sample4_LisbonDuplicateCoordinates();
 
         return "All sample queries executed successfully.";
-    }
-
-    /**
-     * Country distribution analysis.
-     */
-    public void demonstrateCountryDistribution() {
-        System.out.println("\n=== Country Distribution in CET ===");
-        Map<String, Long> distribution = timeZoneQuery.getCountryDistribution("CET");
-
-        for (Map.Entry<String, Long> entry : distribution.entrySet()) {
-            System.out.println(entry.getKey() + ": " + entry.getValue() + " stations");
-        }
-    }
-
-    /**
-     * Time zone distribution analysis.
-     */
-    public void demonstrateTimeZoneDistribution() {
-        System.out.println("\n=== Time Zone Distribution ===");
-        Map<String, Long> distribution = timeZoneQuery.getTimeZoneDistribution();
-
-        for (Map.Entry<String, Long> entry : distribution.entrySet()) {
-            System.out.println(entry.getKey() + ": " + entry.getValue() + " stations");
-        }
-    }
-
-    /**
-     * Geographic distribution summary.
-     */
-    public void demonstrateGeographicDistribution() {
-        System.out.println("\n=== Geographic Distribution ===");
-
-        System.out.println("\nLatitude Statistics:");
-        Map<String, Object> latStats = coordinateQuery.getLatitudeDistributionSummary();
-        for (Map.Entry<String, Object> entry : latStats.entrySet()) {
-            System.out.println("  " + entry.getKey() + ": " + entry.getValue());
-        }
-
-        System.out.println("\nLongitude Statistics:");
-        Map<String, Object> lonStats = coordinateQuery.getLongitudeDistributionSummary();
-        for (Map.Entry<String, Object> entry : lonStats.entrySet()) {
-            System.out.println("  " + entry.getKey() + ": " + entry.getValue());
-        }
     }
 }

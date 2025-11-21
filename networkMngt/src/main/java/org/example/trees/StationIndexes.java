@@ -32,27 +32,23 @@ public class StationIndexes {
 
         List<Station> validStations = new ArrayList<>();
 
-        // Separate valid from invalid stations
-        for (Station s : stations) {
-            String err = s.getValidationError();
-            if (err != null) {
-                rejected.put(s, err);
+        for (Station station : stations) {
+            String error = station.getValidationError();
+            if (error != null) {
+                rejected.put(station, error);
                 continue;
             }
-            validStations.add(s);
+            validStations.add(station);
         }
 
-        // Build USEI06 indexes (AVL trees)
-        for (Station s : validStations) {
-            latIndex.insert(s.getLatitude(), s);
-            lonIndex.insert(s.getLongitude(), s);
+        for (Station station : validStations) {
+            latIndex.insert(station.getLatitude(), station);
+            lonIndex.insert(station.getLongitude(), station);
 
-            CompositeKey key = new CompositeKey(s.getTimeZoneGroup(), s.getCountry());
-            tzIndex.insert(key, s);
+            CompositeKey key = new CompositeKey(station.getTimeZoneGroup(), station.getCountry());
+            tzIndex.insert(key, station);
         }
 
-        // Build 2D-tree silently (for USEI07)
-        // Using AVL in-order for efficient pre-sorted construction
         List<Station> stationsSortedByLat = latIndex.inOrder();
         List<Station> stationsSortedByLon = lonIndex.inOrder();
         spatialIndex.build(stationsSortedByLat, stationsSortedByLon);

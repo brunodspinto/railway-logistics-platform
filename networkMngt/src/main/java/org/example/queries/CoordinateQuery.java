@@ -133,22 +133,22 @@ public class CoordinateQuery {
         return summary;
     }
 
-
     /**
-     * Sort stations by name (ascending).
+     * Sort stations by name (ascending) using Insertion Sort.
      */
     private void sortByName(List<Station> stations) {
         int n = stations.size();
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
-                Station s1 = stations.get(j);
-                Station s2 = stations.get(j + 1);
 
-                if (s1.getName().compareTo(s2.getName()) > 0) {
-                    stations.set(j, s2);
-                    stations.set(j + 1, s1);
-                }
+        for (int i = 1; i < n; i++) {
+            Station key = stations.get(i);
+            int j = i - 1;
+
+            while (j >= 0 && stations.get(j).getName().compareTo(key.getName()) > 0) {
+                stations.set(j + 1, stations.get(j));
+                j--;
             }
+
+            stations.set(j + 1, key);
         }
     }
 
@@ -157,59 +157,64 @@ public class CoordinateQuery {
      */
     private void sortByLatitudeThenName(List<Station> stations) {
         int n = stations.size();
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
-                Station s1 = stations.get(j);
-                Station s2 = stations.get(j + 1);
 
-                int latCompare = Double.compare(s1.getLatitude(), s2.getLatitude());
+        for (int i = 1; i < n; i++) {
+            Station key = stations.get(i);
+            int j = i - 1;
 
-                boolean shouldSwap = false;
+            while (j >= 0) {
+                Station current = stations.get(j);
+                int latCompare = Double.compare(current.getLatitude(), key.getLatitude());
+
+                boolean shouldMove = false;
                 if (latCompare > 0) {
-                    shouldSwap = true;
+                    shouldMove = true;
                 } else if (latCompare == 0) {
-
-                    if (s1.getName().compareTo(s2.getName()) > 0) {
-                        shouldSwap = true;
+                    if (current.getName().compareTo(key.getName()) > 0) {
+                        shouldMove = true;
                     }
                 }
 
-                if (shouldSwap) {
-                    stations.set(j, s2);
-                    stations.set(j + 1, s1);
-                }
+                if (!shouldMove) break;
+
+                stations.set(j + 1, current);
+                j--;
             }
+
+            stations.set(j + 1, key);
         }
     }
 
     /**
      * Sort stations by longitude (ascending), then by name.
-     * Uses bubble sort with two-level comparison.
      */
     private void sortByLongitudeThenName(List<Station> stations) {
         int n = stations.size();
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
-                Station s1 = stations.get(j);
-                Station s2 = stations.get(j + 1);
 
-                int lonCompare = Double.compare(s1.getLongitude(), s2.getLongitude());
+        for (int i = 1; i < n; i++) {
+            Station key = stations.get(i);
+            int j = i - 1;
 
-                boolean shouldSwap = false;
+            while (j >= 0) {
+                Station current = stations.get(j);
+                int lonCompare = Double.compare(current.getLongitude(), key.getLongitude());
+
+                boolean shouldMove = false;
                 if (lonCompare > 0) {
-                    shouldSwap = true;
+                    shouldMove = true;
                 } else if (lonCompare == 0) {
-                    // Same longitude - compare by name
-                    if (s1.getName().compareTo(s2.getName()) > 0) {
-                        shouldSwap = true;
+                    if (current.getName().compareTo(key.getName()) > 0) {
+                        shouldMove = true;
                     }
                 }
 
-                if (shouldSwap) {
-                    stations.set(j, s2);
-                    stations.set(j + 1, s1);
-                }
+                if (!shouldMove) break;
+
+                stations.set(j + 1, current);
+                j--;
             }
+
+            stations.set(j + 1, key);
         }
     }
 }

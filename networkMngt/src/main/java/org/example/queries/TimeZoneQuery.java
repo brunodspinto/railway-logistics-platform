@@ -125,28 +125,31 @@ public class TimeZoneQuery {
      */
     private void sortByCountryThenName(List<Station> stations) {
         int n = stations.size();
-        for (int i = 0; i < n - 1; i++) {
-            for (int j = 0; j < n - i - 1; j++) {
-                Station s1 = stations.get(j);
-                Station s2 = stations.get(j + 1);
 
-                int countryCompare = s1.getCountry().compareTo(s2.getCountry());
+        for (int i = 1; i < n; i++) {
+            Station key = stations.get(i);
+            int j = i - 1;
 
-                boolean shouldSwap = false;
+            while (j >= 0) {
+                Station current = stations.get(j);
+                int countryCompare = current.getCountry().compareTo(key.getCountry());
+
+                boolean shouldMove = false;
                 if (countryCompare > 0) {
-                    shouldSwap = true;
+                    shouldMove = true;
                 } else if (countryCompare == 0) {
-                    // Same country - compare by name
-                    if (s1.getName().compareTo(s2.getName()) > 0) {
-                        shouldSwap = true;
+                    if (current.getName().compareTo(key.getName()) > 0) {
+                        shouldMove = true;
                     }
                 }
 
-                if (shouldSwap) {
-                    stations.set(j, s2);
-                    stations.set(j + 1, s1);
-                }
+                if (!shouldMove) break;
+
+                stations.set(j + 1, current);
+                j--;
             }
+
+            stations.set(j + 1, key);
         }
     }
 

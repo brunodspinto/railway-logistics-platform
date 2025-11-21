@@ -4,7 +4,6 @@ import java.util.Objects;
 
 /**
  * Represents a European railway station.
- * Immutable domain entity for USEI06.
  */
 public class Station implements Comparable<Station> {
     private final String name;
@@ -45,7 +44,6 @@ public class Station implements Comparable<Station> {
 
     /**
      * Natural ordering: by name (ASC)
-     * Critical for handling duplicate coordinates (Lisbon example)
      */
     @Override
     public int compareTo(Station other) {
@@ -73,21 +71,6 @@ public class Station implements Comparable<Station> {
                 name, country, latitude, longitude, timeZoneGroup);
     }
 
-    /**
-     * Validates station data according to USEI06 requirements.
-     * @return true if valid, false otherwise
-     */
-    public boolean isValid() {
-        return name != null && !name.trim().isEmpty() &&
-                latitude >= -90 && latitude <= 90 &&
-                longitude >= -180 && longitude <= 180 &&
-                country != null && !country.trim().isEmpty() &&
-                timeZoneGroup != null && !timeZoneGroup.trim().isEmpty();
-    }
-
-    /**
-     * Returns validation error message if invalid, null if valid.
-     */
     public String getValidationError() {
         if (name == null || name.trim().isEmpty()) {
             return "Station name cannot be empty";
