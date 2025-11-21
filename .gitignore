@@ -80,3 +80,12 @@ mvnw.cmd
 
 # SQL scripts de build são versionados, por isso NÃO ignorar sql-scripts/
 # resources podem ser versionados também, então NÃO ignorar /res/
+
+# Database configuration (não fazer commit de passwords!)
+freightMngt/src/main/resources/database.properties
+
+**/database.properties
+
+# Oracle specific
+*.log
+*.trc

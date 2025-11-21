@@ -1,0 +1,8 @@
+# Oracle Database Configuration Template
+# Copy this file to database.properties and update with your credentials
+
+db.hostname=localhost
+db.port=1521
+db.servicename=XEPDB1
+db.username=freight_user
+db.password=CHANGE_ME
