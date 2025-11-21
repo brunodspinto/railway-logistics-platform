@@ -1,4 +1,4 @@
-package org.example.usei08;
+package org.example.usei08.service;
 
 import org.example.domain.Station;
 import org.example.service.SpatialQueryService;
