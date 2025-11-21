@@ -10,9 +10,6 @@ import java.util.Collections;
  * Suporta múltiplas estações nas mesmas coordenadas (bucket).
  */
 public class Node2D {
-
-    // O "bucket" de estações neste ponto exato.
-    // Requisito: Ordenado por nome
     private final List<Station> stations;
 
     // Coordenada e eixo usados para a divisão neste nó
@@ -42,10 +39,8 @@ public class Node2D {
      * natural da classe Station (que já está por nome).
      */
     public void addStation(Station station) {
-        // Usa pesquisa binária para encontrar o ponto de inserção
         int pos = Collections.binarySearch(stations, station);
         if (pos < 0) {
-            // Insere na posição correta para manter a ordem
             stations.add(-pos - 1, station);
         }
     }
