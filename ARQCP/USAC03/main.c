@@ -1,41 +1,28 @@
 #include <stdio.h>
-#include <string.h>
-#include "extract_data.h"
+#include "asm.h"
 
 int main() {
-    char str[] = "TEMP &unit:celsius &value:20 #HUM &unit:percentage &value:80";
-    char unit[50];
+    char str[] = "TEMP&unit:celsius&value:20#HUM&unit:percentage&value:80";
+    char unit[100];
     int value;
+    int result;
 
-    printf("\n=================================\n");
-    printf("  Extract Sensor Data Demo\n");
-    printf("=================================\n\n");
+    printf("=== USAC03 - extract_data ===\n\n");
 
-    printf("Input string:\n  %s\n\n", str);
+    // Test 1: TEMP
+    result = extract_data(str, "TEMP", unit, &value);
+    printf("Token: TEMP\n");
+    printf("Result: %d, Unit: %s, Value: %d\n\n", result, unit, value);
 
-    // Extract TEMP (from specification example)
-    printf("Extracting TEMP...\n");
-    if (extract_data(str, "TEMP", unit, &value)) {
-        printf("  Result: 1:%s,%d\n\n", unit, value);
-    } else {
-        printf("  Failed (0)\n\n");
-    }
+    // Test 2: HUM
+    result = extract_data(str, "HUM", unit, &value);
+    printf("Token: HUM\n");
+    printf("Result: %d, Unit: %s, Value: %d\n\n", result, unit, value);
 
-    // Extract HUM (from specification example)
-    printf("Extracting HUM...\n");
-    if (extract_data(str, "HUM", unit, &value)) {
-        printf("  Result: 1:%s,%d\n\n", unit, value);
-    } else {
-        printf("  Failed (0)\n\n");
-    }
-
-    // Try invalid token (from specification example)
-    printf("Extracting AAA...\n");
-    if (extract_data(str, "AAA", unit, &value)) {
-        printf("  Result: 1:%s,%d\n\n", unit, value);
-    } else {
-        printf("  Result: 0:,%d (expected)\n\n", value);
-    }
+    // Test 3: Not found
+    result = extract_data(str, "AAA", unit, &value);
+    printf("Token: AAA (not found)\n");
+    printf("Result: %d, Unit: %s, Value: %d\n\n", result, unit, value);
 
     return 0;
 }
