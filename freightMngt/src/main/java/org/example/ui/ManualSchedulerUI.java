@@ -36,16 +36,37 @@ public class ManualSchedulerUI {
             // 1. Input básico do train
             Train train = createManualTrain();
 
-            // 2. Calcular schedule
-            System.out.println("\n⏳ Calculating schedule...\n");
-            TrainSchedule schedule = schedulerService.calculateSchedule(train);
+            // ========== MODIFICAÇÃO PRINCIPAL ==========
 
-            // 3. Detectar crossings (se múltiplos trains)
-            ScheduleResult result = schedulerService.calculateSchedulesWithConflicts(
-                    Collections.singletonList(train)
+            // 2. Buscar trains existentes na mesma data
+            List<Train> trainsOnSameDay = repository.getTrainsByDate(
+                    train.getDate()
             );
 
-            // 4. Mostrar resultados
+            System.out.printf("\n📋 Found %d existing train(s) scheduled for %s\n",
+                    trainsOnSameDay.size(),
+                    train.getDate().format(DATE_FORMAT)
+            );
+
+            // 3. Adicionar o novo train à lista
+            List<Train> allTrains = new ArrayList<>(trainsOnSameDay);
+            allTrains.add(train);
+
+            System.out.printf("🔍 Analyzing %d total trains for conflicts...\n", allTrains.size());
+
+            // 4. Calcular schedules COM detecção de conflitos
+            System.out.println("\n⏳ Calculating schedule...\n");
+            ScheduleResult result = schedulerService.calculateSchedulesWithConflicts(allTrains);
+
+            // 5. Extrair schedule do novo train
+            TrainSchedule schedule = result.getSchedules().stream()
+                    .filter(s -> s.getTrain().getId() == train.getId())
+                    .findFirst()
+                    .orElseThrow(() -> new Exception("Schedule not found for train " + train.getId()));
+
+            // ========== FIM DA MODIFICAÇÃO ==========
+
+            // 6. Mostrar resultados
             displayResults(schedule, result);
 
         } catch (Exception e) {
