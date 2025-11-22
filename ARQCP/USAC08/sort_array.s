@@ -34,8 +34,8 @@ descending:
     bge t4, t5, no_swap         #Se vec[j] >= vec[j+1], está correto, não faz a troca
 
 swap:
-    sw t5, 0(t3)        #guarda vec[j+1] na posição j
-    sw t4, 4(t3)        #guarda vec[j] na posição j+1
+    sw t5, 0(t3)        #Guarda vec[j+1] na posição j
+    sw t4, 4(t3)        #Guarda vec[j] na posição j+1
 
 no_swap:
     addi t1, t1, 1      #j++
