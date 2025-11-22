@@ -9,14 +9,14 @@ BEGIN
     OPEN result_cursor FOR
         SELECT Station.nameStation
         FROM Station
-        JOIN AreaTypeStation ON Station.idStation = AreaTypeStation.stationId
-        JOIN AreaType ON AreaTypeStation.areaId = AreaType.id
+        INNER JOIN AreaTypeStation ON Station.idStation = AreaTypeStation.stationId
+        INNER JOIN AreaType ON AreaTypeStation.areaId = AreaType.id
         WHERE AreaType.name = 'grain silo'
         MINUS
         SELECT Station.nameStation
         FROM Station
-        JOIN AreaTypeStation ON Station.idStation = AreaTypeStation.stationId
-        JOIN AreaType ON AreaTypeStation.areaId = AreaType.id
+        INNER JOIN AreaTypeStation ON Station.idStation = AreaTypeStation.stationId
+        INNER JOIN AreaType ON AreaTypeStation.areaId = AreaType.id
         WHERE AreaType.name = 'warehouse';
     RETURN result_cursor;
 EXCEPTION
