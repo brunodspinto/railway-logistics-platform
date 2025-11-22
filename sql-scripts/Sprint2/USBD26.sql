@@ -91,3 +91,50 @@ END LOOP;
 
 CLOSE c;
 END;
+
+-- Bloco Anónimo USBD26 2--
+
+DECLARE
+c                  SYS_REFCURSOR;
+  v_wagon_number     Wagon.numberWagon%TYPE;
+  v_model_name       WagonModel.nameModel%TYPE;
+  v_manufacturer     WagonModel.maker%TYPE;
+  v_wagon_type       WagonsType.description%TYPE;
+  v_tare_weight      Wagon.weight%TYPE;
+  v_payload_capacity WagonModel.payload%TYPE;
+  v_operator_name    Operator.shortName%TYPE;
+  v_year_of_entry    Wagon.yearOfEntry%TYPE;
+BEGIN
+  -- Abre o cursor
+  c := get_unused_wagons(
+         DATE '2025-10-03',
+         DATE '2025-10-03'
+       );
+
+  LOOP
+FETCH c
+      INTO v_wagon_number,
+           v_model_name,
+           v_manufacturer,
+           v_wagon_type,
+           v_tare_weight,
+           v_payload_capacity,
+           v_operator_name,
+           v_year_of_entry;
+    EXIT WHEN c%NOTFOUND;
+
+    -- Imprime uma linha por cada registo
+    DBMS_OUTPUT.PUT_LINE(
+      'Wagon ' || v_wagon_number
+      || ' | Modelo: ' || v_model_name
+      || ' | Fabricante: ' || v_manufacturer
+      || ' | Tipo: ' || v_wagon_type
+      || ' | Tara: ' || v_tare_weight
+      || ' | Carga: ' || v_payload_capacity
+      || ' | Operador: ' || NVL(v_operator_name,'<nenhum>')
+      || ' | Ano Entrada: ' || v_year_of_entry
+    );
+END LOOP;
+
+CLOSE c;
+END;
