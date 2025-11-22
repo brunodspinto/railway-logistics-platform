@@ -1,6 +1,6 @@
 package org.example.service;
 
-import org.example.Results.RadiusResult;
+import org.example.results.RadiusResult;
 import org.example.data.StationLoader;
 import org.example.domain.Station;
 import org.example.queries.*;

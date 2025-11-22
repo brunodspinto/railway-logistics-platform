@@ -1,4 +1,4 @@
-package org.example.Results;
+package org.example.results;
 
 import org.example.domain.Station;
 import org.example.queries.RadiusKey;
