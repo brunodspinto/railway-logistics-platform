@@ -49,7 +49,18 @@ public class ScheduleEntry {
     public String format() {
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        String stopInfo = stops ? String.format("STOP (%d min)", getStopDurationMinutes()) : "PASS";
+        String stopInfo;
+        if (!stops) {
+            stopInfo = "PASS";
+        } else {
+            long duration = getStopDurationMinutes();
+
+            // Identificar operação (se tiver train disponível)
+            stopInfo = String.format("STOP (%d min)", duration);
+
+            // Se quisermos detalhar a operação:
+            // stopInfo = String.format("STOP (%d min) - Loading/Unloading", duration);
+        }
 
         return String.format("%-20s  %s  %s  %6.1f km/h  %6.1f km  %s",
                 station.getName(),

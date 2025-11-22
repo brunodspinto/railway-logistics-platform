@@ -21,9 +21,9 @@ CREATE TABLE Train (id number(10) NOT NULL, dateTrain date NOT NULL, timeTrain d
 CREATE TABLE RouteType (id number(10) NOT NULL, description varchar2(255) NOT NULL, PRIMARY KEY (id));
 CREATE TABLE AreaType (id number(10) NOT NULL, name varchar2(255) NOT NULL, PRIMARY KEY (id));
 CREATE TABLE OperatorTrain (operatorVatNumber varchar2(100) NOT NULL, trainId number(10) NOT NULL, PRIMARY KEY (operatorVatNumber, trainId));
-CREATE TABLE Route (trainId number(10) NOT NULL, stationId number(10) NOT NULL, inicialStation number(10) NOT NULL, routeTypeId number(10) NOT NULL, PRIMARY KEY (trainId, stationId, inicialStation));
+CREATE TABLE Route (trainId number(10) NOT NULL, stationId number(10) NOT NULL, inicialStation number(10) NOT NULL, finalStation number(10) NOT NULL, routeTypeId number(10) NOT NULL, PRIMARY KEY (trainId, stationId));
 CREATE TABLE Freights (id number(10) NOT NULL, dateFreights date NOT NULL, trainId number(10) NOT NULL, PRIMARY KEY (id));
-CREATE TABLE Path (freightsId number(10) NOT NULL, stationId number(10) NOT NULL, inicialStation number(10) NOT NULL, PRIMARY KEY (freightsId, stationId, inicialStation));
+CREATE TABLE Path (freightsId number(10) NOT NULL, stationId number(10) NOT NULL, inicialStation number(10) NOT NULL, finalStation number(10) NOT NULL, PRIMARY KEY (freightsId, stationId));
 CREATE TABLE WagonFreights (wagonNumber number(10) NOT NULL, freightsId number(10) NOT NULL, PRIMARY KEY (wagonNumber, freightsId));
 CREATE TABLE Locomotive_Train (locomotiveNumber number(10) NOT NULL, trainId number(10) NOT NULL, PRIMARY KEY (locomotiveNumber, trainId));
 CREATE TABLE AreaTypeStation (areaId number(10) NOT NULL, stationId number(10) NOT NULL, PRIMARY KEY (areaId, stationId));
@@ -65,3 +65,5 @@ ALTER TABLE Route ADD CONSTRAINT FKRoute956990 FOREIGN KEY (inicialStation) REFE
 ALTER TABLE Path ADD CONSTRAINT FKPath285454 FOREIGN KEY (inicialStation) REFERENCES Station (idStation);
 ALTER TABLE AreaTypeStation ADD CONSTRAINT FKAreaTypeSt499792 FOREIGN KEY (areaId) REFERENCES AreaType (id);
 ALTER TABLE AreaTypeStation ADD CONSTRAINT FKAreaTypeSt377216 FOREIGN KEY (stationId) REFERENCES Station (idStation);
+ALTER TABLE Path ADD CONSTRAINT FKPath304173 FOREIGN KEY (finalStation) REFERENCES Station (idStation);
+ALTER TABLE Route ADD CONSTRAINT FKRoute975709 FOREIGN KEY (finalStation) REFERENCES Station (idStation);

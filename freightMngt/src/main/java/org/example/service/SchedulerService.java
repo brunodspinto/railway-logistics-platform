@@ -277,6 +277,9 @@ public class SchedulerService {
         Train train1 = schedule1.getTrain();
         Train train2 = schedule2.getTrain();
 
+        System.out.printf("🔍 Checking conflicts between Train %d and Train %d\n",
+                train1.getId(), train2.getId());
+
         // Obter path de cada train
         List<Station> path1 = train1.getPathStations();
         List<Station> path2 = train2.getPathStations();
@@ -302,11 +305,15 @@ public class SchedulerService {
                         (from1.equals(to2) && to1.equals(from2));
 
                 if (sameLine) {
+                    System.out.printf("   ⚠ Same line detected: %s\n", line1.getName());
+
                     // Verificar se algum segmento é single track
                     boolean hasSingleTrack = line1.getSegments().stream()
-                            .anyMatch(seg -> seg.getNumberTracks() == 1);
+                            .anyMatch(LineSegment::isSingleTrack);
 
                     if (hasSingleTrack) {
+                        System.out.println("   ⚠ Single track segment found!");
+
                         // Calcular tempos de entrada/saída
                         LocalDateTime t1Entry = schedule1.getDepartureTimeAt(from1);
                         LocalDateTime t1Exit = schedule1.getArrivalTimeAt(to1);
@@ -316,9 +323,14 @@ public class SchedulerService {
                         if (t1Entry != null && t1Exit != null &&
                                 t2Entry != null && t2Exit != null) {
 
+                            System.out.printf("   Train %d: %s -> %s\n",
+                                    train1.getId(), t1Entry, t1Exit);
+                            System.out.printf("   Train %d: %s -> %s\n",
+                                    train2.getId(), t2Entry, t2Exit);
+
                             // Usar primeiro segmento single track
                             LineSegment singleTrackSeg = line1.getSegments().stream()
-                                    .filter(seg -> seg.getNumberTracks() == 1)
+                                    .filter(LineSegment::isSingleTrack)
                                     .findFirst()
                                     .orElse(null);
 
@@ -328,6 +340,7 @@ public class SchedulerService {
                                         t1Entry, t1Exit, t2Entry, t2Exit
                                 );
                                 conflicts.add(conflict);
+                                System.out.println("   ✓ Conflict added!");
                             }
                         }
                     }

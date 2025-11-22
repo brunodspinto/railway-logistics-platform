@@ -56,9 +56,28 @@ public class TrainSchedule {
     }
 
     public double getAverageSpeedKmh() {
-        if (getTotalTravelMinutes() == 0) return 0;
-        double hours = getTotalTravelMinutes() / 60.0;
-        return getTotalDistanceKm() / hours;
+        double totalDistance = getTotalDistanceKm();
+
+        if (totalDistance <= 0) {
+            return 0;
+        }
+
+        // Calcular tempo REAL de movimento (soma dos tempos por segmento)
+        double totalTravelHours = 0;
+
+        for (ScheduleEntry entry : entries) {
+            if (entry.getSpeedKmh() > 0 && entry.getSegmentDistanceKm() > 0) {
+                // Tempo deste segmento = distância / velocidade
+                totalTravelHours += entry.getSegmentDistanceKm() / entry.getSpeedKmh();
+            }
+        }
+
+        if (totalTravelHours <= 0) {
+            return 0;
+        }
+
+        // Velocidade média = distância total / tempo total de movimento
+        return totalDistance / totalTravelHours;
     }
 
     /**
