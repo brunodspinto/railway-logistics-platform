@@ -546,8 +546,6 @@ public class ManualSchedulerUI {
             System.out.println("  ℹ️ No freight operations at intermediate stations");
             System.out.println("     (All freight travels full route)");
         }
-
-        System.out.println("\n═".repeat(100));
     }
 
     // ✨ NOVO: Calcular tempo de movimento real
