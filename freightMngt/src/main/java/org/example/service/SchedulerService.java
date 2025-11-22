@@ -32,6 +32,9 @@ public class SchedulerService {
             throw new IllegalArgumentException("Train must have at least one locomotive");
         }
 
+        System.out.printf("\n🚂 Calculating schedule for Train %d...\n", train.getId());
+        System.out.printf("   Path: %d stations\n", train.getPathStations().size());
+
         LocalDateTime currentTime = train.getDepartureDateTime();
         TrainSchedule schedule = new TrainSchedule(train, currentTime);
 
@@ -42,14 +45,28 @@ public class SchedulerService {
             Station fromStation = pathStations.get(i);
             Station toStation = pathStations.get(i + 1);
 
+            // ✅ LOG: Tentativa de encontrar linha
+            System.out.printf("   🔍 [%d→%d] Looking for line: %s (%d) → %s (%d)\n",
+                    i, i+1,
+                    fromStation.getName(), fromStation.getId(),
+                    toStation.getName(), toStation.getId());
+
             // Encontrar linha direta entre as duas estações
             Line line = repository.findDirectLine(fromStation.getId(), toStation.getId());
 
             if (line == null) {
+                // ✅ LOG: Falha detalhada
+                System.err.printf("   ❌ NO DIRECT LINE FOUND!\n");
+                System.err.printf("      From: %s (ID: %d)\n", fromStation.getName(), fromStation.getId());
+                System.err.printf("      To:   %s (ID: %d)\n", toStation.getName(), toStation.getId());
+
                 throw new Exception(String.format(
                         "No direct line found between %s and %s",
                         fromStation.getName(), toStation.getName()));
             }
+
+            // ✅ LOG: Sucesso
+            System.out.printf("      ✅ Found: %s (%.1f km)\n", line.getName(), line.getTotalLengthKm());
 
             // Calcular velocidade efetiva e tempo
             double effectiveSpeed = calculateEffectiveSpeed(line, train);
@@ -86,6 +103,7 @@ public class SchedulerService {
             currentTime = departureTime;
         }
 
+        System.out.printf("   ✅ Schedule calculated successfully!\n");
         return schedule;
     }
 

@@ -127,12 +127,13 @@ public class TrainRepository {
 
     private List<Integer> getPathStationIds(Connection conn, int trainId) {
         List<Integer> ids = new ArrayList<>();
+
+        // ✅ SEM ORDER BY - Oracle mantém ordem de inserção
         String query = """
-            SELECT stationId
-            FROM Route
-            WHERE trainId = ?
-            ORDER BY ROWNUM
-        """;
+        SELECT stationId
+        FROM Route
+        WHERE trainId = ?
+    """;
 
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, trainId);
@@ -143,7 +144,7 @@ public class TrainRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println("Error loading path for train " + trainId);
+            System.err.println("Error loading path for train " + trainId + ": " + e.getMessage());
         }
 
         return ids;
@@ -185,5 +186,51 @@ public class TrainRepository {
         }
 
         return numbers;
+    }
+
+    // TrainRepository.java
+
+    /**
+     * Busca todos os trains agendados para uma data específica
+     */
+    public List<Train> getByDate(LocalDate date) {
+        List<Integer> trainIds = new ArrayList<>();
+
+        String query = """
+        SELECT t.id
+        FROM Train t
+        WHERE t.dateTrain = ?
+        ORDER BY t.timeTrain
+    """;
+
+        // PASSO 1: Buscar IDs dos trains
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+
+            // ✅ IMPORTANTE: Setar o parâmetro ANTES de executeQuery()
+            stmt.setDate(1, Date.valueOf(date));
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    trainIds.add(rs.getInt("id"));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("Error loading train IDs by date: " + e.getMessage());
+            return new ArrayList<>();
+        }
+
+        // PASSO 2: Carregar cada train completo
+        List<Train> trains = new ArrayList<>();
+        for (Integer id : trainIds) {
+            Train train = getById(id);
+            if (train != null) {
+                trains.add(train);
+            }
+        }
+
+        System.out.printf("✓ Loaded %d trains for date %s\n", trains.size(), date);
+        return trains;
     }
 }

@@ -1,6 +1,8 @@
 package org.example.repository;
 
 import org.example.domain.*;
+
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
@@ -28,6 +30,12 @@ public interface IRouteRepository {
     // Train
     Train getTrain(int id);
     Collection<Train> getAllTrains();
+    // IRouteRepository.java (interface)
+
+    /**
+     * Busca todos os trains agendados para uma data
+     */
+    List<Train> getTrainsByDate(LocalDate date);
 
     // Line Segments (útil para path building)
     List<LineSegment> getSegmentsByLine(int lineId);

@@ -470,6 +470,7 @@ public class CsvRouteRepository implements IRouteRepository {
         return result;
     }
 
+
     // ===== MÉTODOS EXISTENTES (implementação) =====
 
     @Override
@@ -570,5 +571,16 @@ public class CsvRouteRepository implements IRouteRepository {
     @Override
     public Line getLineById(int lineId) {
         return lines.get(lineId);
+    }
+
+    // ===== MÉTODO PARA USLP07 - CONFLICT DETECTION =====
+
+    @Override
+    public List<Train> getTrainsByDate(LocalDate date) {
+        // Filtrar trains que têm a data especificada
+        return trains.values().stream()
+                .filter(train -> train.getDate().equals(date))
+                .sorted(Comparator.comparing(Train::getTime))  // Ordenar por hora
+                .collect(java.util.stream.Collectors.toList());
     }
 }
