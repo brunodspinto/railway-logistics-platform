@@ -39,8 +39,9 @@ DECLARE
     v_freightsId Freights.id%TYPE;
     v_startStation Station.nameStation%TYPE;
     v_endStation Station.nameStation%TYPE;
+    v_trainIdInput NUMBER := 5421;
 BEGIN
-    refcursor := listEndPointsRoute(5421);
+    refcursor := listEndPointsRoute(v_trainIdInput);
     LOOP
         FETCH refcursor INTO v_trainId, v_freightsId, v_startStation, v_endStation;
         EXIT WHEN refcursor%NOTFOUND;
@@ -65,8 +66,9 @@ DECLARE
     v_freightsId Freights.id%TYPE;
     v_startStation Station.nameStation%TYPE;
     v_endStation Station.nameStation%TYPE;
+     v_trainIdInput NUMBER := 5437;
 BEGIN
-    refcursor := listEndPointsRoute(5437);
+    refcursor := listEndPointsRoute(v_trainIdInput);
 
     LOOP
         FETCH refcursor INTO v_trainId, v_freightsId, v_startStation, v_endStation;
@@ -93,8 +95,9 @@ DECLARE
     v_startStation Station.nameStation%TYPE;
     v_endStation Station.nameStation%TYPE;
     v_counter NUMBER := 0;
+    v_trainIdInput NUMBER := 9999;
 BEGIN
-    refcursor := listEndPointsRoute(9999);
+    refcursor := listEndPointsRoute(v_trainIdInput);
 
     LOOP
         FETCH refcursor INTO v_trainId, v_freightsId, v_startStation, v_endStation;
