@@ -15,11 +15,9 @@ import java.io.PrintStream;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Testes unitários para USEI07Menu usando apenas JUnit e Stubs manuais.
- * Simula a interação com a consola (System.in/out).
+ * Testes unitários para USEI07Menu.
  */
 class USEI07MenuTest {
-
     private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
     private final ByteArrayOutputStream errContent = new ByteArrayOutputStream();
     private final PrintStream originalOut = System.out;
@@ -39,10 +37,6 @@ class USEI07MenuTest {
         System.setIn(originalIn);
     }
 
-    /**
-     * Stub para StationIndexes.
-     * Sobrescreve apenas o método que devolve o total de estações.
-     */
     static class StationIndexesStub extends StationIndexes {
         @Override
         public int getTotalStations() {
@@ -50,10 +44,6 @@ class USEI07MenuTest {
         }
     }
 
-    /**
-     * Stub para StationService.
-     * Permite controlar o estado 'ready' e o relatório de performance.
-     */
     static class StationServiceStub extends StationService {
         private boolean isReadyValue;
         private final StationIndexes indexesStub = new StationIndexesStub();
@@ -78,18 +68,21 @@ class USEI07MenuTest {
         }
     }
 
+    // --- TESTES ---
+
     @Test
     void testServiceNotReady() {
         StationServiceStub serviceStub = new StationServiceStub();
         serviceStub.setReady(false);
 
+        // Input vazio, pois ele sai logo
         provideInput("");
 
         USEI07Menu menu = new USEI07Menu(serviceStub);
-
         menu.start();
 
         String erroOutput = errContent.toString();
+        // Verifica se a mensagem de erro está correta (System.err)
         assertTrue(erroOutput.contains("Service not ready"),
                 "Deve imprimir mensagem de erro se o serviço não estiver pronto.");
     }
@@ -99,17 +92,19 @@ class USEI07MenuTest {
         StationServiceStub serviceStub = new StationServiceStub();
         serviceStub.setReady(true);
 
+        // Simula escolher "0" para sair
         provideInput("0\n");
 
         USEI07Menu menu = new USEI07Menu(serviceStub);
-
         menu.start();
 
         String output = outContent.toString();
 
-        assertTrue(output.contains("[SPATIAL QUERIES (2D-Tree) MENU]"));
+        assertTrue(output.contains("[MENU]"),
+                "O menu deve conter o cabeçalho [MENU]");
 
-        assertTrue(output.contains("Stations indexed: 999"));
+        assertTrue(output.contains("Stations indexed: 999"),
+                "Deve mostrar o número de estações indexadas.");
     }
 
     @Test
@@ -117,17 +112,19 @@ class USEI07MenuTest {
         StationServiceStub serviceStub = new StationServiceStub();
         serviceStub.setReady(true);
 
+        // Sequência:
+        // "1" - Escolher ver estatísticas
+        // "\n" - Enter para o "Press ENTER to continue..." (o pause())
+        // "0" - Sair
         provideInput("1\n\n0\n");
 
         USEI07Menu menu = new USEI07Menu(serviceStub);
-
         menu.start();
 
         String output = outContent.toString();
 
-        assertTrue(output.contains("[USEI07: Index Build Report]"));
-
-        assertTrue(output.contains("RELATORIO DE TESTE: 2D-Tree construída com sucesso."));
+        assertTrue(output.contains("RELATORIO DE TESTE: 2D-Tree construída com sucesso."),
+                "Deve imprimir o relatório retornado pelo serviço.");
     }
 
     @Test
@@ -135,16 +132,17 @@ class USEI07MenuTest {
         StationServiceStub serviceStub = new StationServiceStub();
         serviceStub.setReady(true);
 
+        // "abc" -> Gera erro, "0" -> Sai
         provideInput("abc\n0\n");
 
         USEI07Menu menu = new USEI07Menu(serviceStub);
-
         menu.start();
 
         String output = outContent.toString();
 
-        assertTrue(output.contains("Invalid input"),
-                "Deve tratar entradas não numéricas (InputMismatchException).");
+        // Verifica a mensagem do catch(InputMismatchException)
+        assertTrue(output.contains("Invalid input. Please enter a number."),
+                "Deve tratar entradas não numéricas.");
     }
 
     @Test
@@ -152,21 +150,21 @@ class USEI07MenuTest {
         StationServiceStub serviceStub = new StationServiceStub();
         serviceStub.setReady(true);
 
+        // "5" -> Opção inválida, "0" -> Sai
         provideInput("5\n0\n");
 
         USEI07Menu menu = new USEI07Menu(serviceStub);
-
         menu.start();
 
         String output = outContent.toString();
 
-        assertTrue(output.contains("Invalid option"),
-                "Deve avisar quando a opção numérica não existe no menu.");
+        // Verifica a mensagem do default no switch
+        assertTrue(output.contains("Invalid option. Please try again."),
+                "Deve avisar quando a opção numérica não existe.");
     }
 
     /**
      * Método auxiliar para simular o input do utilizador.
-     * Deve ser chamado ANTES de instanciar o menu.
      */
     private void provideInput(String data) {
         ByteArrayInputStream testIn = new ByteArrayInputStream(data.getBytes());

@@ -25,7 +25,7 @@ public class USEI07Menu {
         }
 
         running = true;
-        // Mostra o total de estações carregadas
+
         System.out.printf("\nStations indexed: %d\n", service.getIndexes().getTotalStations());
 
         while (running) {
@@ -35,10 +35,10 @@ public class USEI07Menu {
     }
 
     private void showMainMenu() {
-        System.out.println("\n[SPATIAL QUERIES (2D-Tree) MENU]");
-        System.out.println("1. Show 2D-Tree Build Stats (USEI07)");
+        System.out.println("\n[MENU]");
+        System.out.println("1. Show 2D-Tree Build Report");
         System.out.println("0. Exit");
-        System.out.print("\nOption: ");
+        System.out.print("\nSelect option: ");
     }
 
     private void handleMainMenu() {
@@ -47,24 +47,27 @@ public class USEI07Menu {
             scanner.nextLine();
 
             switch (choice) {
-                case 1: showBuildStats(); break;
-                case 0: running = false; break;
-                default: System.out.println("Invalid option");
+                case 1:
+                    showBuildStats();
+                    break;
+                case 0:
+                    running = false;
+                    break;
+                default: System.out.println("Invalid option. Please try again.");
             }
         } catch (InputMismatchException e) {
-            System.out.println("Invalid input");
+            System.out.println("Invalid input. Please enter a number.");
             scanner.nextLine();
         }
     }
 
     private void showBuildStats() {
-        System.out.println("\n[USEI07: Index Build Report]");
         System.out.println(service.getPerformanceReport());
         pause();
     }
 
     private void pause() {
-        System.out.print("\nPress ENTER...");
+        System.out.print("\nPress ENTER to continue...");
         scanner.nextLine();
     }
 }

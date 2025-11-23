@@ -77,27 +77,46 @@ public class StationIndexes {
 
     public String getReport() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Index Statistics\n");
-        sb.append(String.format("Stations: %d | Build time: %d ms\n\n", total, buildTime));
 
-        sb.append("Latitude Index:\n");
-        sb.append("  Size: ").append(latIndex.size()).append(" nodes\n");
-        sb.append("  Height: ").append(latIndex.height()).append("\n\n");
+        sb.append("\n══════════════════════════════════════════════════════════\n");
+        sb.append(String.format("              INDEX REPORT (N=%d)              \n", total));
+        sb.append("══════════════════════════════════════════════════════════\n");
+        sb.append(String.format(" Total Build Time    : %d ms\n", buildTime));
+        sb.append("──────────────────────────────────────────────────────────\n");
 
-        sb.append("Longitude Index:\n");
-        sb.append("  Size: ").append(lonIndex.size()).append(" nodes\n");
-        sb.append("  Height: ").append(lonIndex.height()).append("\n\n");
+        sb.append(String.format(" %-15s | %-10s | %-8s | %-10s\n", "AVL Index", "Nodes", "Height", "Target Height"));
+        sb.append("──────────────────────────────────────────────────────────\n");
 
-        sb.append("TimeZone Index:\n");
-        sb.append("  Size: ").append(tzIndex.size()).append(" nodes\n");
-        sb.append("  Height: ").append(tzIndex.height()).append("\n\n");
+        appendIndexRow(sb, "Latitude", latIndex.size(), latIndex.height());
+        appendIndexRow(sb, "Longitude", lonIndex.size(), lonIndex.height());
+        appendIndexRow(sb, "TimeZone", tzIndex.size(), tzIndex.height());
 
-        sb.append("Spatial Index (2D-Tree):\n");
-        sb.append("  Size (Nodes): ").append(spatialIndex.size()).append("\n");
-        sb.append("  Height: ").append(spatialIndex.height()).append("\n");
-        sb.append("  Distinct Bucket Sizes: ").append(spatialIndex.getDistinctBucketSizes().toString()).append("\n");
+        sb.append("══════════════════════════════════════════════════════════\n");
+
+        sb.append(" SPATIAL INDEX (2D-Tree)\n");
+        sb.append("──────────────────────────────────────────────────────────\n");
+        sb.append(String.format(" Size (Nodes)        : %d\n", spatialIndex.size()));
+
+        double optH = log2(spatialIndex.size());
+        sb.append(String.format(" Height              : %d (Target ~%.1f)\n", spatialIndex.height(), optH));
+
+        List<Integer> buckets = new ArrayList<>(spatialIndex.getDistinctBucketSizes());
+        Collections.sort(buckets);
+        sb.append(String.format(" Buckets (Distinct)  : %s\n", buckets.toString()));
+        sb.append("══════════════════════════════════════════════════════════\n");
 
         return sb.toString();
+    }
+
+    // Método auxiliar para formatar as linhas da tabela
+    private void appendIndexRow(StringBuilder sb, String name, int size, int height) {
+        double opt = log2(size);
+        sb.append(String.format(" %-15s | %-10d | %-8d | ~%-10.1f\n", name, size, height, opt));
+    }
+
+    // Método auxiliar para calcular log base 2
+    private double log2(int n) {
+        return n > 0 ? Math.log(n) / Math.log(2) : 0;
     }
 
     public int getTotalStations() {

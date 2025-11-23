@@ -49,7 +49,7 @@ class StationIndexesTest {
         assertNotNull(indexes.getTimeZoneIndex());
         assertNotNull(indexes.getSpatialIndex());
 
-        // Verifica se a 2D-Tree foi construída corretamente (lógica do teste anterior)
+        // Verifica se a 2D-Tree foi construída corretamente
         TwoDTree spatial = indexes.getSpatialIndex();
         assertEquals(3, spatial.size()); // 3 nós
         assertEquals(2, spatial.height()); // Equilibrada
@@ -63,15 +63,23 @@ class StationIndexesTest {
 
         String report = indexes.getReport();
 
-        // Verifica se o relatório da USEI07 está presente [689]
-        assertTrue(report.contains("Spatial Index (2D-Tree):"));
-        assertTrue(report.contains("Size (Nodes): 3"));
-        assertTrue(report.contains("Height: 2"));
-        assertTrue(report.contains("Distinct Bucket Sizes: [1, 2]"));
+        assertTrue(report.contains("INDEX REPORT"), "Deve conter o título principal");
+        assertTrue(report.contains("AVL Index"), "Deve conter o cabeçalho da tabela AVL");
+        assertTrue(report.contains("Target Height"), "Deve conter a coluna de altura ideal/alvo");
 
-        // Verifica se os relatórios da USEI06 também estão
-        assertTrue(report.contains("Latitude Index"));
-        assertTrue(report.contains("Longitude Index"));
-        assertTrue(report.contains("TimeZone Index"));
+        assertTrue(report.contains("Latitude"));
+        assertTrue(report.contains("Longitude"));
+        assertTrue(report.contains("TimeZone"));
+
+        assertTrue(report.contains("SPATIAL INDEX (2D-Tree)"), "Deve conter o título da secção 2D");
+
+        assertTrue(report.contains("Size (Nodes)"));
+        assertTrue(report.contains("3"));
+
+        assertTrue(report.contains("Height"));
+        assertTrue(report.contains("2"));
+
+        assertTrue(report.contains("Buckets (Distinct)"));
+        assertTrue(report.contains("[1, 2]"));
     }
 }

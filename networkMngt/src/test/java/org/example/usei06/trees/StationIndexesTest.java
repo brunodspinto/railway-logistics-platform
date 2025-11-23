@@ -97,9 +97,15 @@ class StationIndexesTest {
 
         String report = indexes.getReport();
 
-        assertTrue(report.contains("Index Statistics"));
-        assertTrue(report.contains("Latitude Index"));
-        assertTrue(report.contains("Longitude Index"));
-        assertTrue(report.contains("TimeZone Index"));
+        assertTrue(report.contains("INDEX REPORT"), "Report must contain title 'INDEX REPORT'");
+
+        assertTrue(report.contains("AVL Index"), "Must contain 'AVL Index' header");
+        assertTrue(report.contains("Latitude"), "Must list Latitude index");
+        assertTrue(report.contains("Longitude"), "Must list Longitude index");
+        assertTrue(report.contains("TimeZone"), "Must list TimeZone index");
+
+        assertTrue(report.contains("Target Height"), "Must show the Target Height column");
+
+        assertTrue(report.contains("SPATIAL INDEX"), "Must contain the 2D-Tree section");
     }
 }
