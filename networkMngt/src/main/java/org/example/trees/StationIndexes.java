@@ -108,13 +108,12 @@ public class StationIndexes {
         return sb.toString();
     }
 
-    // Método auxiliar para formatar as linhas da tabela
     private void appendIndexRow(StringBuilder sb, String name, int size, int height) {
         double opt = log2(size);
         sb.append(String.format(" %-15s | %-10d | %-8d | ~%-10.1f\n", name, size, height, opt));
     }
 
-    // Método auxiliar para calcular log base 2
+
     private double log2(int n) {
         return n > 0 ? Math.log(n) / Math.log(2) : 0;
     }
