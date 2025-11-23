@@ -20,6 +20,8 @@ public class Main {
     public static void main(String[] args) {
         String csvPath = args.length > 0 ? args[0] : DEFAULT_CSV;
 
+        printWelcomeBanner();
+
         // Carregar dados uma única vez
         System.out.println("Loading data...");
         service = new StationService();
@@ -36,88 +38,138 @@ public class Main {
 
             switch (choice) {
                 case "1":
-                    runUSEI06();
+                    showDevelopmentTeam();
                     break;
                 case "2":
-                    runUSEI07();
+                    runUSEI06();
                     break;
                 case "3":
-                    runUSEI08();
+                    runUSEI07();
                     break;
                 case "4":
-                    runUSEI09();
+                    runUSEI08();
                     break;
                 case "5":
+                    runUSEI09();
+                    break;
+                case "6":
                     runUSEI10();
                     break;
                 case "0":
                     running = false;
-                    System.out.println("\nA encerrar aplicação...");
+                    printGoodbye();
                     break;
                 default:
-                    System.out.println("\nOpção inválida! Tenta novamente.");
+                    System.out.println("\n✗ Opção inválida! Tenta novamente.");
+            }
+
+            if (running && !choice.equals("1")) {
+                pauseForUser();
             }
         }
 
         scanner.close();
     }
 
+    private static void printWelcomeBanner() {
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("           ESINF - SPATIAL & INDEXED QUERIES - SPRINT 2");
+        System.out.println("                  ISEP - DEI - 3rd Semester 2025/2026");
+        System.out.println("═".repeat(80));
+    }
+
     private static void printMainMenu() {
-        System.out.println("\n============================================");
-        System.out.println("               MENU PRINCIPAL");
-        System.out.println("============================================");
-        System.out.println("1 - Run USEI06");
-        System.out.println("2 - Run USEI07");
-        System.out.println("3 - Run USEI08");
-        System.out.println("4 - Run USEI09");
-        System.out.println("5 - Run USEI10");
-        System.out.println("0 - Sair");
-        System.out.println("============================================");
-        System.out.print("Escolha uma opção: ");
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("                            MENU PRINCIPAL");
+        System.out.println("═".repeat(80));
+        System.out.println("  1. Know the Development Team");
+        System.out.println("  2. Run USEI06 - Time-Zone Index & Windowed Queries");
+        System.out.println("  3. Run USEI07 - Build Balanced 2D-Tree");
+        System.out.println("  4. Run USEI08 - Search by Geographical Area");
+        System.out.println("  5. Run USEI09 - Proximity Search (Nearest-N)");
+        System.out.println("  6. Run USEI10 - Radius Search & Density Summary");
+        System.out.println("  0. Sair");
+        System.out.println("═".repeat(80));
+        System.out.print("  Escolha uma opção: ");
+    }
+
+    private static void showDevelopmentTeam() {
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("                           DEVELOPMENT TEAM");
+        System.out.println("═".repeat(80));
+        System.out.println("\n  Course:        Engenharia Informática");
+        System.out.println("  Institution:   Instituto Superior de Engenharia do Porto (ISEP)");
+        System.out.println("  Academic Year: 2025/2026");
+        System.out.println("  Project:       sem3pi-2025-26 - Integrative Project");
+        System.out.println("  Component:     ESINF - Information Structures");
+
+        System.out.println("\n" + "─".repeat(80));
+        System.out.println("  TEAM MEMBERS:");
+        System.out.println("─".repeat(80));
+        System.out.println("  Student 1: David Ribeiro     -  [removed]  -  [removed]");
+        System.out.println("  Student 2: Eduardo Oliveira  -  [removed]  -  [removed]");
+        System.out.println("  Student 3: Diogo Azevedo     -  [removed]  -  [removed]");
+        System.out.println("  Student 4: Bruno Pinto       -  [removed]  -  [removed]");
+        System.out.println("  Student 5: Rafael Santos     -  [removed]  -  [removed]");
+        System.out.println("═".repeat(80));
+
+        pauseForUser();
     }
 
     private static void runUSEI06() {
-        System.out.println("\n============================================");
-        System.out.println("USEI06 - Time-Zone Index & Windowed Queries");
-        System.out.println("============================================");
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("          USEI06 - Time-Zone Index & Windowed Queries");
+        System.out.println("═".repeat(80));
 
         USEI06Menu menu = new USEI06Menu(service);
         menu.start();
     }
 
     private static void runUSEI07() {
-        System.out.println("\n============================================");
-        System.out.println("USEI07 - Spatial Queries (2D-Tree)");
-        System.out.println("============================================");
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("          USEI07 - Build Balanced 2D-Tree on Lat/Lon");
+        System.out.println("═".repeat(80));
 
         USEI07Menu menu = new USEI07Menu(service);
         menu.start();
     }
 
     private static void runUSEI08() {
-        System.out.println("\n=======================================");
-        System.out.println(" USEI08 - Search by Geographical Area");
-        System.out.println("=======================================\n");
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("          USEI08 - Search by Geographical Area");
+        System.out.println("═".repeat(80));
 
         USEI08Menu menu = new USEI08Menu(service);
         menu.start();
     }
 
     private static void runUSEI09() {
-        System.out.println("\n=======================================");
-        System.out.println(" USEI09 - Nearest-N Spatial Search");
-        System.out.println("=======================================\n");
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("          USEI09 - Proximity Search (Nearest-N)");
+        System.out.println("═".repeat(80));
 
         USEI09Menu menu = new USEI09Menu(service);
         menu.start();
     }
 
     private static void runUSEI10() {
-        System.out.println("\n=======================================");
-        System.out.println(" USEI09 - Nearest-N Spatial Search");
-        System.out.println("=======================================\n");
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("          USEI10 - Radius Search & Density Summary");
+        System.out.println("═".repeat(80));
 
         USEI10Menu menu = new USEI10Menu(service);
         menu.start();
+    }
+
+    private static void printGoodbye() {
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("         Thank you for using ESINF Query System!");
+        System.out.println("                        Goodbye!");
+        System.out.println("═".repeat(80) + "\n");
+    }
+
+    private static void pauseForUser() {
+        System.out.print("\nPress ENTER to continue...");
+        scanner.nextLine();
     }
 }

@@ -1,5 +1,6 @@
 package org.example.ui.usei06;
 
+import org.example.domain.Station;
 import org.example.queries.QueryResult;
 import org.example.service.StationService;
 import java.util.*;
@@ -193,9 +194,46 @@ public class USEI06Menu {
         pause();
     }
 
-
     private void show(QueryResult r) {
-        System.out.println("\n" + r.toString());
+        System.out.println("\nQuery: " + r.getType());
+        System.out.println("Results: " + r.getStations().size() + " stations");
+
+        List<Station> stations = r.getStations();
+        int pageSize = 10;
+        int currentIndex = 0;
+
+        while (currentIndex < stations.size()) {
+            // Mostra 10 resultados
+            int end = Math.min(currentIndex + pageSize, stations.size());
+
+            if (currentIndex == 0) {
+                System.out.println("First " + pageSize + ":");
+            } else {
+                System.out.println("\nShowing " + (currentIndex + 1) + "-" + end + ":");
+            }
+
+            for (int i = currentIndex; i < end; i++) {
+                Station s = stations.get(i);
+                System.out.printf("  %s (%s) [%.5f, %.5f] - %s\n",
+                        s.getName(), s.getCountry(),
+                        s.getLatitude(), s.getLongitude(),
+                        s.getTimeZoneGroup());
+            }
+
+            currentIndex = end;
+
+            // Se ainda há mais resultados, pergunta
+            if (currentIndex < stations.size()) {
+                int remaining = stations.size() - currentIndex;
+                System.out.printf("  ... %d more\n", remaining);
+                System.out.print("\nShow next 10? (y/n): ");
+                String answer = scanner.nextLine().trim().toLowerCase();
+                if (!answer.equals("y")) {
+                    break;
+                }
+            }
+        }
+
     }
 
     private void pause() {
