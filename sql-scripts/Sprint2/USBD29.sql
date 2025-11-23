@@ -1,4 +1,4 @@
--- Função USBD29 --
+-- Função USBD29
 
 CREATE OR REPLACE FUNCTION getPercentageElectricLocomotives(p_vatOperator Operator.vatNumber%TYPE)
 RETURN SYS_REFCURSOR
@@ -23,12 +23,13 @@ EXCEPTION
         RETURN result_cursor;
 END;
 
--- Bloco Anónimo USBD29 --
+-- Bloco Anónimo USBD29 1
 
 DECLARE
     v_result VARCHAR2(200);
     v_vatOperator Operator.vatNumber%TYPE := 'PT509017800';
     refcursor SYS_REFCURSOR;
+    v_row_count NUMBER := 0;
 BEGIN
     refcursor := getPercentageElectricLocomotives(v_vatOperator);
 
@@ -37,6 +38,8 @@ BEGIN
     LOOP
         FETCH refcursor INTO v_result;
         EXIT WHEN refcursor%notfound;
+
+        v_row_count := v_row_count + 1;
 
         IF v_result IS NULL THEN
             DBMS_OUTPUT.PUT_LINE('N/A (No locomotives found for this operator)');
@@ -48,6 +51,87 @@ BEGIN
 
     END LOOP;
     CLOSE refcursor;
+
+    IF v_row_count = 0 THEN
+        DBMS_OUTPUT.PUT_LINE('No information found for this operator.');
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error when obtaining locomotive data: ' || SQLERRM);
+END;
+
+-- Bloco Anónimo USBD29 2
+
+DECLARE
+    v_result VARCHAR2(200);
+    v_vatOperator Operator.vatNumber%TYPE := 'PT507832388'; -- Captrain
+    refcursor SYS_REFCURSOR;
+    v_row_count NUMBER := 0;
+BEGIN
+    refcursor := getPercentageElectricLocomotives(v_vatOperator);
+
+    DBMS_OUTPUT.PUT_LINE('Percentage of electric locomotives for operator ' || v_vatOperator || ':');
+
+    LOOP
+        FETCH refcursor INTO v_result;
+        EXIT WHEN refcursor%notfound;
+
+        v_row_count := v_row_count + 1;
+
+        IF v_result IS NULL THEN
+            DBMS_OUTPUT.PUT_LINE('N/A (No locomotives found for this operator)');
+        ELSIF v_result LIKE 'Error%' THEN
+            DBMS_OUTPUT.PUT_LINE(v_result);
+        ELSE
+            DBMS_OUTPUT.PUT_LINE(v_result || '%');
+        END IF;
+
+    END LOOP;
+    CLOSE refcursor;
+
+    IF v_row_count = 0 THEN
+        DBMS_OUTPUT.PUT_LINE('No information found for this operator.');
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error when obtaining locomotive data: ' || SQLERRM);
+END;
+
+-- Bloco Anónimo USBD29 3
+
+DECLARE
+    v_result VARCHAR2(200);
+    v_vatOperator Operator.vatNumber%TYPE := 'PT9999942419'; -- NIF Inventado
+    refcursor SYS_REFCURSOR;
+    v_row_count NUMBER := 0;
+BEGIN
+    -- Chamar a função
+    refcursor := getPercentageElectricLocomotives(v_vatOperator);
+
+    DBMS_OUTPUT.PUT_LINE('Percentage of electric locomotives for operator ' || v_vatOperator || ':');
+
+    LOOP
+        FETCH refcursor INTO v_result;
+        EXIT WHEN refcursor%notfound;
+
+        v_row_count := v_row_count + 1;
+
+        IF v_result IS NULL THEN
+            DBMS_OUTPUT.PUT_LINE('N/A (No locomotives found for this operator)');
+        ELSIF v_result LIKE 'Error%' THEN
+            DBMS_OUTPUT.PUT_LINE(v_result);
+        ELSE
+            DBMS_OUTPUT.PUT_LINE(v_result || '%');
+        END IF;
+
+    END LOOP;
+    CLOSE refcursor;
+
+    IF v_row_count = 0 THEN
+        DBMS_OUTPUT.PUT_LINE('No information found for this operator.');
+    END IF;
 
 EXCEPTION
     WHEN OTHERS THEN
