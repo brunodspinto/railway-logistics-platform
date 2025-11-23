@@ -24,14 +24,14 @@ BEGIN
 EXCEPTION
     WHEN OTHERS THEN
         OPEN refcursor FOR
-            SELECT 'Error: It was not possible to obtain endpoints of a planned train route.' AS error_message
+            SELECT 'Erro: Não foi possível obter os endpoints de uma rota ferroviária planeada.' AS error_message
             FROM dual;
         RETURN refcursor;
 END;
 /
 
 
--- Bloco Anónimo USBD24
+-- Bloco Anónimo USBD24 1--
 
 DECLARE
     refcursor SYS_REFCURSOR;
@@ -52,6 +52,62 @@ BEGIN
 
 EXCEPTION
     WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE('Error when obtaining the end endpoints of a planned train route: ' || SQLERRM);
+        DBMS_OUTPUT.PUT_LINE('Erro ao obter os endpoints finais de uma rota ferroviária planeada: ' || SQLERRM);
+END;
+/
+
+
+-- Bloco Anónimo USBD24 2--
+
+DECLARE
+    refcursor SYS_REFCURSOR;
+    v_trainId Train.id%TYPE;
+    v_freightsId Freights.id%TYPE;
+    v_startStation Station.nameStation%TYPE;
+    v_endStation Station.nameStation%TYPE;
+BEGIN
+    refcursor := listEndPointsRoute(5437);
+
+    LOOP
+        FETCH refcursor INTO v_trainId, v_freightsId, v_startStation, v_endStation;
+        EXIT WHEN refcursor%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE('TrainID: ' || v_trainId || '; FreightsID: ' || v_freightsId || '; StartStation: ' || v_startStation || '; EndStation: ' || v_endStation);
+    END LOOP;
+
+    CLOSE refcursor;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Erro ao obter os endpoints finais de uma rota ferroviária planeada: ' || SQLERRM);
+END;
+/
+
+
+-- Bloco Anónimo USBD24 3--
+
+DECLARE
+    refcursor SYS_REFCURSOR;
+    v_trainId Train.id%TYPE;
+    v_freightsId Freights.id%TYPE;
+    v_startStation Station.nameStation%TYPE;
+    v_endStation Station.nameStation%TYPE;
+    v_counter NUMBER := 0;
+BEGIN
+    refcursor := listEndPointsRoute(9999);
+
+    LOOP
+        FETCH refcursor INTO v_trainId, v_freightsId, v_startStation, v_endStation;
+        EXIT WHEN refcursor%NOTFOUND;
+        v_counter := v_counter + 1;
+
+        DBMS_OUTPUT.PUT_LINE('TrainID: ' || v_trainId || '; FreightsID: ' || v_freightsId || '; StartStation: ' || v_startStation || '; EndStation: ' || v_endStation);
+    END LOOP;
+
+    IF v_counter = 0 THEN
+        DBMS_OUTPUT.PUT_LINE('Erro: TrainID não encontrado ou sem endpoints.');
+    END IF;
+
+    CLOSE refcursor;
 END;
 /
