@@ -2,8 +2,6 @@ package org.example.trees;
 
 import java.util.*;
 
-
-
 class AVLNode<K extends Comparable<K>, V extends Comparable<V>> {
     K key;
     List<V> values;

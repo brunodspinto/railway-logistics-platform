@@ -2,16 +2,7 @@ package org.example.trees;
 
 import java.util.*;
 
-/**
- * AVL Tree implementation supporting multiple values per key.
- * Self-balancing binary search tree with O(log n) guaranteed operations.
- *
- * Used for USEI06 to index stations by coordinates and time zones.
- * Handles duplicate coordinates (e.g., Lisboa stations at same lat/lon).
- *
- * @param <K> Key type (must be Comparable)
- * @param <V> Value type (must be Comparable for sorted storage)
- */
+
 public class AVLTree<K extends Comparable<K>, V extends Comparable<V>> {
     private AVLNode<K, V> root;
     private int size;
