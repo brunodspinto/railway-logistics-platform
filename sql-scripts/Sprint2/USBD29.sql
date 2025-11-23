@@ -107,7 +107,6 @@ DECLARE
     refcursor SYS_REFCURSOR;
     v_row_count NUMBER := 0;
 BEGIN
-    -- Chamar a função
     refcursor := getPercentageElectricLocomotives(v_vatOperator);
 
     DBMS_OUTPUT.PUT_LINE('Percentage of electric locomotives for operator ' || v_vatOperator || ':');
