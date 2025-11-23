@@ -29,15 +29,10 @@ public class SpatialQueryService {
      * 3. Chama a pesquisa rangeSearch() recursiva
      * 4. Devolve a lista de estações válidas
      */
-    public List<Station> queryArea(double minLat, double maxLat,
-                                   double minLon, double maxLon,
-                                   Boolean isCity, Boolean isMain,
-                                   String country) {
+    public List<Station> queryArea(double minLat, double maxLat, double minLon, double maxLon, Boolean isCity, Boolean isMain, String country) {
 
         // Objeto que guarda a área e filtros da query
-        BoundingBoxQuery query = new BoundingBoxQuery(
-                minLat, maxLat, minLon, maxLon, isCity, isMain, country
-        );
+        BoundingBoxQuery query = new BoundingBoxQuery(minLat, maxLat, minLon, maxLon, isCity, isMain, country);
 
         List<Station> results = new ArrayList<>();
 

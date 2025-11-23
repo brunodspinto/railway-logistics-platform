@@ -33,10 +33,7 @@ public class BoundingBoxQuery {
      * Se o filtro 'country' for "all" (ou vazio), marca ignoreCountry=true
      * para não aplicar esse filtro mais tarde na pesquisa.
      */
-    public BoundingBoxQuery(double minLatitude, double maxLatitude,
-                            double minLongitude, double maxLongitude,
-                            Boolean isCityFilter, Boolean isMainFilter,
-                            String countryFilter) {
+    public BoundingBoxQuery(double minLatitude, double maxLatitude, double minLongitude, double maxLongitude, Boolean isCityFilter, Boolean isMainFilter, String countryFilter) {
 
         this.minLat = minLatitude;
         this.maxLat = maxLatitude;
