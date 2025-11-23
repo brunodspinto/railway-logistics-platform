@@ -27,7 +27,7 @@ END;
 
 DECLARE
     v_result VARCHAR2(200);
-    v_vatOperator Operator.vatNumber%TYPE := 'PT509017800';
+    v_vatOperator Operator.vatNumber%TYPE := 'PT509017800'; -- Medway
     refcursor SYS_REFCURSOR;
     v_row_count NUMBER := 0;
 BEGIN
@@ -103,7 +103,7 @@ END;
 
 DECLARE
     v_result VARCHAR2(200);
-    v_vatOperator Operator.vatNumber%TYPE := 'PT9999942419'; -- NIF Inventado
+    v_vatOperator Operator.vatNumber%TYPE := 'PT9999942419'; -- Operador Inventado
     refcursor SYS_REFCURSOR;
     v_row_count NUMBER := 0;
 BEGIN
