@@ -4,7 +4,7 @@
 
 A procura dos N vizinhos mais próximos é executada sobre um 2D-tree equilibrado, onde cada nó alterna entre divisões em latitude e longitude.
 
-As decisões pruning usam apenas comparações simples e são feitas em O(1).
+As decisões pruning usam apenas comparações simples e são feitas em **O(1)**.
 
 ## 2. Nearest N Search com Pruning
 
@@ -16,7 +16,7 @@ O algoritmo percorre apenas:
 
 Num 2D-tree equilibrado, o custo típico é:
 
-O(√n) nós visitados.
+**O(√n)** nós visitados.
 
 Este valor é amplamente citado na análise clássica de KD-trees.
 
@@ -24,13 +24,13 @@ Este valor é amplamente citado na análise clássica de KD-trees.
 
 Para manter os N candidatos mais próximos, usa-se um MAX-heap:
 
-* Inserção no heap: O(log N)
-* Substituição do pior elemento: O(log N)
+* Inserção no heap: **O(log N)**
+* Substituição do pior elemento: **O(log N)**
 
 Como no máximo são inseridos N elementos e depois apenas comparados a novos candidatos, o custo é:
 
-O(N log N + v log N)
-onde v é o número de nós visitados (≈ √n).
+**O(N log N + v log N)**
+onde v é o número de nós visitados **(≈ √n)**.
 
 ## 4. Aplicação de Filtros
 
@@ -39,27 +39,27 @@ Cada estação encontrada é testada por um Predicate 'station', composto de fil
 * timeZoneGroup
 * country
 
-O custo de cada filtro é O(1).
+O custo de cada filtro é **O(1)**.
 
 Logo, o custo total associado aos k pontos candidatos é:
 
-O(k).
+**O(k)**.
 
 ## 5. Custo de Ordenação da Lista Final
 
 Depois de terminar a pesquisa:
 
-* Converte-se o heap numa lista: O(N)
-* Ordena-se por distância ASC e nome DESC: O(N log N)
+* Converte-se o heap numa lista: **O(N)**
+* Ordena-se por distância ASC e nome DESC: **O(N log N)**
 
 ## 6. Complexidade Final
 
 Somando as componentes:
 
-* Nós visitados: O(√n)
-* Operações no heap: O((√n + N) log N)
-* Filtros: O(k)
-* Ordenação final: O(N log N)
+* Nós visitados: **O(√n)**
+* Operações no heap: **O((√n + N) log N)**
+* Filtros: **O(k)**
+* Ordenação final: **O(N log N)**
 
 ### Overall Temporal Complexity:
 
