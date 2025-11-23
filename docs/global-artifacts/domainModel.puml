@@ -6,7 +6,6 @@ skinparam classAttributeIconSize 0
 hide circle
 hide methods
 
-
 ' --- CORE ENTITIES ---
 class Warehouse {
     warehouseId
@@ -64,6 +63,7 @@ class PickingPlan {
     heuristic
 }
 
+' --- DOMÍNIO FERROVIÁRIO ATUALIZADO ---
 class Locomotive {
     number
     name
@@ -86,6 +86,9 @@ class LocomotiveModel {
 
 class Train {
     trainId
+    currentStatus
+    totalWeight
+    requiredPower
 }
 
 class DieselTrain {
@@ -107,14 +110,12 @@ class LineSegment {
     segmentId
     trackType
     gauge
-    orderLine
+    sequenceOrder
     maxWeight
     speedLimit
     length
     isElectrified
-}
-
-class ElectrifiedLineSegment {
+    hasSiding
 }
 
 class Endpoint {
@@ -128,6 +129,33 @@ class Operator {
     name
 }
 
+' --- NOVAS ENTIDADES SPRINT 2 ---
+class Freight {
+    freightId
+    status
+    plannedDeparture
+    estimatedArrival
+}
+
+class Route {
+    routeId
+    routeType
+    scheduledDeparture
+}
+
+class Path {
+    pathId
+    sequenceOrder
+}
+
+class TrainRecord {
+    recordId
+    crossingTime
+    arrivalTime
+    departureTime
+}
+
+' --- GESTÃO DE ENCOMENDAS ---
 class Order {
     orderId
     dueDate
@@ -155,15 +183,12 @@ class Return {
 class Quarantine {
 }
 
-
 class User {
     userId
     role
 }
 
-
-
-' --- RELATIONSHIPS ---
+' --- RELATIONSHIPS EXISTENTES ---
 Warehouse "1" -- "*" Aisle : contains
 Aisle "1" -- "*" Bay : contains
 Bay "1" -- "*" Box : stores
@@ -177,7 +202,7 @@ Train "1" -- "*" Wagon : carries
 RailLine "1" -- "*" LineSegment : composedOf
 LineSegment "2" -- "2" Endpoint : connects
 RailLine "1" -- "1" Operator : ownedBy
-ElectricTrain "*" -- "*" ElectrifiedLineSegment : requires
+ElectricTrain "*" -- "*" LineSegment : requires
 Order "1" -- "*" OrderLine : contains
 OrderLine "1" -- "*" Allocation : has
 Allocation "1" -- "1" Box : from
@@ -186,6 +211,18 @@ Quarantine "1" -- "*" Return : holds
 Endpoint "1" -- "*" Warehouse : has
 PickingPlan "1" -- "*" Trolley : uses
 Trolley "*" -- "*" Allocation : picks
+
+' --- NOVOS RELACIONAMENTOS SPRINT 2 ---
+Freight "1" -- "*" Wagon : contains
+Freight "1" -- "1" Endpoint : origin
+Freight "1" -- "1" Endpoint : destination
+Freight "1" -- "1" Train : transportedBy
+Route "1" -- "*" Freight : contains
+Route "1" -- "*" Path : defines
+Path "1" -- "1" Endpoint : passesThrough
+Train "1" -- "1" Route : assignedTo
+Train "1" -- "*" TrainRecord : has
+TrainRecord "1" -- "1" Endpoint : at
 
 ' --- USER RESPONSIBILITIES ---
 Planner "1" -- "*" Order : creates
@@ -198,6 +235,8 @@ QualityOperator "1" -- "*" Quarantine : manages
 TrainDriver "1" -- "*" Train : operates
 StationMaster "1" -- "*" Endpoint : supervises
 FreightManager "1" -- "*" Wagon : coordinates
+FreightManager "1" -- "*" Freight : manages
+FreightManager "1" -- "*" Route : plans
 
 ' --- INHERITANCE ---
 Train <|-- ElectricTrain
@@ -208,6 +247,5 @@ User <|-- StorageManager
 User <|-- FreightManager
 User <|-- Planner
 User <|-- QualityOperator
-LineSegment <|-- ElectrifiedLineSegment
 
 @enduml

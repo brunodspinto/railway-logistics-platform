@@ -3,6 +3,7 @@ package org.example.repository;
 import org.example.domain.*;
 import org.example.repository.database.*;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
@@ -108,5 +109,10 @@ public class DatabaseRepositoryFacade implements IRouteRepository {
     @Override
     public Collection<Train> getAllTrains() {
         return trainRepo.getAll();
+    }
+
+    @Override
+    public List<Train> getTrainsByDate(LocalDate date) {
+        return trainRepo.getByDate(date);
     }
 }

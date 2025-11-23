@@ -35,58 +35,93 @@ RETURN v_result_cursor;
 END get_unused_wagons;
 
 
--- Bloco Anónimo USBD26 --
+-- Bloco Anónimo USBD26 1--
 
 DECLARE
-c SYS_REFCURSOR;
-v_wagon_number Wagon.numberWagon%TYPE;
-v_operator_name Operator.shortName%TYPE;
+c               SYS_REFCURSOR;
+  v_wagon_number  Wagon.numberWagon%TYPE;
+  v_operator_name Operator.shortName%TYPE;
 BEGIN
-c := get_unused_wagons(
-DATE '2025-01-01',
-DATE '2025-06-30'
-);
-
-LOOP
-FETCH c INTO
-v_wagon_number,
-v_operator_name;
-EXIT WHEN c%NOTFOUND;
-
-DBMS_OUTPUT.PUT_LINE(
-  'Wagon '  || v_wagon_number
-  || ' | Operador: '
-  || NVL(v_operator_name,'<nenhum>')
-);
+  DBMS_OUTPUT.PUT_LINE('Teste 1: 2025-09-01 a 2025-09-30');
+  c := get_unused_wagons(
+         DATE '2025-09-01',
+         DATE '2025-09-30'
+       );
+  LOOP
+FETCH c INTO v_wagon_number, v_operator_name;
+    EXIT WHEN c%NOTFOUND;
+    DBMS_OUTPUT.PUT_LINE('Wagon '||v_wagon_number
+                         ||' | Operador: '
+                         ||NVL(v_operator_name,'<nenhum>'));
 END LOOP;
-
 CLOSE c;
 END;
+
 
 -- Bloco Anónimo USBD26 2--
 
 DECLARE
-c SYS_REFCURSOR;
-v_wagon_number Wagon.numberWagon%TYPE;
-v_operator_name Operator.shortName%TYPE;
+c               SYS_REFCURSOR;
+  v_wagon_number  Wagon.numberWagon%TYPE;
+  v_operator_name Operator.shortName%TYPE;
 BEGIN
-c := get_unused_wagons(
-DATE '2025-10-03',
-DATE '2025-10-03'
-);
-
-LOOP
-FETCH c INTO
-v_wagon_number,
-v_operator_name;
-EXIT WHEN c%NOTFOUND;
-
-DBMS_OUTPUT.PUT_LINE(
-  'Wagon '  || v_wagon_number
-  || ' | Operador: '
-  || NVL(v_operator_name,'<nenhum>')
-);
+  DBMS_OUTPUT.PUT_LINE('Teste 2: 2025-10-03 a 2025-10-03');
+  c := get_unused_wagons(
+         DATE '2025-10-03',
+         DATE '2025-10-03'
+       );
+  LOOP
+FETCH c INTO v_wagon_number, v_operator_name;
+    EXIT WHEN c%NOTFOUND;
+    DBMS_OUTPUT.PUT_LINE('Wagon '||v_wagon_number
+                         ||' | Operador: '
+                         ||NVL(v_operator_name,'<nenhum>'));
 END LOOP;
+CLOSE c;
+END;
 
+
+-- Bloco Anónimo USBD26 3--
+
+DECLARE
+c               SYS_REFCURSOR;
+  v_wagon_number  Wagon.numberWagon%TYPE;
+  v_operator_name Operator.shortName%TYPE;
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('Teste 3: 2025-10-06 a 2025-10-06');
+  c := get_unused_wagons(
+         DATE '2025-10-06',
+         DATE '2025-10-06'
+       );
+  LOOP
+FETCH c INTO v_wagon_number, v_operator_name;
+    EXIT WHEN c%NOTFOUND;
+    DBMS_OUTPUT.PUT_LINE('Wagon '||v_wagon_number
+                         ||' | Operador: '
+                         ||NVL(v_operator_name,'<nenhum>'));
+END LOOP;
+CLOSE c;
+END;
+
+
+-- Bloco Anónimo USBD26 4--
+
+DECLARE
+c               SYS_REFCURSOR;
+  v_wagon_number  Wagon.numberWagon%TYPE;
+  v_operator_name Operator.shortName%TYPE;
+BEGIN
+  DBMS_OUTPUT.PUT_LINE('Teste 4: 2025-10-03 a 2025-10-06');
+  c := get_unused_wagons(
+         DATE '2025-10-03',
+         DATE '2025-10-06'
+       );
+  LOOP
+FETCH c INTO v_wagon_number, v_operator_name;
+    EXIT WHEN c%NOTFOUND;
+    DBMS_OUTPUT.PUT_LINE('Wagon '||v_wagon_number
+                         ||' | Operador: '
+                         ||NVL(v_operator_name,'<nenhum>'));
+END LOOP;
 CLOSE c;
 END;
