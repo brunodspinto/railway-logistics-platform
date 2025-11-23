@@ -29,8 +29,6 @@ public class DatabaseConnection {
                         DatabaseConfig.getPassword()
                 );
 
-                System.out.println("✓ Connected to Oracle Database");
-
             } catch (ClassNotFoundException e) {
                 throw new SQLException("Oracle JDBC Driver not found!", e);
             }

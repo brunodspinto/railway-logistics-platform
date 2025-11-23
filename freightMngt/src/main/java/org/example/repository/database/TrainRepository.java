@@ -128,11 +128,11 @@ public class TrainRepository {
     private List<Integer> getPathStationIds(Connection conn, int trainId) {
         List<Integer> ids = new ArrayList<>();
 
-        // ✅ SEM ORDER BY - Oracle mantém ordem de inserção
         String query = """
         SELECT stationId
         FROM Route
         WHERE trainId = ?
+        ORDER BY ROWID
     """;
 
         try (PreparedStatement stmt = conn.prepareStatement(query)) {

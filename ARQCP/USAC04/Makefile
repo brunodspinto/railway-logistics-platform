@@ -3,29 +3,20 @@ CFLAGS = -Wall -Wextra -fanalyzer -g
 ARCHFLAGS = -march=rv32imd -mabi=ilp32d
 LIBRV32 = ${HOME}/bin/bootlin/riscv32-buildroot-linux-gnu/sysroot
 
-program.elf: test_format_command.o format_command.o
-	$(CC) $(CFLAGS) $(ARCHFLAGS) test_format_command.o format_command.o -o program.elf
+program.elf: main.o asm.o
+	$(CC) $(CFLAGS) $(ARCHFLAGS) main.o asm.o -o program.elf
 
-test_format_command.o: test_format_command.c format_command.h
-	$(CC) $(CFLAGS) $(ARCHFLAGS) -c test_format_command.c
-
-format_command.o: format_command.s format_command.h
-	$(CC) $(CFLAGS) $(ARCHFLAGS) -c format_command.s
-
-demo.elf: main.o format_command.o
-	$(CC) $(CFLAGS) $(ARCHFLAGS) main.o format_command.o -o demo.elf
-
-main.o: main.c format_command.h
+main.o: main.c asm.h
 	$(CC) $(CFLAGS) $(ARCHFLAGS) -c main.c
+
+asm.o: asm.s
+	$(CC) $(CFLAGS) $(ARCHFLAGS) -c asm.s
 
 clean:
 	rm -f *.o *.elf .gdbinit
 
 run: program.elf
 	qemu-riscv32 -L $(LIBRV32) ./program.elf
-
-run-demo: demo.elf
-	qemu-riscv32 -L $(LIBRV32) ./demo.elf
 
 debug: program.elf .gdbinit
 	@echo "On other terminal window do:"
@@ -46,4 +37,4 @@ export GDBINIT
 .gdbinit:
 	@echo "$$GDBINIT" >.gdbinit
 
-.PHONY: clean run run-demo debug
+.PHONY: clean run debug
