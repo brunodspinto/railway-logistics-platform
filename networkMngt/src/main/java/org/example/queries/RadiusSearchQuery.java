@@ -22,8 +22,6 @@ public class RadiusSearchQuery {
         AVLTree<RadiusKey, Station> resultTree = new AVLTree<>();
         Map<String, Integer> byCountry = new HashMap<>();
         Map<Boolean, Integer> byIsCity = new HashMap<>();
-        byIsCity.put(true, 0);
-        byIsCity.put(false, 0);
 
         searchRecursive(tree.getRoot(), lat, lon, radiusKm, resultTree, byCountry, byIsCity);
 
@@ -39,34 +37,28 @@ public class RadiusSearchQuery {
 
         if (node == null) return;
 
-        // process bucket
         for (Station s : node.getStations()) {
+
             double d = TwoDTree.haversineKm(lat, lon, s.getLatitude(), s.getLongitude());
 
             if (d <= radiusKm) {
-
-                // Key uses .3 rounding distance
                 double dRounded = Math.round(d * 1000.0) / 1000.0;
                 RadiusKey key = new RadiusKey(dRounded, s.getName());
                 results.insert(key, s);
 
-                // FIX: count by country
                 byCountry.merge(s.getCountry(), 1, Integer::sum);
-
                 byIsCity.merge(s.isCity(), 1, Integer::sum);
             }
         }
 
-        // compute distance to splitting plane
+        // 2D-tree pruning
         double split = node.getSplitCoordinate();
         int axis = node.getAxis();
         double targetCoord = (axis == 0 ? lat : lon);
 
         double degDiff = Math.abs(targetCoord - split);
 
-        double kmApprox = (axis == 0 ?
-                degDiff * 111.32 :
-                degDiff * 111.32 * Math.cos(Math.toRadians(lat)));
+        double kmApprox = degDiff * 111;
 
         Node2D first = (targetCoord < split) ? node.getLeft() : node.getRight();
         Node2D second = (first == node.getLeft()) ? node.getRight() : node.getLeft();
@@ -77,5 +69,6 @@ public class RadiusSearchQuery {
             searchRecursive(second, lat, lon, radiusKm, results, byCountry, byIsCity);
         }
     }
+
 }
 

@@ -25,9 +25,6 @@ public class NearestNQuery {
         this.tree = tree;
     }
 
-    /**
-     * Public API for USEI09
-     */
     public List<StationDistance> nearestN(
             double lat, double lon, int n,
             String tzGroupFilter, String countryFilter
@@ -40,13 +37,25 @@ public class NearestNQuery {
         if (countryFilter != null && !countryFilter.isEmpty())
             filter = filter.and(s -> s.getCountry().equalsIgnoreCase(countryFilter));
 
-        PriorityQueue<StationDistance> heap =
-                new PriorityQueue<>(Comparator.comparingDouble(sd -> -sd.distanceKm));
+        // MAX-HEAP (biggest distance at top)
+        Comparator<StationDistance> heapCmp = (a, b) -> {
+            int cmp = Double.compare(b.distanceKm, a.distanceKm); // distance DESC
+            if (cmp != 0) return cmp;
+            return a.station.getName().compareToIgnoreCase(b.station.getName()); // name ASC for eviction
+        };
+
+        PriorityQueue<StationDistance> heap = new PriorityQueue<>(heapCmp);
 
         search(tree.getRoot(), lat, lon, n, filter, heap);
 
+        // Convert heap → final sorted output
         List<StationDistance> result = new ArrayList<>(heap);
-        result.sort(Comparator.comparingDouble(sd -> sd.distanceKm));
+        result.sort((a, b) -> {
+            int d = Double.compare(a.distanceKm, b.distanceKm); // distance ASC
+            if (d != 0) return d;
+            return b.station.getName().compareToIgnoreCase(a.station.getName()); // name DESC
+        });
+
         return result;
     }
 
@@ -70,20 +79,21 @@ public class NearestNQuery {
             }
         }
 
+        // Pick axis branch
         final int axis = node.getAxis();
-        final double nodeCoord = node.getSplitCoordinate();
+        final double splitValue = node.getSplitCoordinate();
         final double targetCoord = (axis == 0 ? lat : lon);
 
-        Node2D first = (targetCoord < nodeCoord) ? node.getLeft() : node.getRight();
+        Node2D first = (targetCoord < splitValue) ? node.getLeft() : node.getRight();
         Node2D second = (first == node.getLeft()) ? node.getRight() : node.getLeft();
 
-        // Search first branch
+        // Search the closer side first
         search(first, lat, lon, n, filter, heap);
 
-        // Decide if we check the other branch
-        double minKm = estimateMinDistanceKm(lat, lon, nodeCoord, axis);
+        // Check whether other branch could contain closer points
+        double minPossibleKm = estimateMinDistanceKm(lat, lon, splitValue, axis);
 
-        if (heap.size() < n || minKm < heap.peek().distanceKm) {
+        if (heap.size() < n || minPossibleKm < heap.peek().distanceKm) {
             search(second, lat, lon, n, filter, heap);
         }
     }
@@ -91,12 +101,13 @@ public class NearestNQuery {
     private double estimateMinDistanceKm(double lat, double lon, double splitCoord, int axis) {
         double degDiff = Math.abs((axis == 0 ? lat : lon) - splitCoord);
 
-        if (axis == 0) { // latitude difference
-            return degDiff * 111.32;
+        if (axis == 0) {
+            return degDiff * 111; // latitude distance
         }
-        // longitude
-        double factor = Math.cos(Math.toRadians(lat)) * 111.32;
+
+        double factor = Math.cos(Math.toRadians(lat)) * 111;
         if (factor < 1e-6) factor = 1e-6;
+
         return degDiff * factor;
     }
 }
