@@ -43,7 +43,7 @@ public class ManualSchedulerUI {
                     train.getDate()
             );
 
-            System.out.printf("\n📋 Found %d existing train(s) scheduled for %s\n",
+            System.out.printf("\nFound %d existing train(s) scheduled for %s\n",
                     trainsOnSameDay.size(),
                     train.getDate().format(DATE_FORMAT)
             );
@@ -52,10 +52,10 @@ public class ManualSchedulerUI {
             List<Train> allTrains = new ArrayList<>(trainsOnSameDay);
             allTrains.add(train);
 
-            System.out.printf("🔍 Analyzing %d total trains for conflicts...\n", allTrains.size());
+            System.out.printf("Analyzing %d total trains for conflicts...\n", allTrains.size());
 
             // 4. Calcular schedules COM detecção de conflitos
-            System.out.println("\n⏳ Calculating schedule...\n");
+            System.out.println("\nCalculating schedule...\n");
             ScheduleResult result = schedulerService.calculateSchedulesWithConflicts(allTrains);
 
             // 5. Extrair schedule do novo train

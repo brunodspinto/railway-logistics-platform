@@ -101,19 +101,29 @@ public class TrainSchedule {
         }
     }
 
-    public LocalDateTime getArrivalTimeAt(Station station) {
+    public LocalDateTime getDepartureTimeAt(Station station) {
+        // Verificar se é a estação de origem
+        if (!entries.isEmpty() && station.equals(train.getPathStations().get(0))) {
+            return departureTime;
+        }
+
         for (ScheduleEntry entry : entries) {
             if (entry.getStation().equals(station)) {
-                return entry.getArrivalTime();
+                return entry.getDepartureTime();
             }
         }
         return null;
     }
 
-    public LocalDateTime getDepartureTimeAt(Station station) {
+    public LocalDateTime getArrivalTimeAt(Station station) {
+        // Verificar se é a estação de origem
+        if (!entries.isEmpty() && station.equals(train.getPathStations().get(0))) {
+            return departureTime;
+        }
+
         for (ScheduleEntry entry : entries) {
             if (entry.getStation().equals(station)) {
-                return entry.getDepartureTime();
+                return entry.getArrivalTime();
             }
         }
         return null;

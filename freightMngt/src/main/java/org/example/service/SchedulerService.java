@@ -295,7 +295,6 @@ public class SchedulerService {
         List<Station> path1 = train1.getPathStations();
         List<Station> path2 = train2.getPathStations();
 
-        // Para cada segmento do train1
         for (int i = 0; i < path1.size() - 1; i++) {
             Station from1 = path1.get(i);
             Station to1 = path1.get(i + 1);
@@ -303,7 +302,6 @@ public class SchedulerService {
             Line line1 = repository.findDirectLine(from1.getId(), to1.getId());
             if (line1 == null) continue;
 
-            // Para cada segmento do train2
             for (int j = 0; j < path2.size() - 1; j++) {
                 Station from2 = path2.get(j);
                 Station to2 = path2.get(j + 1);
@@ -311,17 +309,14 @@ public class SchedulerService {
                 Line line2 = repository.findDirectLine(from2.getId(), to2.getId());
                 if (line2 == null) continue;
 
-                // Verificar se é a mesma linha
                 boolean sameLine = (line1.getId() == line2.getId()) ||
                         (from1.equals(to2) && to1.equals(from2));
 
                 if (sameLine) {
-                    // Verificar se algum segmento é single track
                     boolean hasSingleTrack = line1.getSegments().stream()
                             .anyMatch(LineSegment::isSingleTrack);
 
                     if (hasSingleTrack) {
-                        // Calcular tempos de entrada/saída
                         LocalDateTime t1Entry = schedule1.getDepartureTimeAt(from1);
                         LocalDateTime t1Exit = schedule1.getArrivalTimeAt(to1);
                         LocalDateTime t2Entry = schedule2.getDepartureTimeAt(from2);
@@ -330,7 +325,6 @@ public class SchedulerService {
                         if (t1Entry != null && t1Exit != null &&
                                 t2Entry != null && t2Exit != null) {
 
-                            // Verificar overlap temporal
                             boolean hasOverlap = checkTimeOverlap(t1Entry, t1Exit, t2Entry, t2Exit);
 
                             if (hasOverlap) {
@@ -419,16 +413,30 @@ public class SchedulerService {
     /**
      * Encontra a estação onde o train deve esperar
      */
+    /**
+     * Encontra a estação onde o train deve esperar
+     */
     private Station findWaitingStation(Train train, LineSegment conflictSegment) {
         List<Station> path = train.getPathStations();
 
+        // Para paths curtos (2 estações), usar origem
+        if (path.size() == 2) {
+            return path.get(0);
+        }
+
+        // Para paths longos, procurar segmento
         for (int i = 0; i < path.size() - 1; i++) {
             Station from = path.get(i);
             Station to = path.get(i + 1);
 
             Line line = repository.findDirectLine(from.getId(), to.getId());
-            if (line != null && line.getSegments().contains(conflictSegment)) {
-                return from;
+            if (line != null) {
+                boolean hasSegment = line.getSegments().stream()
+                        .anyMatch(seg -> seg.getId() == conflictSegment.getId());
+
+                if (hasSegment) {
+                    return from;
+                }
             }
         }
 
@@ -442,13 +450,24 @@ public class SchedulerService {
                                               LineSegment segment) {
         List<Station> path = train.getPathStations();
 
+        // Para paths curtos (2 estações), retornar chegada ao destino
+        if (path.size() == 2) {
+            return schedule.getArrivalTimeAt(path.get(1));
+        }
+
+        // Para paths longos, procurar segmento
         for (int i = 0; i < path.size() - 1; i++) {
             Station from = path.get(i);
             Station to = path.get(i + 1);
 
             Line line = repository.findDirectLine(from.getId(), to.getId());
-            if (line != null && line.getSegments().contains(segment)) {
-                return schedule.getArrivalTimeAt(to);
+            if (line != null) {
+                boolean hasSegment = line.getSegments().stream()
+                        .anyMatch(seg -> seg.getId() == segment.getId());
+
+                if (hasSegment) {
+                    return schedule.getArrivalTimeAt(to);
+                }
             }
         }
 
