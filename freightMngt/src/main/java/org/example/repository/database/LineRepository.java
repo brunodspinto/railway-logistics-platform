@@ -62,9 +62,10 @@ public class LineRepository {
 
     public Line findDirectLine(int originId, int destinationId) {
         String query = """
-            SELECT id
-            FROM Line
-            WHERE startStation = ? AND endStation = ?
+            SELECT l.id
+            FROM Line l
+            WHERE (l.startStation = ? AND l.endStation = ?)
+               OR (l.startStation = ? AND l.endStation = ?)
         """;
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -72,10 +73,14 @@ public class LineRepository {
 
             stmt.setInt(1, originId);
             stmt.setInt(2, destinationId);
+            stmt.setInt(3, destinationId);
+            stmt.setInt(4, originId);
+
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                return getById(rs.getInt("id"));
+                int lineId = rs.getInt("id");
+                return getById(lineId);
             }
 
         } catch (SQLException e) {
@@ -117,7 +122,8 @@ public class LineRepository {
         List<LineSegment> segments = new ArrayList<>();
         String query = """
             SELECT ls.id, ls.lineId, ls.segmentOrder, ls.isElectrified,
-                   ls.maximumWeigh, ls.lenght, lst.description as track_desc,
+                   ls.maximumWeigh, ls.lenght, ls.lineSegmentsTypeid,
+                   lst.description as track_desc,
                    ls.sidingPosition, ls.sidingLength
             FROM LineSegment ls
             JOIN LineSegmentType lst ON ls.lineSegmentsTypeid = lst.id
@@ -132,6 +138,9 @@ public class LineRepository {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
+                // ✅ Buscar lineSegmentsTypeid da BD
+                int typeId = rs.getInt("lineSegmentsTypeid");
+
                 String trackDesc = rs.getString("track_desc");
                 int numberTracks = trackDesc.contains("double") ? 2 :
                         trackDesc.contains("quadruple") ? 4 : 1;
@@ -149,6 +158,7 @@ public class LineRepository {
                         rs.getInt("maximumWeigh"),
                         rs.getInt("lenght"),
                         numberTracks,
+                        typeId,  // ✅ PASSAR lineSegmentsTypeid
                         sidingPos,
                         sidingLen
                 ));

@@ -472,52 +472,39 @@ public class ManualSchedulerUI {
     }
 
     private void displayResults(TrainSchedule schedule, ScheduleResult result) {
-        System.out.println("\n" + "═".repeat(100));
+        System.out.println("\n" + "=".repeat(100));
         System.out.println("  SCHEDULE CALCULATION COMPLETE");
-        System.out.println("═".repeat(100));
+        System.out.println("=".repeat(100));
 
         // 1. Mostrar schedule detalhado
         System.out.println(schedule.format());
 
+        // 2. Freight operations
         displayFreightOperations(schedule.getTrain());
 
-        // 2. Mostrar crossings (se houver)
+        // 3. Crossings
         if (result.hasCrossings()) {
-            System.out.println("\n⚠ CROSSING OPERATIONS REQUIRED:\n");
+            System.out.println("\nCROSSING OPERATIONS REQUIRED:\n");
             System.out.println(result.formatCrossings());
         } else {
-            System.out.println("\n✓ No crossing operations required - clear path!\n");
+            System.out.println("\nNo crossing operations required - clear path!\n");
         }
 
-        // 3. Summary
-        System.out.println("═".repeat(100));
-        System.out.println("SUMMARY:");
-        System.out.println("─".repeat(100));
-        System.out.printf("  Total distance:    %.1f km\n", schedule.getTotalDistanceKm());
-        System.out.printf("  Total duration:    %dh %02dm\n",
-                schedule.getTotalTravelMinutes() / 60,
-                schedule.getTotalTravelMinutes() % 60);
-        System.out.printf("  Average speed:     %.1f km/h\n", schedule.getAverageSpeedKmh());
-        System.out.printf("  Total weight:      %.1f tons\n", schedule.getTrain().getTotalWeightTons());
-        System.out.printf("  Total power:       %d kW\n", schedule.getTrain().getTotalPowerKw());
-        System.out.println("═".repeat(100));
+        // 4. Summary
+        displaySummary(schedule);
     }
 
     private void displayFreightOperations(Train train) {
+        System.out.println("\n");
+        System.out.println("FREIGHT OPERATIONS:");
+        System.out.println("-".repeat(100));
+
         if (train.getFreights().isEmpty()) {
-            System.out.println("\n═".repeat(100));
-            System.out.println("FREIGHT OPERATIONS:");
-            System.out.println("═".repeat(100));
-            System.out.println("  ⚠ No freight operations (empty train)");
-            System.out.println("═".repeat(100));
+            System.out.println("  No freight operations (empty train)");
+            System.out.println("-".repeat(100));
             return;
         }
 
-        System.out.println("\n═".repeat(100));
-        System.out.println("FREIGHT OPERATIONS:");
-        System.out.println("═".repeat(100));
-
-        // Agrupar operações por estação
         Map<Integer, List<String>> loadOps = new HashMap<>();
         Map<Integer, List<String>> unloadOps = new HashMap<>();
 
@@ -525,15 +512,13 @@ public class ManualSchedulerUI {
             int originId = freight.getOriginId();
             int destId = freight.getDestinationId();
 
-            // Operação de carga
             loadOps.computeIfAbsent(originId, k -> new ArrayList<>())
-                    .add(String.format("LOAD Freight #%d (%d wagons, %.1f tons) → %s",
+                    .add(String.format("LOAD Freight #%d (%d wagons, %.1f tons) to %s",
                             freight.getId(),
                             freight.getWagonCount(),
                             freight.getTotalWeightTons(),
                             freight.getDestinationName()));
 
-            // Operação de descarga
             unloadOps.computeIfAbsent(destId, k -> new ArrayList<>())
                     .add(String.format("UNLOAD Freight #%d (%d wagons, %.1f tons) from %s",
                             freight.getId(),
@@ -542,7 +527,6 @@ public class ManualSchedulerUI {
                             freight.getOriginName()));
         }
 
-        // Mostrar operações em ordem do path
         boolean hasOperations = false;
 
         for (Station station : train.getPathStations()) {
@@ -551,22 +535,38 @@ public class ManualSchedulerUI {
 
             if ((loads != null && !loads.isEmpty()) || (unloads != null && !unloads.isEmpty())) {
                 hasOperations = true;
-                System.out.printf("\n📍 %s (ID: %d):\n", station.getName(), station.getId());
+                System.out.printf("\n%s (ID: %d):\n", station.getName(), station.getId());
 
                 if (loads != null) {
-                    loads.forEach(op -> System.out.println("   🔵 " + op));
+                    loads.forEach(op -> System.out.println("   " + op));
                 }
 
                 if (unloads != null) {
-                    unloads.forEach(op -> System.out.println("   🔴 " + op));
+                    unloads.forEach(op -> System.out.println("   " + op));
                 }
             }
         }
 
         if (!hasOperations) {
-            System.out.println("  ℹ️ No freight operations at intermediate stations");
-            System.out.println("     (All freight travels full route)");
+            System.out.println("  No freight operations at intermediate stations");
+            System.out.println("  (All freight travels full route)");
         }
+
+        System.out.println("-".repeat(100));
+    }
+
+    private void displaySummary(TrainSchedule schedule) {
+        System.out.println("\n");
+        System.out.println("SUMMARY:");
+        System.out.println("-".repeat(100));
+        System.out.printf("  Total distance:    %.1f km\n", schedule.getTotalDistanceKm());
+        System.out.printf("  Total duration:    %dh %02dm\n",
+                schedule.getTotalTravelMinutes() / 60,
+                schedule.getTotalTravelMinutes() % 60);
+        System.out.printf("  Average speed:     %.1f km/h\n", schedule.getAverageSpeedKmh());
+        System.out.printf("  Total weight:      %.1f tons\n", schedule.getTrain().getTotalWeightTons());
+        System.out.printf("  Total power:       %d kW\n", schedule.getTrain().getTotalPowerKw());
+        System.out.println("=".repeat(100) + "\n");
     }
 
     // ✨ NOVO: Calcular tempo de movimento real

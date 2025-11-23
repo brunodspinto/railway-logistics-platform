@@ -2,15 +2,11 @@ package org.example.service;
 
 import org.example.domain.Station;
 import org.example.domain.Train;
-import org.example.service.ScheduleEntry;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-/**
- * Horário completo de um comboio
- */
 public class TrainSchedule {
     private final Train train;
     private final LocalDateTime departureTime;
@@ -62,12 +58,10 @@ public class TrainSchedule {
             return 0;
         }
 
-        // Calcular tempo REAL de movimento (soma dos tempos por segmento)
         double totalTravelHours = 0;
 
         for (ScheduleEntry entry : entries) {
             if (entry.getSpeedKmh() > 0 && entry.getSegmentDistanceKm() > 0) {
-                // Tempo deste segmento = distância / velocidade
                 totalTravelHours += entry.getSegmentDistanceKm() / entry.getSpeedKmh();
             }
         }
@@ -76,14 +70,9 @@ public class TrainSchedule {
             return 0;
         }
 
-        // Velocidade média = distância total / tempo total de movimento
         return totalDistance / totalTravelHours;
     }
 
-    /**
-     * Adiciona um delay a partir de uma determinada estação
-     * (atualiza todos os horários subsequentes)
-     */
     public void addDelay(Station station, long delayMinutes) {
         boolean foundStation = false;
 
@@ -95,7 +84,6 @@ public class TrainSchedule {
             }
 
             if (foundStation) {
-                // Criar nova entry com horários ajustados
                 LocalDateTime newArrival = entry.getArrivalTime().plusMinutes(delayMinutes);
                 LocalDateTime newDeparture = entry.getDepartureTime().plusMinutes(delayMinutes);
 
@@ -113,9 +101,6 @@ public class TrainSchedule {
         }
     }
 
-    /**
-     * Obtém o tempo de chegada a uma estação específica
-     */
     public LocalDateTime getArrivalTimeAt(Station station) {
         for (ScheduleEntry entry : entries) {
             if (entry.getStation().equals(station)) {
@@ -125,9 +110,6 @@ public class TrainSchedule {
         return null;
     }
 
-    /**
-     * Obtém o tempo de saída de uma estação específica
-     */
     public LocalDateTime getDepartureTimeAt(Station station) {
         for (ScheduleEntry entry : entries) {
             if (entry.getStation().equals(station)) {
@@ -137,16 +119,18 @@ public class TrainSchedule {
         return null;
     }
 
-    /**
-     * Formata horário completo para display
-     */
     public String format() {
         StringBuilder sb = new StringBuilder();
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        sb.append("═".repeat(100)).append("\n");
+        // HEADER
+        sb.append("\n");
+        sb.append("=".repeat(100)).append("\n");
         sb.append(String.format("  TRAIN %d - %s\n", train.getId(), train.getOperator()));
-        sb.append("═".repeat(100)).append("\n");
+        sb.append("=".repeat(100)).append("\n");
+
+        // SUMMARY INFO
         sb.append(String.format("  Departure:    %s\n", departureTime.format(dateTimeFormatter)));
         sb.append(String.format("  Arrival:      %s\n", getArrivalTime().format(dateTimeFormatter)));
         sb.append(String.format("  Duration:     %dh %02dm\n",
@@ -157,18 +141,36 @@ public class TrainSchedule {
                 train.getLocomotives().size(), train.getTotalPowerKw()));
         sb.append(String.format("  Freights:     %d (Total weight: %.1f tons)\n",
                 train.getFreights().size(), train.getTotalWeightTons()));
-        sb.append("─".repeat(100)).append("\n");
-        sb.append(String.format("%-20s  %-5s  %-5s  %-12s  %-10s  %-15s\n",
-                "Station", "Arr.", "Dep.", "Speed", "Distance", "Operation"));
-        sb.append("─".repeat(100)).append("\n");
+        sb.append("-".repeat(100)).append("\n");
 
+        // TABLE HEADER
+        sb.append(String.format("%-20s  %-7s  %-7s  %-12s  %-10s  %-15s\n",
+                "Station", "Arr.", "Dep.", "Speed", "Distance", "Operation"));
+        sb.append("-".repeat(100)).append("\n");
+
+        // ORIGIN STATION
+        if (!train.getPathStations().isEmpty()) {
+            sb.append(String.format("%-20s  %-7s  %-7s  %-12s  %-10s  %-15s\n",
+                    truncate(train.getPathStations().get(0).getName(), 20),
+                    departureTime.format(timeFormatter),
+                    departureTime.format(timeFormatter),
+                    "0.0 km/h",
+                    "0.0 km",
+                    "ORIGIN"));
+        }
+
+        // INTERMEDIATE/FINAL STATIONS
         for (ScheduleEntry entry : entries) {
             sb.append(entry.format()).append("\n");
         }
 
-        sb.append("═".repeat(100)).append("\n");
+        sb.append("=".repeat(100)).append("\n");
 
         return sb.toString();
+    }
+
+    private String truncate(String text, int maxLength) {
+        return text.length() > maxLength ? text.substring(0, maxLength) : text;
     }
 
     @Override
@@ -177,4 +179,3 @@ public class TrainSchedule {
                 train.getId(), departureTime, entries.size());
     }
 }
-
