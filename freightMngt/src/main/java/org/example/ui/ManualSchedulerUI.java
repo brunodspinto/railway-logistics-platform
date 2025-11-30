@@ -43,19 +43,14 @@ public class ManualSchedulerUI {
                     train.getDate()
             );
 
-            System.out.printf("\nFound %d existing train(s) scheduled for %s\n",
-                    trainsOnSameDay.size(),
-                    train.getDate().format(DATE_FORMAT)
-            );
+
 
             // 3. Adicionar o novo train à lista
             List<Train> allTrains = new ArrayList<>(trainsOnSameDay);
             allTrains.add(train);
 
-            System.out.printf("Analyzing %d total trains for conflicts...\n", allTrains.size());
 
             // 4. Calcular schedules COM detecção de conflitos
-            System.out.println("\nCalculating schedule...\n");
             ScheduleResult result = schedulerService.calculateSchedulesWithConflicts(allTrains);
 
             // 5. Extrair schedule do novo train
@@ -76,55 +71,79 @@ public class ManualSchedulerUI {
     }
 
     private Train createManualTrain() {
-        System.out.println("\n--- TRAIN INFORMATION ---\n");
+        System.out.println("\n--- TRAIN SELECTION ---\n");
 
-        // 1. Train ID
-        System.out.print("Train ID (number): ");
-        int trainId = Integer.parseInt(scanner.nextLine().trim());
+        // 1. Listar trains disponíveis
+        Collection<Train> availableTrains = repository.getAllTrains();
 
-        // 2. Operator
-        System.out.print("Operator (VAT): ");
-        String operator = scanner.nextLine().trim();
-
-        // 3. Date
-        LocalDate date = readDate();
-
-        // 4. Time
-        LocalTime time = readTime();
-
-        // 5. Path manual (estações em ordem)
-        List<Integer> pathStationIds = readManualPath();
-
-        if (pathStationIds.size() < 2) {
-            throw new IllegalArgumentException("Path must have at least 2 stations");
+        if (availableTrains.isEmpty()) {
+            System.out.println("✗ No trains available in database!");
+            throw new IllegalStateException("No trains in database");
         }
 
-        int startId = pathStationIds.get(0);
-        int endId = pathStationIds.get(pathStationIds.size() - 1);
+        System.out.println("AVAILABLE TRAINS:");
+        System.out.println("-".repeat(80));
+        System.out.printf("%-8s %-15s %-12s %-12s %-10s %-10s%n",
+                "ID", "Operator", "Date", "Time", "Locomotives", "Freights");
+        System.out.println("-".repeat(80));
 
-        // 6. Locomotivas
-        List<Integer> locomotiveNumbers = readLocomotives();
+        for (Train t : availableTrains) {
+            System.out.printf("%-8d %-15s %-12s %-12s %-10d %-10d%n",
+                    t.getId(),
+                    t.getOperator(),
+                    t.getDate().format(DATE_FORMAT),
+                    t.getTime().format(TIME_FORMAT),
+                    t.getLocomotives().size(),
+                    t.getFreights().size());
+        }
+        System.out.println("-".repeat(80));
 
-        // 7. Freights (simplificado: criar freight dummy ou usar existentes)
-        List<Integer> freightIds = readFreights();
+        // 2. Escolher train
+        System.out.print("\nEnter Train ID to dispatch: ");
+        int trainId = Integer.parseInt(scanner.nextLine().trim());
 
-        // 8. Criar Train
-        Train train = new Train(
-                trainId,
-                operator,
-                date,
-                time,
-                startId,
-                endId,
-                freightIds,
-                locomotiveNumbers,
-                pathStationIds
-        );
+        Train selectedTrain = repository.getTrain(trainId);
 
-        // 9. Lazy load dados completos
-        loadTrainData(train);
+        if (selectedTrain == null) {
+            throw new IllegalArgumentException("Train not found: " + trainId);
+        }
 
-        return train;
+        // 3. Mostrar detalhes
+        System.out.println("\n--- TRAIN DETAILS ---");
+        System.out.printf("ID:         %d%n", selectedTrain.getId());
+        System.out.printf("Operator:   %s%n", selectedTrain.getOperator());
+        System.out.printf("Date:       %s%n", selectedTrain.getDate().format(DATE_FORMAT));
+        System.out.printf("Time:       %s%n", selectedTrain.getTime().format(TIME_FORMAT));
+        System.out.printf("Locomotives: %d (Total: %d kW)%n",
+                selectedTrain.getLocomotives().size(),
+                selectedTrain.getTotalPowerKw());
+        System.out.printf("Freights:   %d (Total: %.1f tons)%n",
+                selectedTrain.getFreights().size(),
+                selectedTrain.getTotalWeightTons());
+
+
+        List<Integer> newPath = readManualPath();
+
+        // 5. Atualizar APENAS o path (locos e freights mantêm-se da BD)
+        selectedTrain.setPathStationIds(newPath);
+
+        List<Station> pathStations = new ArrayList<>();
+        for (int stationId : newPath) {
+            Station station = repository.getStation(stationId);
+            if (station != null) {
+                pathStations.add(station);
+            }
+        }
+        selectedTrain.setPathStations(pathStations);
+
+        // Atualizar origem/destino baseado no novo path
+        selectedTrain.setStartId(newPath.get(0));
+        selectedTrain.setEndId(newPath.get(newPath.size() - 1));
+        selectedTrain.setStartStation(repository.getStation(newPath.get(0)));
+        selectedTrain.setEndStation(repository.getStation(newPath.get(newPath.size() - 1)));
+
+
+        return selectedTrain;
     }
 
     private LocalDate readDate() {
@@ -155,8 +174,6 @@ public class ManualSchedulerUI {
 
     private List<Integer> readManualPath() {
         System.out.println("\n--- MANUAL PATH DEFINITION ---");
-        System.out.println("⚠ IMPORTANT: You must define ALL stations in the path,");
-        System.out.println("   including intermediate stops (direct connections only)");
         System.out.println("\nEnter station IDs in order (one per line)");
         System.out.println("Type 'DONE' when finished, 'LIST' to see all stations\n");
 
@@ -230,7 +247,6 @@ public class ManualSchedulerUI {
             }
         }
 
-        System.out.println("\n✓ Path defined with " + path.size() + " stations");
         displayPathSummary(path);
         return path;
     }

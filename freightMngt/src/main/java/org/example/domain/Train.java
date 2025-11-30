@@ -11,11 +11,14 @@ public class Train {
     private final String operator;
     private final LocalDate date;
     private final LocalTime time;
-    private final int startId;
-    private final int endId;
+
+    // ✅ REMOVER "final" destes 3:
+    private int startId;
+    private int endId;
+    private List<Integer> pathStationIds;
+
     private final List<Integer> freightIds;
     private final List<Integer> locomotiveNumbers;
-    private final List<Integer> pathStationIds;
 
     // Lazy-loaded
     private Station startStation;
@@ -56,18 +59,27 @@ public class Train {
         this.pathStations = new ArrayList<>();
     }
 
-    // Setters para lazy loading
-    public void setStartStation(Station station) {
-        if (station != null && station.getId() != this.startId) {
-            throw new IllegalArgumentException("Start station ID mismatch");
+    // ✅ SETTERS (agora funcionam porque não são final)
+    public void setPathStationIds(List<Integer> pathStationIds) {
+        if (pathStationIds == null || pathStationIds.size() < 2) {
+            throw new IllegalArgumentException("Path must have at least 2 stations");
         }
+        this.pathStationIds = new ArrayList<>(pathStationIds);
+    }
+
+    public void setStartId(int startId) {
+        this.startId = startId;
+    }
+
+    public void setEndId(int endId) {
+        this.endId = endId;
+    }
+
+    public void setStartStation(Station station) {
         this.startStation = station;
     }
 
     public void setEndStation(Station station) {
-        if (station != null && station.getId() != this.endId) {
-            throw new IllegalArgumentException("End station ID mismatch");
-        }
         this.endStation = station;
     }
 
@@ -97,11 +109,10 @@ public class Train {
     }
 
     public int getMaxSpeed() {
-        // Velocidade máxima = mínimo entre todas as locomotivas
         return locomotives.stream()
                 .mapToInt(Locomotive::getMaxSpeed)
                 .min()
-                .orElse(80); // default conservador
+                .orElse(80);
     }
 
     public int getTotalPowerKw() {
@@ -161,4 +172,3 @@ public class Train {
                 freightIds.size(), locomotiveNumbers.size());
     }
 }
-
