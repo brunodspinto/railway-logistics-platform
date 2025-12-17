@@ -34,7 +34,7 @@ public class RoutePlannerUI {
         List<Station> path = selectPathStrategy();
 
         if (path == null || path.isEmpty()) {
-            return; // Cancelado pelo utilizador
+            return; // Cancelado ou inválido
         }
 
         System.out.println("\nRota Selecionada: " + path.get(0).getName() + " -> " + path.get(path.size()-1).getName());
@@ -45,7 +45,6 @@ public class RoutePlannerUI {
         System.out.println("\n[Sistema] A procurar cargas pendentes compatíveis...");
 
         // --- FILTRAGEM DE CARGAS ---
-        // Seleciona apenas as cargas cuja Origem E Destino fazem parte da rota escolhida
         List<Freight> filterFreights = new ArrayList<>();
         for (Freight f : allFreights) {
             boolean hasOrigin = path.stream().anyMatch(s -> s.getId() == f.getOriginId());
@@ -66,7 +65,7 @@ public class RoutePlannerUI {
         System.out.println("\nA gerar manifesto...");
 
         try {
-            // 3. Calcular (Envia apenas as cargas filtradas para evitar warnings)
+            // 3. Calcular
             RoutePlan plan = plannerService.planRoute(path, filterFreights);
 
             // 4. Imprimir
@@ -77,9 +76,6 @@ public class RoutePlannerUI {
         }
     }
 
-    /**
-     * Menu para escolher entre rotas predefinidas ou manual
-     */
     private List<Station> selectPathStrategy() {
         System.out.println("\nSelecione a Rota do Comboio:");
         System.out.println("1. Linha do Norte (Lisboa -> Entroncamento -> Porto)");
@@ -93,11 +89,11 @@ public class RoutePlannerUI {
 
         switch (option) {
             case 1:
-                return fetchStations(10, 25, 40); // Lisboa, Entroncamento, Porto
+                return fetchStations(10, 25, 40);
             case 2:
-                return fetchStations(40, 55);     // Porto, Braga
+                return fetchStations(40, 55);
             case 3:
-                return fetchStations(10, 25, 30, 40, 55); // Rota completa
+                return fetchStations(10, 25, 30, 40, 55);
             case 4:
                 return readUserPathManual();
             case 0:
@@ -107,7 +103,7 @@ public class RoutePlannerUI {
     }
 
     /**
-     * Auxiliar para converter lista de IDs em lista de objetos Station
+     * Busca estações à BD. Se falhar alguma, devolve lista vazia (rota inválida).
      */
     private List<Station> fetchStations(int... ids) {
         List<Station> path = new ArrayList<>();
@@ -117,20 +113,25 @@ public class RoutePlannerUI {
                 if (s != null) {
                     path.add(s);
                 } else {
-                    // Fallback para Mock se a BD falhar
-                    path.add(new Station(id, "Estação " + id));
+                    System.out.println("Erro de Configuração: Estação ID " + id + " não encontrada na BD.");
+                    return new ArrayList<>(); // Retorna vazio para abortar
                 }
             } catch (Exception e) {
-                path.add(new Station(id, "Estação " + id)); // Fallback erro
+                System.out.println("Erro de BD ao buscar estação " + id + ": " + e.getMessage());
+                return new ArrayList<>();
             }
         }
         return path;
     }
 
+    /**
+     * Lê IDs manualmente e valida rigorosamente contra a BD.
+     */
     private List<Station> readUserPathManual() {
         List<Station> path = new ArrayList<>();
         System.out.println("\n--- Definição Manual ---");
-        System.out.println("Insira a sequência de IDs (ex: 10 25 40). Digite '0' para terminar.");
+        System.out.println("Insira a sequência de IDs existentes na BD (ex: 10 25 40).");
+        System.out.println("Digite '0' para terminar a inserção.");
 
         while (true) {
             System.out.print("ID da Estação #" + (path.size() + 1) + ": ");
@@ -138,25 +139,33 @@ public class RoutePlannerUI {
 
             if (input.equals("0") || input.equalsIgnoreCase("fim")) {
                 if (path.size() < 2) {
-                    System.out.println("⚠ Rota inválida. Mínimo 2 estações.");
-                    path.clear();
-                    continue;
+                    System.out.println("⚠ Rota incompleta. Mínimo 2 estações necessárias.");
+                    path.clear(); // Reseta ou pede para continuar? Aqui forçamos reinício ou aborto.
+                    // Para simplificar, se sair com <2, aborta:
+                    return null;
                 }
                 break;
             }
 
             try {
                 int id = Integer.parseInt(input);
-                List<Station> fetched = fetchStations(id); // Reutiliza o método seguro
-                if (!fetched.isEmpty()) {
-                    System.out.println("   -> Adicionada: " + fetched.get(0).getName());
-                    path.add(fetched.get(0));
+                Station s = repository.getStation(id); // Validação Real
+
+                if (s != null) {
+                    System.out.println("   -> Adicionada: " + s.getName()); // Mostra o nome real da BD
+                    path.add(s);
+                } else {
+                    // MENSAGEM DE ERRO (O que pediste)
+                    System.out.println("    ERRO: Estação com ID " + id + " não existe na Base de Dados.");
+                    System.out.println("    Por favor, insira um ID válido.");
                 }
             } catch (NumberFormatException e) {
-                System.out.println("   ⚠ ID inválido.");
+                System.out.println("   ⚠ ID inválido. Insira um número.");
+            } catch (Exception e) {
+                System.out.println("   ⚠ Erro técnico: " + e.getMessage());
             }
         }
-        scanner.nextLine(); // Limpar buffer
+        scanner.nextLine();
         return path;
     }
 
@@ -171,33 +180,15 @@ public class RoutePlannerUI {
         }
     }
 
-    // --- MOCKS DE CARGAS (Para teste) ---
+    // --- MANTÉM OS MOCKS APENAS PARA AS CARGAS (FREIGHTS) ---
+    // (Num sistema final, também irias buscar isto à BD com repository.getAllPendingFreights())
     private List<Freight> getMockFreights() {
         List<Freight> list = new ArrayList<>();
 
-        // Carga 1: Lisboa -> Porto
-        list.add(new Freight(501, LocalDate.now(),
-                10, "Lisboa Santa Apolónia",
-                40, "Porto Campanhã",
-                Arrays.asList("W01", "W02")));
-
-        // Carga 2: Entroncamento -> Porto
-        list.add(new Freight(502, LocalDate.now(),
-                25, "Entroncamento",
-                40, "Porto Campanhã",
-                Arrays.asList("W03")));
-
-        // Carga 3: Porto -> Braga
-        list.add(new Freight(600, LocalDate.now(),
-                40, "Porto Campanhã",
-                55, "Braga",
-                Arrays.asList("W04", "W05")));
-
-        // Carga 4: Coimbra -> Braga
-        list.add(new Freight(700, LocalDate.now(),
-                30, "Coimbra B",
-                55, "Braga",
-                Arrays.asList("W06")));
+        list.add(new Freight(501, LocalDate.now(), 10, "Lisboa Santa Apolónia", 40, "Porto Campanhã", Arrays.asList("W01", "W02")));
+        list.add(new Freight(502, LocalDate.now(), 25, "Entroncamento", 40, "Porto Campanhã", Arrays.asList("W03")));
+        list.add(new Freight(600, LocalDate.now(), 40, "Porto Campanhã", 55, "Braga", Arrays.asList("W04", "W05")));
+        list.add(new Freight(700, LocalDate.now(), 30, "Coimbra B", 55, "Braga", Arrays.asList("W06")));
 
         return list;
     }
