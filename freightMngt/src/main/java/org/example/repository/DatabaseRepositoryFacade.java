@@ -4,11 +4,9 @@ import org.example.domain.*;
 import org.example.repository.database.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class DatabaseRepositoryFacade implements IRouteRepository {
 
@@ -104,23 +102,19 @@ public class DatabaseRepositoryFacade implements IRouteRepository {
     }
 
     /**
-     * Cruza os dados dos repositórios para encontrar cargas não atribuídas.
+     * * Para efeitos de planeamento de rota (USLP08), retornamos TODAS as cargas
+     * disponíveis na BD, ignorando se já estão "tecnicamente" atribuídas,
+     * permitindo assim ao utilizador planear rotas para os dados de teste existentes.
      */
     @Override
     public List<Freight> getAllPendingFreights() {
-        // 1. Obter todos os comboios para ver que cargas já estão ocupadas
-        Collection<Train> allTrains = trainRepo.getAll();
+        Collection<Freight> allFreights = freightRepo.getAll();
 
-        // 2. Criar um conjunto (Set) com os IDs das cargas já agendadas para busca rápida
-        Set<Integer> assignedFreightIds = new HashSet<>();
-        for (Train t : allTrains) {
-            assignedFreightIds.addAll(t.getFreightIds());
+        if (allFreights instanceof List) {
+            return (List<Freight>) allFreights;
         }
 
-        // 3. Obter todas as cargas e filtrar as que NÃO estão no conjunto acima
-        return freightRepo.getAll().stream()
-                .filter(f -> !assignedFreightIds.contains(f.getId()))
-                .collect(Collectors.toList());
+        return new ArrayList<>(allFreights);
     }
 
     // Trains
