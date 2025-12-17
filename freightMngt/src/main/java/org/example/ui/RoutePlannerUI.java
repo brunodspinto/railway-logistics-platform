@@ -28,79 +28,158 @@ public class RoutePlannerUI {
 
     public void run() {
         System.out.println("\n--- ROUTE PLANNER (USLP08) ---");
+        System.out.println("Planeamento Logístico de Cargas");
 
-        // 1. Simular a escolha de um caminho (Path)
-        // Num cenário real, isto viria da BD ou do algoritmo de caminho mais curto
-        System.out.println("Generating demo path for testing...");
-        List<Station> path = getMockPath();
+        // 1. O Utilizador escolhe o Path (Via Menu ou Manual)
+        List<Station> path = selectPathStrategy();
 
-        if (path.isEmpty()) {
-            System.out.println("Error: Could not generate path.");
-            return;
+        if (path == null || path.isEmpty()) {
+            return; // Cancelado pelo utilizador
         }
 
-        System.out.println("Path defined: " + path.get(0).getName() + " -> " + path.get(path.size()-1).getName());
+        System.out.println("\nRota Selecionada: " + path.get(0).getName() + " -> " + path.get(path.size()-1).getName());
+        System.out.println("(Passando por " + (path.size()-2) + " estações intermédias)");
 
-        // 2. Simular a escolha de Cargas (Freights)
-        // Num cenário real, listarias as cargas pendentes da BD
+        // 2. Detetar Cargas (Simulação)
         List<Freight> freights = getMockFreights();
-        System.out.println("Selected " + freights.size() + " pending freights for this route.");
+        System.out.println("\n[Sistema] A procurar cargas pendentes compatíveis...");
+        System.out.println("[Sistema] Encontradas " + freights.size() + " cargas no sistema.");
 
-        System.out.println("\nCalculating logistics manifest...");
+        System.out.println("\nA gerar manifesto...");
 
         try {
-            // 3. Chamar o Serviço
+            // 3. Calcular
             RoutePlan plan = plannerService.planRoute(path, freights);
 
-            // 4. Imprimir o resultado bonito
+            // 4. Imprimir
             printer.print(plan);
 
         } catch (Exception e) {
-            System.err.println("Error calculating plan: " + e.getMessage());
+            System.err.println("Erro ao calcular o plano: " + e.getMessage());
         }
     }
 
-    // --- MÉTODOS AUXILIARES PARA DADOS DE TESTE (MOCK) ---
-    // Isto serve para conseguires testar já, mesmo que a BD não tenha dados perfeitos
+    /**
+     * Menu para escolher entre rotas predefinidas ou manual
+     */
+    private List<Station> selectPathStrategy() {
+        System.out.println("\nSelecione a Rota do Comboio:");
+        System.out.println("1. Linha do Norte (Lisboa -> Entroncamento -> Porto)");
+        System.out.println("2. Ramal de Braga (Porto -> Braga)");
+        System.out.println("3. Longo Curso (Lisboa -> Entroncamento -> Coimbra -> Porto -> Braga)");
+        System.out.println("4. Definir Rota Manualmente (Inserir IDs)");
+        System.out.println("0. Cancelar");
+        System.out.print("Opção: ");
 
-    private List<Station> getMockPath() {
-        // Tenta buscar estações reais à BD se existirem, senão cria novas
-        try {
-            Station s1 = repository.getStation(10); // Lisboa
-            Station s2 = repository.getStation(25); // Entroncamento
-            Station s3 = repository.getStation(40); // Porto
+        int option = readInt();
 
-            if(s1 != null && s2 != null && s3 != null) {
-                return Arrays.asList(s1, s2, s3);
+        switch (option) {
+            case 1:
+                return fetchStations(10, 25, 40); // Lisboa, Entroncamento, Porto
+            case 2:
+                return fetchStations(40, 55);     // Porto, Braga
+            case 3:
+                return fetchStations(10, 25, 30, 40, 55); // Rota completa
+            case 4:
+                return readUserPathManual();
+            case 0:
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * Auxiliar para converter lista de IDs em lista de objetos Station
+     */
+    private List<Station> fetchStations(int... ids) {
+        List<Station> path = new ArrayList<>();
+        for (int id : ids) {
+            try {
+                Station s = repository.getStation(id);
+                if (s != null) {
+                    path.add(s);
+                } else {
+                    // Fallback para Mock se a BD falhar
+                    path.add(new Station(id, "Estação " + id));
+                }
+            } catch (Exception e) {
+                path.add(new Station(id, "Estação " + id)); // Fallback erro
             }
-        } catch (Exception e) {
-            // Fallback se a BD falhar
         }
-
-        return Arrays.asList(
-                new Station(10, "Lisboa Santa Apolónia"),
-                new Station(25, "Entroncamento"),
-                new Station(40, "Porto Campanhã")
-        );
+        return path;
     }
 
+    private List<Station> readUserPathManual() {
+        List<Station> path = new ArrayList<>();
+        System.out.println("\n--- Definição Manual ---");
+        System.out.println("Insira a sequência de IDs (ex: 10 25 40). Digite '0' para terminar.");
+
+        while (true) {
+            System.out.print("ID da Estação #" + (path.size() + 1) + ": ");
+            String input = scanner.next();
+
+            if (input.equals("0") || input.equalsIgnoreCase("fim")) {
+                if (path.size() < 2) {
+                    System.out.println("⚠ Rota inválida. Mínimo 2 estações.");
+                    path.clear();
+                    continue;
+                }
+                break;
+            }
+
+            try {
+                int id = Integer.parseInt(input);
+                List<Station> fetched = fetchStations(id); // Reutiliza o método seguro
+                if (!fetched.isEmpty()) {
+                    System.out.println("   -> Adicionada: " + fetched.get(0).getName());
+                    path.add(fetched.get(0));
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("   ⚠ ID inválido.");
+            }
+        }
+        scanner.nextLine(); // Limpar buffer
+        return path;
+    }
+
+    private int readInt() {
+        try {
+            int i = scanner.nextInt();
+            scanner.nextLine();
+            return i;
+        } catch (Exception e) {
+            scanner.nextLine();
+            return -1;
+        }
+    }
+
+    // --- MOCKS DE CARGAS (Para teste) ---
     private List<Freight> getMockFreights() {
         List<Freight> list = new ArrayList<>();
 
         // Carga 1: Lisboa -> Porto
-        Freight f1 = new Freight(501, LocalDate.now(),
+        list.add(new Freight(501, LocalDate.now(),
                 10, "Lisboa Santa Apolónia",
                 40, "Porto Campanhã",
-                Arrays.asList("W01", "W02"));
+                Arrays.asList("W01", "W02")));
 
         // Carga 2: Entroncamento -> Porto
-        Freight f2 = new Freight(502, LocalDate.now(),
+        list.add(new Freight(502, LocalDate.now(),
                 25, "Entroncamento",
                 40, "Porto Campanhã",
-                Arrays.asList("W03"));
+                Arrays.asList("W03")));
 
-        list.add(f1);
-        list.add(f2);
+        // Carga 3: Porto -> Braga
+        list.add(new Freight(600, LocalDate.now(),
+                40, "Porto Campanhã",
+                55, "Braga",
+                Arrays.asList("W04", "W05")));
+
+        // Carga 4: Coimbra -> Braga
+        list.add(new Freight(700, LocalDate.now(),
+                30, "Coimbra B",
+                55, "Braga",
+                Arrays.asList("W06")));
 
         return list;
     }
