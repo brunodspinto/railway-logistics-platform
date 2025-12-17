@@ -197,17 +197,4 @@ public class RoutePlannerUI {
             return -1;
         }
     }
-
-    // --- MANTÉM OS MOCKS APENAS PARA AS CARGAS (FREIGHTS) ---
-    // (Num sistema final, também irias buscar isto à BD com repository.getAllPendingFreights())
-    private List<Freight> getMockFreights() {
-        List<Freight> list = new ArrayList<>();
-
-        list.add(new Freight(501, LocalDate.now(), 10, "Lisboa Santa Apolónia", 40, "Porto Campanhã", Arrays.asList("W01", "W02")));
-        list.add(new Freight(502, LocalDate.now(), 25, "Entroncamento", 40, "Porto Campanhã", Arrays.asList("W03")));
-        list.add(new Freight(600, LocalDate.now(), 40, "Porto Campanhã", 55, "Braga", Arrays.asList("W04", "W05")));
-        list.add(new Freight(700, LocalDate.now(), 30, "Coimbra B", 55, "Braga", Arrays.asList("W06")));
-
-        return list;
-    }
 }
