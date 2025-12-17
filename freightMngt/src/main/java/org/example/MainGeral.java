@@ -129,7 +129,7 @@ public class MainGeral {
         }
     }
 
-    // <--- NOVO MÉTODO PARA SPRINT 3
+    // <--- NOVO METODO PARA SPRINT 3
     private void runUSLP08() {
         System.out.println("\n" + "═".repeat(80));
         System.out.println("                 LAUNCHING USLP08 - ROUTE PLANNER");

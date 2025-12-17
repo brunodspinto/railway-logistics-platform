@@ -40,35 +40,53 @@ public class RoutePlannerUI {
         System.out.println("\nRota Selecionada: " + path.get(0).getName() + " -> " + path.get(path.size()-1).getName());
         System.out.println("(Passando por " + (path.size()-2) + " estações intermédias)");
 
-        // 2. Detetar Cargas (Simulação)
-        List<Freight> allFreights = getMockFreights();
+        // 2. Detetar Cargas (CORRIGIDO AQUI)
         System.out.println("\n[Sistema] A procurar cargas pendentes compatíveis...");
+
+        // Chama o metodo do repositório e guarda na lista 'allFreights'
+        List<Freight> allFreights = repository.getAllPendingFreights();
 
         // --- FILTRAGEM DE CARGAS ---
         List<Freight> filterFreights = new ArrayList<>();
-        for (Freight f : allFreights) {
-            boolean hasOrigin = path.stream().anyMatch(s -> s.getId() == f.getOriginId());
-            boolean hasDest = path.stream().anyMatch(s -> s.getId() == f.getDestinationId());
 
-            if (hasOrigin && hasDest) {
-                filterFreights.add(f);
+        if (allFreights != null) { // Proteção contra null pointer
+            for (Freight f : allFreights) {
+                int originIndex = -1;
+                int destIndex = -1;
+
+                // Encontrar os índices das estações na rota atual para validar a direção
+                for (int i = 0; i < path.size(); i++) {
+                    int currentStationId = path.get(i).getId();
+
+                    if (currentStationId == f.getOriginId()) {
+                        originIndex = i;
+                    }
+                    if (currentStationId == f.getDestinationId()) {
+                        destIndex = i;
+                    }
+                }
+
+                // CRITÉRIO DE ACEITAÇÃO:
+                // 1. A rota contém a estação de origem.
+                // 2. A rota contém a estação de destino.
+                // 3. A origem aparece ANTES do destino (originIndex < destIndex).
+                if (originIndex != -1 && destIndex != -1 && originIndex < destIndex) {
+                    filterFreights.add(f);
+                }
             }
         }
 
         if (filterFreights.isEmpty()) {
-            System.out.println("⚠  Nenhuma carga pendente é compatível com esta rota.");
-            System.out.println("   (O comboio seguirá vazio ou a rota não passa onde as cargas estão)");
+            System.out.println("⚠  Nenhuma carga pendente é compatível com a direção desta rota.");
+            System.out.println("   (O comboio seguirá vazio ou a rota é inversa às cargas disponíveis)");
             return;
         }
 
-        System.out.println("[Sistema] Encontradas " + filterFreights.size() + " cargas compatíveis (de " + allFreights.size() + " totais).");
+        System.out.println("[Sistema] Encontradas " + filterFreights.size() + " cargas compatíveis (de " + (allFreights != null ? allFreights.size() : 0) + " totais).");
         System.out.println("\nA gerar manifesto...");
 
         try {
-            // 3. Calcular
             RoutePlan plan = plannerService.planRoute(path, filterFreights);
-
-            // 4. Imprimir
             printer.print(plan);
 
         } catch (Exception e) {

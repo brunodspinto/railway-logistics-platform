@@ -5,7 +5,10 @@ import org.example.repository.database.*;
 
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class DatabaseRepositoryFacade implements IRouteRepository {
 
@@ -98,6 +101,26 @@ public class DatabaseRepositoryFacade implements IRouteRepository {
     @Override
     public Collection<Freight> getAllFreights() {
         return freightRepo.getAll();
+    }
+
+    /**
+     * Cruza os dados dos repositórios para encontrar cargas não atribuídas.
+     */
+    @Override
+    public List<Freight> getAllPendingFreights() {
+        // 1. Obter todos os comboios para ver que cargas já estão ocupadas
+        Collection<Train> allTrains = trainRepo.getAll();
+
+        // 2. Criar um conjunto (Set) com os IDs das cargas já agendadas para busca rápida
+        Set<Integer> assignedFreightIds = new HashSet<>();
+        for (Train t : allTrains) {
+            assignedFreightIds.addAll(t.getFreightIds());
+        }
+
+        // 3. Obter todas as cargas e filtrar as que NÃO estão no conjunto acima
+        return freightRepo.getAll().stream()
+                .filter(f -> !assignedFreightIds.contains(f.getId()))
+                .collect(Collectors.toList());
     }
 
     // Trains
