@@ -41,15 +41,33 @@ public class RoutePlannerUI {
         System.out.println("(Passando por " + (path.size()-2) + " estações intermédias)");
 
         // 2. Detetar Cargas (Simulação)
-        List<Freight> freights = getMockFreights();
+        List<Freight> allFreights = getMockFreights();
         System.out.println("\n[Sistema] A procurar cargas pendentes compatíveis...");
-        System.out.println("[Sistema] Encontradas " + freights.size() + " cargas no sistema.");
 
+        // --- FILTRAGEM DE CARGAS ---
+        // Seleciona apenas as cargas cuja Origem E Destino fazem parte da rota escolhida
+        List<Freight> filterFreights = new ArrayList<>();
+        for (Freight f : allFreights) {
+            boolean hasOrigin = path.stream().anyMatch(s -> s.getId() == f.getOriginId());
+            boolean hasDest = path.stream().anyMatch(s -> s.getId() == f.getDestinationId());
+
+            if (hasOrigin && hasDest) {
+                filterFreights.add(f);
+            }
+        }
+
+        if (filterFreights.isEmpty()) {
+            System.out.println("⚠  Nenhuma carga pendente é compatível com esta rota.");
+            System.out.println("   (O comboio seguirá vazio ou a rota não passa onde as cargas estão)");
+            return;
+        }
+
+        System.out.println("[Sistema] Encontradas " + filterFreights.size() + " cargas compatíveis (de " + allFreights.size() + " totais).");
         System.out.println("\nA gerar manifesto...");
 
         try {
-            // 3. Calcular
-            RoutePlan plan = plannerService.planRoute(path, freights);
+            // 3. Calcular (Envia apenas as cargas filtradas para evitar warnings)
+            RoutePlan plan = plannerService.planRoute(path, filterFreights);
 
             // 4. Imprimir
             printer.print(plan);
