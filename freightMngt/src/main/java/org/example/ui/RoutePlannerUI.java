@@ -6,9 +6,8 @@ import org.example.repository.IRouteRepository;
 import org.example.service.RoutePlan;
 import org.example.service.RoutePlannerService;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
 
@@ -27,10 +26,10 @@ public class RoutePlannerUI {
     }
 
     public void run() {
-        System.out.println("\n--- ROUTE PLANNER (USLP08) ---");
+        System.out.println("\n--- ROUTE PLANNER (USLP08 - DATABASE MODE) ---");
         System.out.println("Planeamento Logístico de Cargas");
 
-        // 1. O Utilizador escolhe o Path (Via Menu ou Manual)
+        // 1. O Utilizador escolhe o Path
         List<Station> path = selectPathStrategy();
 
         if (path == null || path.isEmpty()) {
@@ -40,21 +39,21 @@ public class RoutePlannerUI {
         System.out.println("\nRota Selecionada: " + path.get(0).getName() + " -> " + path.get(path.size()-1).getName());
         System.out.println("(Passando por " + (path.size()-2) + " estações intermédias)");
 
-        // 2. Detetar Cargas (CORRIGIDO AQUI)
-        System.out.println("\n[Sistema] A procurar cargas pendentes compatíveis...");
+        // 2. Detetar Cargas na Base de Dados
+        System.out.println("\n[BD] A consultar cargas pendentes...");
 
-        // Chama o metodo do repositório e guarda na lista 'allFreights'
+        // Esta chamada vai ao DatabaseRepositoryFacade -> FreightRepository (SELECT * FROM Freights...)
         List<Freight> allFreights = repository.getAllPendingFreights();
 
         // --- FILTRAGEM DE CARGAS ---
         List<Freight> filterFreights = new ArrayList<>();
 
-        if (allFreights != null) { // Proteção contra null pointer
+        if (allFreights != null) {
             for (Freight f : allFreights) {
                 int originIndex = -1;
                 int destIndex = -1;
 
-                // Encontrar os índices das estações na rota atual para validar a direção
+                // Validar se a carga faz sentido nesta rota (Direção correta)
                 for (int i = 0; i < path.size(); i++) {
                     int currentStationId = path.get(i).getId();
 
@@ -66,10 +65,7 @@ public class RoutePlannerUI {
                     }
                 }
 
-                // CRITÉRIO DE ACEITAÇÃO:
-                // 1. A rota contém a estação de origem.
-                // 2. A rota contém a estação de destino.
-                // 3. A origem aparece ANTES do destino (originIndex < destIndex).
+                // A origem tem de aparecer ANTES do destino
                 if (originIndex != -1 && destIndex != -1 && originIndex < destIndex) {
                     filterFreights.add(f);
                 }
@@ -77,12 +73,11 @@ public class RoutePlannerUI {
         }
 
         if (filterFreights.isEmpty()) {
-            System.out.println("⚠  Nenhuma carga pendente é compatível com a direção desta rota.");
-            System.out.println("   (O comboio seguirá vazio ou a rota é inversa às cargas disponíveis)");
+            System.out.println("⚠ Nenhuma carga na BD é compatível com esta rota.");
             return;
         }
 
-        System.out.println("[Sistema] Encontradas " + filterFreights.size() + " cargas compatíveis (de " + (allFreights != null ? allFreights.size() : 0) + " totais).");
+        System.out.println("[Sistema] Encontradas " + filterFreights.size() + " cargas compatíveis.");
         System.out.println("\nA gerar manifesto...");
 
         try {
@@ -96,10 +91,11 @@ public class RoutePlannerUI {
 
     private List<Station> selectPathStrategy() {
         System.out.println("\nSelecione a Rota do Comboio:");
-        System.out.println("1. Linha do Norte (Lisboa -> Entroncamento -> Porto)");
-        System.out.println("2. Ramal de Braga (Porto -> Braga)");
-        System.out.println("3. Longo Curso (Lisboa -> Entroncamento -> Coimbra -> Porto -> Braga)");
-        System.out.println("4. Definir Rota Manualmente (Inserir IDs)");
+        System.out.println("1. Rota Sugerida A: Leixões -> Darque -> Valença (IDs: 50, 12, 11)");
+        System.out.println("2. Rota Sugerida B: Nine -> Valença (IDs: 20, 11)");
+        System.out.println("3. Rota Sugerida C: Leixões -> Porto Campanhã (IDs: 50, 5)");
+        System.out.println("4. Listar TODAS as Estações (Consultar BD)");
+        System.out.println("5. Definir Rota Manualmente (Inserir IDs)");
         System.out.println("0. Cancelar");
         System.out.print("Opção: ");
 
@@ -107,12 +103,15 @@ public class RoutePlannerUI {
 
         switch (option) {
             case 1:
-                return fetchStations(10, 25, 40);
+                return fetchStations(50, 12, 11);
             case 2:
-                return fetchStations(40, 55);
+                return fetchStations(20, 11);
             case 3:
-                return fetchStations(10, 25, 30, 40, 55);
+                return fetchStations(50, 5);
             case 4:
+                listAllStationsFromDB();
+                return selectPathStrategy(); // Volta ao menu após listar
+            case 5:
                 return readUserPathManual();
             case 0:
             default:
@@ -121,35 +120,51 @@ public class RoutePlannerUI {
     }
 
     /**
-     * Busca estações à BD. Se falhar alguma, devolve lista vazia (rota inválida).
+     * Imprime todas as estações presentes na BD para o utilizador saber que IDs usar.
+     */
+    private void listAllStationsFromDB() {
+        System.out.println("\n--- ESTAÇÕES REGISTADAS NA BD ---");
+        try {
+            Collection<Station> stations = repository.getAllStations();
+            if (stations.isEmpty()) {
+                System.out.println("⚠ A tabela de estações está vazia!");
+            } else {
+                for (Station s : stations) {
+                    System.out.printf("ID: %-4d | Nome: %s%n", s.getId(), s.getName());
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Erro ao ler da BD: " + e.getMessage());
+        }
+        System.out.println("---------------------------------");
+    }
+
+    /**
+     * Busca estações à BD pelos IDs fornecidos.
      */
     private List<Station> fetchStations(int... ids) {
         List<Station> path = new ArrayList<>();
         for (int id : ids) {
             try {
-                Station s = repository.getStation(id);
+                Station s = repository.getStation(id); // Chamada SQL via Repository
                 if (s != null) {
                     path.add(s);
                 } else {
-                    System.out.println("Erro de Configuração: Estação ID " + id + " não encontrada na BD.");
-                    return new ArrayList<>(); // Retorna vazio para abortar
+                    System.out.println("Erro: Estação ID " + id + " não encontrada na BD.");
+                    return new ArrayList<>();
                 }
             } catch (Exception e) {
-                System.out.println("Erro de BD ao buscar estação " + id + ": " + e.getMessage());
+                System.out.println("Erro de BD: " + e.getMessage());
                 return new ArrayList<>();
             }
         }
         return path;
     }
 
-    /**
-     * Lê IDs manualmente e valida rigorosamente contra a BD.
-     */
     private List<Station> readUserPathManual() {
         List<Station> path = new ArrayList<>();
-        System.out.println("\n--- Definição Manual ---");
-        System.out.println("Insira a sequência de IDs existentes na BD (ex: 10 25 40).");
-        System.out.println("Digite '0' para terminar a inserção.");
+        System.out.println("\n--- Definição Manual de Rota ---");
+        System.out.println("Insira os IDs sequencialmente. Digite '0' para terminar.");
 
         while (true) {
             System.out.print("ID da Estação #" + (path.size() + 1) + ": ");
@@ -157,9 +172,7 @@ public class RoutePlannerUI {
 
             if (input.equals("0") || input.equalsIgnoreCase("fim")) {
                 if (path.size() < 2) {
-                    System.out.println("⚠ Rota incompleta. Mínimo 2 estações necessárias.");
-                    path.clear(); // Reseta ou pede para continuar? Aqui forçamos reinício ou aborto.
-                    // Para simplificar, se sair com <2, aborta:
+                    System.out.println("⚠ Rota incompleta. Mínimo 2 estações.");
                     return null;
                 }
                 break;
@@ -167,20 +180,18 @@ public class RoutePlannerUI {
 
             try {
                 int id = Integer.parseInt(input);
-                Station s = repository.getStation(id); // Validação Real
+                Station s = repository.getStation(id); // Validação na BD
 
                 if (s != null) {
-                    System.out.println("   -> Adicionada: " + s.getName()); // Mostra o nome real da BD
+                    System.out.println("   -> Adicionada: " + s.getName());
                     path.add(s);
                 } else {
-                    // MENSAGEM DE ERRO (O que pediste)
-                    System.out.println("    ERRO: Estação com ID " + id + " não existe na Base de Dados.");
-                    System.out.println("    Por favor, insira um ID válido.");
+                    System.out.println("    ERRO: ID " + id + " não existe na BD.");
                 }
             } catch (NumberFormatException e) {
-                System.out.println("   ⚠ ID inválido. Insira um número.");
+                System.out.println("   ⚠ ID inválido.");
             } catch (Exception e) {
-                System.out.println("   ⚠ Erro técnico: " + e.getMessage());
+                System.out.println("   ⚠ Erro de BD: " + e.getMessage());
             }
         }
         scanner.nextLine();
