@@ -27,16 +27,24 @@ public class FreightRepository {
                 ResultSet rs = stmt.executeQuery();
 
                 if (rs.next()) {
-                    date = rs.getDate("dateFreights").toLocalDate();
+                    Date sqlDate = rs.getDate("dateFreights");
+                    if (sqlDate != null) {
+                        date = sqlDate.toLocalDate();
+                    } else {
+                        // Fallback se a data for nula na BD (embora seja NOT NULL no script)
+                        date = LocalDate.now();
+                    }
                 } else {
-                    System.err.println("Freight " + id + " not found");
+                    System.err.println("Freight " + id + " not found in Freights table.");
                     return null;
                 }
             }
 
-            // 2. Buscar origem e destino (MESMA conexão)
+            // 2. CORREÇÃO: Buscar origem e destino usando as colunas EXPLICITAS da tabela Path
             int[] originDest = getOriginDestination(conn, id);
             if (originDest == null) {
+                // Se não encontrar no Path, tenta ver se existe na tabela Route (para robustez)
+                // mas assumindo que o teu script usa Path para Freights:
                 System.err.println("No path found for freight " + id);
                 return null;
             }
@@ -44,19 +52,20 @@ public class FreightRepository {
             int originId = originDest[0];
             int destId = originDest[1];
 
-            // 3. Buscar wagon numbers (MESMA conexão)
+            // 3. Buscar wagon numbers
             List<String> wagonNumbers = getWagonNumbers(conn, id);
             if (wagonNumbers.isEmpty()) {
                 System.err.println("No wagons found for freight " + id);
+                // Opcional: retornar null ou criar frete sem vagões (mas o domínio proíbe)
                 return null;
             }
 
-            // 4. Agora buscar stations (pode usar nova conexão)
+            // 4. Buscar objetos Station completos
             Station origin = stationRepo.getById(originId);
             Station dest = stationRepo.getById(destId);
 
             if (origin == null || dest == null) {
-                System.err.println("Origin or destination station not found for freight " + id);
+                System.err.println("Critical Error: Stations for Freight " + id + " do not exist (Origin:" + originId + ", Dest:" + destId + ")");
                 return null;
             }
 
@@ -97,6 +106,8 @@ public class FreightRepository {
     public Collection<Freight> getAll() {
         Collection<Freight> freights = new ArrayList<>();
         List<Integer> ids = new ArrayList<>();
+
+        // Ordenar por ID garante consistência na UI
         String query = "SELECT id FROM Freights ORDER BY id";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -122,36 +133,31 @@ public class FreightRepository {
         return freights;
     }
 
-    // Método auxiliar que RECEBE a conexão
+    // --- CORREÇÃO PRINCIPAL AQUI ---
     private int[] getOriginDestination(Connection conn, int freightId) {
-        String query = """
-            SELECT stationId
-            FROM Path
-            WHERE freightsId = ?
-            ORDER BY ROWNUM
-        """;
+        // Em vez de adivinhar pela ordem das linhas, lemos as colunas 'inicialStation' e 'finalStation'
+        // Basta ler 1 linha, pois todas as linhas do mesmo freightId no Path têm a mesma origem/destino globais
+        String query = "SELECT inicialStation, finalStation FROM Path WHERE freightsId = ?";
 
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, freightId);
+            // Usamos setMaxRows para otimizar, pois só precisamos de uma linha
+            stmt.setMaxRows(1);
             ResultSet rs = stmt.executeQuery();
 
-            List<Integer> stations = new ArrayList<>();
-            while (rs.next()) {
-                stations.add(rs.getInt("stationId"));
-            }
-
-            if (stations.size() >= 2) {
-                return new int[]{stations.get(0), stations.get(stations.size() - 1)};
+            if (rs.next()) {
+                int start = rs.getInt("inicialStation");
+                int end = rs.getInt("finalStation");
+                return new int[]{start, end};
             }
 
         } catch (SQLException e) {
-            System.err.println("Error loading path for freight " + freightId + ": " + e.getMessage());
+            System.err.println("Error loading path info for freight " + freightId + ": " + e.getMessage());
         }
 
         return null;
     }
 
-    // Método auxiliar que RECEBE a conexão
     private List<String> getWagonNumbers(Connection conn, int freightId) {
         List<String> numbers = new ArrayList<>();
         String query = "SELECT wagonNumber FROM WagonFreights WHERE freightsId = ?";
@@ -161,13 +167,15 @@ public class FreightRepository {
             ResultSet rs = stmt.executeQuery();
 
             while (rs.next()) {
-                int wagonNum = rs.getInt("wagonNumber");
+                // Converter para String porque o construtor de Freight espera List<String>
+                // Se na tua classe Wagon o ID for long/int, ajusta conforme necessário.
+                // Assumindo que Wagon::getNumber devolve o que está na BD:
+                long wagonNum = rs.getLong("wagonNumber");
                 numbers.add(String.valueOf(wagonNum));
             }
 
         } catch (SQLException e) {
             System.err.println("Error loading wagon numbers for freight " + freightId + ": " + e.getMessage());
-            e.printStackTrace();
         }
 
         return numbers;
