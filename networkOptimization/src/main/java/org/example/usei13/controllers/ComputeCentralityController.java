@@ -26,9 +26,7 @@ public class ComputeCentralityController {
             service.computeAndPrint();
 
         } catch (Exception e) {
-            System.err.println(
-                    "Erro ao carregar o grafo: " + e.getMessage()
-            );
+            System.err.println("Erro ao carregar o grafo: " + e.getMessage());
         }
     }
 }
