@@ -96,9 +96,9 @@ public class RoutePlannerUI {
     private List<Station> selectPathStrategy() {
         while (true) {
             System.out.println("\nSelecione a Rota do Comboio:");
-            System.out.println("1. Linha do Minho Norte (Porto Campanhã -> Valença)");
-            System.out.println("2. Linha do Minho Sul (Valença -> Porto Campanhã)");
-            System.out.println("3. Corredor de Exportação (Leixões -> Valença)");
+            System.out.println("1. Rota do Minho Norte (Porto Campanhã -> Valença)");
+            System.out.println("2. Rota do Minho Sul (Valença -> Porto Campanhã)");
+            System.out.println("3. Corredor de Exportação Marítima (Leixões -> Valença)");
             System.out.println("4. Definir Rota Manualmente");
             System.out.println("5. Consultar Lista de Estações (IDs)");
             System.out.println("0. Cancelar");
