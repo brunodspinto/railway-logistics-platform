@@ -44,7 +44,6 @@ public class RoutePlannerUI {
         System.out.println("(Passando por " + (path.size()-2) + " estações intermédias)");
 
         // 3. Buscar Cargas
-        // Nota: Se aparecerem erros aqui, eles vêm de dentro do FreightRepository (ver nota abaixo)
         List<Freight> allFreights = repository.getAllPendingFreights();
         List<Freight> filterFreights = new ArrayList<>();
 
