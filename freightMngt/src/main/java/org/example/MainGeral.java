@@ -5,7 +5,8 @@ import org.example.repository.IRouteRepository;
 import org.example.ui.SchedulerUI;
 import org.example.ui.TravelTimeUI;
 import org.example.ui.ManualSchedulerUI;
-import org.example.ui.RoutePlannerUI; // <--- NOVO IMPORT
+import org.example.ui.RoutePlannerUI;
+import org.example.ui.TrainAssemblyUI; // <--- NOVO IMPORT USLP09
 import org.example.utils.DatabaseConnection;
 
 import java.util.InputMismatchException;
@@ -13,7 +14,7 @@ import java.util.Scanner;
 
 /**
  * Main Geral - Railway Logistics Management System
- * Integrates Sprint 1 (USLP03), Sprint 2 (USLP07) and Sprint 3 (USLP08)
+ * Integrates Sprint 1 (USLP03), Sprint 2 (USLP07) and Sprint 3 (USLP08, USLP09)
  * Database Version
  */
 public class MainGeral {
@@ -26,7 +27,8 @@ public class MainGeral {
     private TravelTimeUI travelTimeUI;
     private SchedulerUI schedulerUI;
     private ManualSchedulerUI manualSchedulerUI;
-    private RoutePlannerUI routePlannerUI; // <--- NOVA UI
+    private RoutePlannerUI routePlannerUI;
+    private TrainAssemblyUI trainAssemblyUI; // <--- NOVA UI USLP09
 
     public MainGeral(IRouteRepository repository, DatabaseRepositoryFacade databaseRepository) {
         this.repository = repository;
@@ -37,7 +39,8 @@ public class MainGeral {
         this.travelTimeUI = new TravelTimeUI(repository);
         this.schedulerUI = new SchedulerUI(repository);
         this.manualSchedulerUI = new ManualSchedulerUI(databaseRepository);
-        this.routePlannerUI = new RoutePlannerUI(repository); // <--- INICIALIZAR NOVA UI
+        this.routePlannerUI = new RoutePlannerUI(repository);
+        this.trainAssemblyUI = new TrainAssemblyUI(repository); // <--- INICIALIZAR USLP09
     }
 
     public void run() {
@@ -59,8 +62,11 @@ public class MainGeral {
                 case 3:
                     runUSLP07();
                     break;
-                case 4: // <--- NOVA OPÇÃO
+                case 4:
                     runUSLP08();
+                    break;
+                case 5: // <--- NOVA OPÇÃO USLP09
+                    runUSLP09();
                     break;
                 case 0:
                     exit = true;
@@ -91,7 +97,8 @@ public class MainGeral {
         System.out.println("  1. Know the Development Team");
         System.out.println("  2. Run USLP03 - Travel Time Calculator (Sprint 1)");
         System.out.println("  3. Run USLP07 - Train Scheduler (Sprint 2)");
-        System.out.println("  4. Run USLP08 - Route Planner Manifest (Sprint 3)"); // <--- NOVA LINHA
+        System.out.println("  4. Run USLP08 - Route Planner Manifest (Sprint 3)");
+        System.out.println("  5. Run USLP09 - Train Assembly (Sprint 3)"); // <--- NOVA LINHA
         System.out.println("  0. Exit");
         System.out.println("═".repeat(80));
         System.out.print("  Option: ");
@@ -101,15 +108,22 @@ public class MainGeral {
         System.out.println("\n" + "═".repeat(80));
         System.out.println("                           DEVELOPMENT TEAM");
         System.out.println("═".repeat(80));
-        // ... (Mantém os nomes da equipa como estavam) ...
-        System.out.println("  Team details hidden for brevity...");
+        System.out.println("  Sprint 1 (USLP03): Travel Time Calculator");
+        System.out.println("  Sprint 2 (USLP07): Train Scheduler - Diogo");
+        System.out.println("  Sprint 3 (USLP08): Route Planner - [Colega A]");
+        System.out.println("  Sprint 3 (USLP09): Train Assembly - Diogo");
+        System.out.println("═".repeat(80));
     }
 
     private void runUSLP03() {
         System.out.println("\n" + "═".repeat(80));
         System.out.println("              LAUNCHING USLP03 - TRAVEL TIME CALCULATOR");
         System.out.println("═".repeat(80));
-        // ...
+        System.out.println("  Sprint: 1");
+        System.out.println("  User Story: USLP03");
+        System.out.println("  Goal: Calculate travel time between stations");
+        System.out.println("─".repeat(80) + "\n");
+
         try {
             travelTimeUI.run();
         } catch (Exception e) {
@@ -121,7 +135,11 @@ public class MainGeral {
         System.out.println("\n" + "═".repeat(80));
         System.out.println("                 LAUNCHING USLP07 - TRAIN SCHEDULER");
         System.out.println("═".repeat(80));
-        // ...
+        System.out.println("  Sprint: 2");
+        System.out.println("  User Story: USLP07");
+        System.out.println("  Goal: Schedule multiple trains with conflict detection");
+        System.out.println("─".repeat(80) + "\n");
+
         try {
             manualSchedulerUI.start();
         } catch (Exception e) {
@@ -129,7 +147,6 @@ public class MainGeral {
         }
     }
 
-    // <--- NOVO METODO PARA SPRINT 3
     private void runUSLP08() {
         System.out.println("\n" + "═".repeat(80));
         System.out.println("                 LAUNCHING USLP08 - ROUTE PLANNER");
@@ -143,6 +160,24 @@ public class MainGeral {
             routePlannerUI.run();
         } catch (Exception e) {
             System.err.println("\n✗ Error running USLP08: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // <--- NOVO MÉTODO USLP09
+    private void runUSLP09() {
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("                 LAUNCHING USLP09 - TRAIN ASSEMBLY");
+        System.out.println("═".repeat(80));
+        System.out.println("  Sprint: 3");
+        System.out.println("  User Story: USLP09");
+        System.out.println("  Goal: Assemble and assign rolling stock to trains");
+        System.out.println("─".repeat(80) + "\n");
+
+        try {
+            trainAssemblyUI.run();
+        } catch (Exception e) {
+            System.err.println("\n✗ Error running USLP09: " + e.getMessage());
             e.printStackTrace();
         }
     }

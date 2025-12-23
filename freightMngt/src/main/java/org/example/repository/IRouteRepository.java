@@ -1,6 +1,7 @@
 package org.example.repository;
 
 import org.example.domain.*;
+import org.example.service.RollingStockItem;
 
 import java.time.LocalDate;
 import java.util.Collection;
@@ -40,4 +41,22 @@ public interface IRouteRepository {
     // ===== AUXILIARES (Segments) =====
     List<LineSegment> getSegmentsByLine(int lineId);
     Line getLineById(int lineId);
+
+    /**
+     * Obtém locomotives disponíveis (parked + in transit).
+     * Calcula distância até startStationId para parked items.
+     */
+    List<RollingStockItem> getAvailableLocomotives(int startStationId);
+
+    /**
+     * Obtém wagons disponíveis (parked + in transit).
+     */
+    List<RollingStockItem> getAvailableWagons(int startStationId);
+
+    /**
+     * Associa rolling stock a um train.
+     * @return true se sucesso
+     */
+    boolean assignTrainRollingStock(int trainId, List<Integer> locoIds,
+                                    List<Integer> wagonIds);
 }

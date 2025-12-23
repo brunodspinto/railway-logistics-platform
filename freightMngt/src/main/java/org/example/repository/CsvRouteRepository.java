@@ -1,6 +1,7 @@
 package org.example.repository;
 
 import org.example.domain.*;
+import org.example.service.RollingStockItem;
 import org.example.utils.CSVReader;
 
 import java.io.IOException;
@@ -600,5 +601,28 @@ public class CsvRouteRepository implements IRouteRepository {
                 .filter(train -> train.getDate().equals(date))
                 .sorted(Comparator.comparing(Train::getTime))  // Ordenar por hora
                 .collect(Collectors.toList());
+    }
+
+    // ═══════════════════════════════════════════════════════════
+// USLP09 - Stub methods (CSV não suporta esta funcionalidade)
+// ═══════════════════════════════════════════════════════════
+
+    @Override
+    public List<RollingStockItem> getAvailableLocomotives(int startStationId) {
+        System.out.println("(!) getAvailableLocomotives() not supported in CSV mode.");
+        return new ArrayList<>();
+    }
+
+    @Override
+    public List<RollingStockItem> getAvailableWagons(int startStationId) {
+        System.out.println("(!) getAvailableWagons() not supported in CSV mode.");
+        return new ArrayList<>();
+    }
+
+    @Override
+    public boolean assignTrainRollingStock(int trainId, List<Integer> locoIds,
+                                           List<Integer> wagonIds) {
+        System.out.println("(!) assignTrainRollingStock() not supported in CSV mode.");
+        return false;
     }
 }

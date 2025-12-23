@@ -2,6 +2,7 @@ package org.example.repository;
 
 import org.example.domain.*;
 import org.example.repository.database.*;
+import org.example.service.RollingStockItem;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -131,5 +132,76 @@ public class DatabaseRepositoryFacade implements IRouteRepository {
     @Override
     public List<Train> getTrainsByDate(LocalDate date) {
         return trainRepo.getByDate(date);
+    }
+
+    @Override
+    public List<RollingStockItem> getAvailableLocomotives(int startStationId) {
+        List<RollingStockItem> items = new ArrayList<>();
+
+        Collection<Locomotive> allLocos = locomotiveRepo.getAll();
+
+        for (Locomotive loco : allLocos) {
+            String description = loco.getModel() + " (" + loco.getPower() + " kW)";
+
+            items.add(new RollingStockItem(
+                    loco.getNumber(),
+                    "LOCOMOTIVE",
+                    description,
+                    RollingStockStatus.PARKED,
+                    "Available",
+                    0
+            ));
+        }
+
+        return items;
+    }
+    @Override
+    public List<RollingStockItem> getAvailableWagons(int startStationId) {
+        List<RollingStockItem> items = new ArrayList<>();
+
+        Collection<Wagon> allWagons = wagonRepo.getAll();
+
+        for (Wagon wagon : allWagons) {
+            // Usar getNumber() em vez de getWagonNumber()
+            String wagonNumber = wagon.getNumber();
+
+            // Construir descrição usando o model
+            String description;
+            if (wagon.getModel() != null) {
+                description = wagon.getModel().getModel() + " (" +
+                        wagon.getMaxPayloadTons() + " tons)";
+            } else {
+                description = "Wagon #" + wagonNumber + " (Model ID: " + wagon.getModelId() + ")";
+            }
+
+            // Converter wagon number (String) para int
+            int wagonId;
+            try {
+                wagonId = Integer.parseInt(wagonNumber);
+            } catch (NumberFormatException e) {
+                wagonId = wagonNumber.hashCode();
+            }
+
+            items.add(new RollingStockItem(
+                    wagonId,
+                    "WAGON",
+                    description,
+                    RollingStockStatus.PARKED,
+                    "Available",
+                    0
+            ));
+        }
+
+        return items;
+    }
+
+    @Override
+    public boolean assignTrainRollingStock(int trainId, List<Integer> locoIds,
+                                           List<Integer> wagonIds) {
+        System.out.println("\n[SIMULATION] Assigning to Train #" + trainId);
+        System.out.println("  Locomotives: " + locoIds);
+        System.out.println("  Wagons: " + wagonIds);
+        System.out.println("  ✓ Simulated successfully!");
+        return true;
     }
 }
