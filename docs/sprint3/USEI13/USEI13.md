@@ -2,7 +2,7 @@
 
 ## 1. Estrutura de Dados: Grafo de Estações
 
-- Grafo dirigido e ponderado.
+- Grafo **não dirigido** e ponderado.
 - Representação híbrida:
     - lista global de arestas;
     - listas de adjacência por estação.
@@ -79,6 +79,9 @@ Este custo é dominado pelo cálculo prévio dos caminhos mínimos.
 Complexidade:
 
 > **`O(V³)`**
+
+Nota: Não é utilizado o algoritmo de Brandes, sendo adotada uma abordagem direta
+baseada na verificação de caminhos mínimos previamente calculados.
 
 ---
 

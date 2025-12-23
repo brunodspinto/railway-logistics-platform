@@ -49,9 +49,13 @@ class CentralityServiceTest {
         Locale.setDefault(Locale.US);
 
         RailGraph g = new RailGraph();
-        Station a = g.getOrCreateStation("A","A",0,0);
-        Station b = g.getOrCreateStation("B","B",0,0);
-        Station c = g.getOrCreateStation("C","C",0,0);
+        Station a = new Station("A","A",0,0);
+        Station b = new Station("B","B",0,0);
+        Station c = new Station("C","C",0,0);
+
+        g.addStation(a);
+        g.addStation(b);
+        g.addStation(c);
 
         g.addEdge(a,b,1);
         g.addEdge(b,c,1);
@@ -89,10 +93,15 @@ class CentralityServiceTest {
         Locale.setDefault(Locale.US);
 
         RailGraph g = new RailGraph();
-        Station c = g.getOrCreateStation("C","C",0,0);
-        Station a = g.getOrCreateStation("A","A",0,0);
-        Station b = g.getOrCreateStation("B","B",0,0);
-        Station d = g.getOrCreateStation("D","D",0,0);
+        Station c = new Station("C","C",0,0);
+        Station a = new Station("A","A",0,0);
+        Station b = new Station("B","B",0,0);
+        Station d = new Station("D","D",0,0);
+
+        g.addStation(c);
+        g.addStation(a);
+        g.addStation(b);
+        g.addStation(d);
 
         g.addEdge(c,a,1);
         g.addEdge(c,b,1);
@@ -122,8 +131,8 @@ class CentralityServiceTest {
         Locale.setDefault(Locale.US);
 
         RailGraph g = new RailGraph();
-        g.getOrCreateStation("A","A",0,0);
-        g.getOrCreateStation("B","B",0,0);
+        g.addStation(new Station("A","A",0,0));
+        g.addStation(new Station("B","B",0,0));
 
         CentralityService s = new CentralityService(g);
         String out = runAndCapture(s::computeAndPrint);
@@ -138,7 +147,7 @@ class CentralityServiceTest {
         Locale.setDefault(Locale.US);
 
         RailGraph g = new RailGraph();
-        g.getOrCreateStation("A","A",0,0);
+        g.addStation(new Station("A","A",0,0));
 
         CentralityService s = new CentralityService(g);
         String out = runAndCapture(s::computeAndPrint);
@@ -153,9 +162,13 @@ class CentralityServiceTest {
         Locale.setDefault(Locale.US);
 
         RailGraph g = new RailGraph();
-        Station a = g.getOrCreateStation("A","A",0,0);
-        Station b = g.getOrCreateStation("B","B",0,0);
-        Station c = g.getOrCreateStation("C","C",0,0);
+        Station a = new Station("A","A",0,0);
+        Station b = new Station("B","B",0,0);
+        Station c = new Station("C","C",0,0);
+
+        g.addStation(a);
+        g.addStation(b);
+        g.addStation(c);
 
         g.addEdge(a,b,1);
         g.addEdge(b,c,2);
