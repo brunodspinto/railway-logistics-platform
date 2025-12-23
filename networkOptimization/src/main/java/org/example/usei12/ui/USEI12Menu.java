@@ -10,8 +10,9 @@ import java.util.Scanner;
 
 public class USEI12Menu {
 
-    private static final String DEFAULT_CSV = "res/station_to_station.csv";
-    private static final String DEFAULT_DOT = "docs/backbone.dot";
+    private static final String DEFAULT_STATIONS_CSV = "res/stations.csv";
+    private static final String DEFAULT_LINES_CSV    = "res/lines.csv";
+    private static final String DEFAULT_DOT          = "docs/backbone.dot";
 
     private final ComputeBackboneController controller;
 
@@ -21,16 +22,22 @@ public class USEI12Menu {
 
     /**
      * Interage com o utilizador e executa todo o processo:
-     * ler ficheiros, carregar grafo, calcular backbone e gerar DOT/SVG.
+     * carregar estações + linhas, calcular backbone e gerar DOT/SVG.
      */
     public void start() {
         try {
             Scanner in = new Scanner(System.in);
 
-            System.out.print("Caminho do ficheiro CSV [Default: " + DEFAULT_CSV + "]: ");
-            String csvInput = in.nextLine().trim();
-            if (csvInput.isEmpty()) {
-                csvInput = DEFAULT_CSV;
+            System.out.print("Caminho do ficheiro stations.csv [Default: " + DEFAULT_STATIONS_CSV + "]: ");
+            String stationsInput = in.nextLine().trim();
+            if (stationsInput.isEmpty()) {
+                stationsInput = DEFAULT_STATIONS_CSV;
+            }
+
+            System.out.print("Caminho do ficheiro lines.csv [Default: " + DEFAULT_LINES_CSV + "]: ");
+            String linesInput = in.nextLine().trim();
+            if (linesInput.isEmpty()) {
+                linesInput = DEFAULT_LINES_CSV;
             }
 
             System.out.print("Caminho do ficheiro DOT de saída [Default: " + DEFAULT_DOT + "]: ");
@@ -39,32 +46,33 @@ public class USEI12Menu {
                 dotInput = DEFAULT_DOT;
             }
 
-            Path csvPath = Path.of(csvInput);
-            Path dotPath = Path.of(dotInput);
+            Path stationsPath = Path.of(stationsInput);
+            Path linesPath    = Path.of(linesInput);
+            Path dotPath      = Path.of(dotInput);
 
-            // carregar, calcular e exportar resultados
-            RailGraph graph = controller.loadGraph(csvPath);
+            // carregar grafo
+            RailGraph graph = controller.loadGraph(stationsPath, linesPath);
+
+            // calcular backbone (MST)
             List<Edge> backbone = controller.computeBackbone(graph);
+
+            // exportar DOT
             controller.exportToDot(graph, backbone, dotPath);
 
-            double total = backbone.stream()
-                    .mapToDouble(Edge::getLength)
-                    .sum();
+            double total = backbone.stream().mapToDouble(Edge::getLength).sum();
 
             System.out.println();
-            System.out.println("Backbone calculado com sucesso.");
-            System.out.println("\nNúmero de arestas no backbone: " + backbone.size());
+            System.out.println("Backbone calculado com sucesso.\n");
+            System.out.println("Número de arestas no backbone: " + backbone.size());
             System.out.printf("Comprimento total: %.2f km%n", total);
 
             System.out.println("DOT gerado em: " + dotPath.toAbsolutePath());
 
             String dotName = dotPath.toString();
-            String svgName;
-            if (dotName.toLowerCase().endsWith(".dot")) {
-                svgName = dotName.substring(0, dotName.length() - 4) + ".svg";
-            } else {
-                svgName = dotName + ".svg";
-            }
+            String svgName = dotName.toLowerCase().endsWith(".dot")
+                    ? dotName.substring(0, dotName.length() - 4) + ".svg"
+                    : dotName + ".svg";
+
             Path svgPath = Path.of(svgName);
             System.out.println("SVG gerado em: " + svgPath.toAbsolutePath());
 

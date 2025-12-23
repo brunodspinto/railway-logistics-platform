@@ -20,11 +20,16 @@ class MinimalBackboneServiceTest {
     @Test
     @DisplayName("MST num triângulo simples: deve escolher as duas arestas de menor custo")
     void mstOnSimpleTriangle() {
+
         RailGraph graph = new RailGraph();
 
-        Station a = graph.getOrCreateStation("A", "A", 0.0, 0.0);
-        Station b = graph.getOrCreateStation("B", "B", 0.0, 1.0);
-        Station c = graph.getOrCreateStation("C", "C", 1.0, 0.0);
+        Station a = new Station("A", "A", 0.0, 0.0);
+        Station b = new Station("B", "B", 0.0, 1.0);
+        Station c = new Station("C", "C", 1.0, 0.0);
+
+        graph.addStation(a);
+        graph.addStation(b);
+        graph.addStation(c);
 
         graph.addEdge(a, b, 1.0);
         graph.addEdge(b, c, 2.0);
@@ -34,7 +39,10 @@ class MinimalBackboneServiceTest {
 
         assertEquals(2, backbone.size());
 
-        double total = backbone.stream().mapToDouble(Edge::getLength).sum();
+        double total = backbone.stream()
+                .mapToDouble(Edge::getLength)
+                .sum();
+
         assertEquals(3.0, total, 1e-6);
     }
 
@@ -45,12 +53,18 @@ class MinimalBackboneServiceTest {
     @Test
     @DisplayName("Grafo desconectado: MST deve gerar uma floresta apenas na componente ligada")
     void mstOnDisconnectedGraphProducesForest() {
+
         RailGraph graph = new RailGraph();
 
-        Station a = graph.getOrCreateStation("A", "A", 0, 0);
-        Station b = graph.getOrCreateStation("B", "B", 0, 0);
-        Station c = graph.getOrCreateStation("C", "C", 0, 0);
-        Station d = graph.getOrCreateStation("D", "D", 0, 0);
+        Station a = new Station("A", "A", 0, 0);
+        Station b = new Station("B", "B", 0, 0);
+        Station c = new Station("C", "C", 0, 0);
+        Station d = new Station("D", "D", 0, 0);
+
+        graph.addStation(a);
+        graph.addStation(b);
+        graph.addStation(c);
+        graph.addStation(d);
 
         graph.addEdge(a, b, 1.0);
         graph.addEdge(b, c, 1.0);
@@ -59,7 +73,11 @@ class MinimalBackboneServiceTest {
         List<Edge> backbone = MinimalBackboneService.computeMinimalBackbone(graph);
 
         assertEquals(2, backbone.size());
-        double total = backbone.stream().mapToDouble(Edge::getLength).sum();
+
+        double total = backbone.stream()
+                .mapToDouble(Edge::getLength)
+                .sum();
+
         assertEquals(2.0, total, 1e-6);
     }
 }

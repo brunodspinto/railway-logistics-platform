@@ -14,25 +14,38 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CsvGraphLoaderTest {
 
-    /**
-     * Garante que um CSV bem formado é corretamente convertido
-     * num grafo com as estações e arestas esperadas.
-     */
     @Test
-    @DisplayName("CSV válido deve gerar o grafo correto com estações e arestas")
-    void loadFromCsvBuildsCorrectGraph() throws Exception {
-        Path tempCsv = Files.createTempFile("stations-test", ".csv");
+    @DisplayName("CSV válidos devem gerar o grafo correto com estações e arestas")
+    void loadStationsAndLinesBuildCorrectGraph() throws Exception {
 
-        try (BufferedWriter w = Files.newBufferedWriter(tempCsv)) {
-            w.write("geo;fromId;fromName;toId;toName;length;geo_point_2d");
+        Path stationsCsv = Files.createTempFile("stations-test", ".csv");
+        Path linesCsv    = Files.createTempFile("lines-test", ".csv");
+
+        // stations.csv — loader exige >= 5 colunas
+        try (BufferedWriter w = Files.newBufferedWriter(stationsCsv)) {
+            w.write("id;name;lat;lon;dummy");
             w.newLine();
-            w.write("shape;1;A;2;B;10.5;50.0,4.0");
+            w.write("1;A;50.0;4.0;x");
             w.newLine();
-            w.write("shape;2;B;3;C;20.0;51.0,5.0");
+            w.write("2;B;51.0;5.0;x");
+            w.newLine();
+            w.write("3;C;52.0;6.0;x");
             w.newLine();
         }
 
-        RailGraph graph = CsvGraphLoader.loadFromCsv(tempCsv);
+        // lines.csv — loader exige >= 4 colunas
+        try (BufferedWriter w = Files.newBufferedWriter(linesCsv)) {
+            w.write("fromId;toId;length;dummy");
+            w.newLine();
+            w.write("1;2;10.5;x");
+            w.newLine();
+            w.write("2;3;20.0;x");
+            w.newLine();
+        }
+
+        RailGraph graph = new RailGraph();
+        CsvGraphLoader.loadStations(stationsCsv, graph);
+        CsvGraphLoader.loadLines(linesCsv, graph);
 
         assertEquals(3, graph.getStations().size());
         assertEquals(2, graph.getEdges().size());
