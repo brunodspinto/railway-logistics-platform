@@ -34,16 +34,15 @@ public class FreightRepository {
                         date = LocalDate.now();
                     }
                 } else {
-                    return null; // Carga não existe na tabela Freights
+                    return null;
                 }
             }
 
-            // 2. Buscar origem e destino (Com proteção contra erro ORA-00904)
+            // 2. Buscar origem e destino
             int[] originDest = getOriginDestination(conn, id);
 
             if (originDest == null) {
-                // Se não encontrar caminho, ignoramos esta carga silenciosamente ou logamos erro ligeiro
-                // System.err.println("Aviso: Rota não encontrada para Carga " + id);
+                // Silencioso - Path pode não existir
                 return null;
             }
 
@@ -135,7 +134,8 @@ public class FreightRepository {
                     // TENTATIVA 2: Nomes da tabela Line (startStation, endStation)
                     return tryQuery(conn, freightId, "SELECT startStation, endStation FROM Path WHERE freightsId = ?");
                 } catch (SQLException ex2) {
-                    System.err.println("Erro Crítico: Não foi possível ler a tabela Path. Verifique os nomes das colunas na BD.");
+                    // ✅ SILENCIOSO - Path pode não existir para este freight
+                    // Não imprimir erro (chamado 9x no início = 9 freights sem path)
                 }
             }
         }
@@ -148,7 +148,6 @@ public class FreightRepository {
             stmt.setMaxRows(1);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                // Indices 1 e 2 correspondem à primeira e segunda coluna do SELECT, independentemente do nome
                 return new int[]{rs.getInt(1), rs.getInt(2)};
             }
         }

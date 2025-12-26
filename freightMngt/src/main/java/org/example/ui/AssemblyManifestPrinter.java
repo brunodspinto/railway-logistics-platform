@@ -1,6 +1,6 @@
 package org.example.ui;
 
-import org.example.domain.RollingStockStatus;
+import org.example.domain.Train;
 import org.example.service.RollingStockItem;
 
 import java.util.List;
@@ -17,17 +17,45 @@ public class AssemblyManifestPrinter {
     private static final String BLUE = "\033[1;34m";
     private static final String GREY = "\033[0;90m";
 
+    /**
+     * Lista trains disponíveis com índices para seleção
+     */
+    public void printTrainList(List<Train> trains) {
+        System.out.println(BOLD + "\n=== TRAINS DISPONÍVEIS ===" + RESET);
+        System.out.printf("%-6s %-10s %-15s %-12s %-8s\n",
+                "[Idx]", "Train ID", "Operator", "Date", "Time");
+        System.out.println("─".repeat(60));
+
+        for (int i = 0; i < trains.size(); i++) {
+            Train t = trains.get(i);
+
+            System.out.printf("%s[%d]%s   %-10d %-15s %-12s %-8s\n",
+                    GREEN, (i + 1), RESET,
+                    t.getId(),
+                    truncate(t.getOperator(), 15),
+                    t.getDate().toString(),
+                    t.getTime().toString());
+        }
+
+        System.out.println("─".repeat(60));
+    }
+
+    /**
+     * Lista rolling stock com ÍNDICES para seleção
+     */
     public void printRollingStockList(List<RollingStockItem> items, String title) {
         System.out.println(BOLD + "\n=== " + title + " ===" + RESET);
-        System.out.printf("%-5s %-40s %-12s %-30s %-10s\n",
-                "ID", "Description", "Status", "Location", "Distance");
-        System.out.println("─".repeat(100));
+        System.out.printf("%-6s %-8s %-40s %-12s %-30s %-10s\n",
+                "[Idx]", "ID", "Description", "Status", "Location", "Distance");
+        System.out.println("─".repeat(110));
 
-        for (RollingStockItem item : items) {
+        for (int i = 0; i < items.size(); i++) {
+            RollingStockItem item = items.get(i);
             String statusColor = item.isParked() ? GREEN : YELLOW;
             String statusText = item.isParked() ? "PARKED" : "IN_TRANSIT";
 
-            System.out.printf("%-5d %-40s %s%-12s%s %-30s %-10s\n",
+            System.out.printf("%s[%d]%s   %-8d %-40s %s%-12s%s %-30s %-10s\n",
+                    BLUE, (i + 1), RESET,
                     item.getId(),
                     truncate(item.getDescription(), 40),
                     statusColor, statusText, RESET,
@@ -35,7 +63,7 @@ public class AssemblyManifestPrinter {
                     item.isParked() ? item.getDistanceFromStart() + " km" : "N/A");
         }
 
-        System.out.println("─".repeat(100));
+        System.out.println("─".repeat(110));
     }
 
     public void printAssemblyConfirmation(int trainId, int locoCount, int wagonCount) {
