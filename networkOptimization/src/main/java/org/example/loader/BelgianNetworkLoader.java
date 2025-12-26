@@ -12,10 +12,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Loader for Belgian Railway Network using simple CSV format (comma-separated)
- * Uses lines.csv and stations.csv
+ * Loader for Belgian Railway Network using simple CSV format.
+ * Suporta leitura robusta de lines.csv (com ou sem capacidade explícita).
  */
 public class BelgianNetworkLoader {
+
+    // Capacidade por defeito caso não exista no CSV (para evitar fluxo 0 na USEI14)
+    private static final int DEFAULT_CAPACITY = 50;
+    private static final double DEFAULT_COST = 0.0;
 
     public static Graph<Station, Connection> loadNetwork(String stationsPath, String linesPath)
             throws IOException {
@@ -26,8 +30,8 @@ public class BelgianNetworkLoader {
         Map<String, Station> stationMap = loadStations(stationsPath);
         System.out.println("Loaded " + stationMap.size() + " stations");
 
-        // 2. Create graph
-        Graph<Station, Connection> graph = new MapGraph<>(true); // directed
+        // 2. Create graph (Directed = true, pois o fluxo é direcional)
+        Graph<Station, Connection> graph = new MapGraph<>(true);
 
         // 3. Add all stations to graph
         for (Station station : stationMap.values()) {
@@ -53,29 +57,31 @@ public class BelgianNetworkLoader {
         Map<String, Station> stations = new HashMap<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line = br.readLine();
+            String line = br.readLine(); // Skip header if exists, or handle in loop
 
             while ((line = br.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty()) continue;
 
                 String[] parts = line.split(",");
+                // Formato mínimo esperado: ID, Nome
                 if (parts.length >= 2) {
                     String id = parts[0].trim();
                     String name = parts[1].trim();
 
+                    // Podes adicionar coordenadas aqui se o construtor de Station suportar
                     Station station = new Station(id, name);
                     stations.put(id, station);
                 }
             }
         }
-
         return stations;
     }
 
     /**
      * Load lines from lines.csv
-     * Format: departure_stid,arrival_stid,dist,capacity,cost
+     * Format esperado: departure_stid,arrival_stid,dist,capacity,cost
+     * Se faltarem colunas, usa defaults.
      */
     private static int loadLines(String filePath, Map<String, Station> stationMap,
                                  Graph<Station, Connection> graph) throws IOException {
@@ -83,7 +89,7 @@ public class BelgianNetworkLoader {
         int errorLines = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line = br.readLine();
+            String line = br.readLine(); // Skip header
 
             while ((line = br.readLine()) != null) {
                 line = line.trim();
@@ -91,24 +97,43 @@ public class BelgianNetworkLoader {
 
                 try {
                     String[] parts = line.split(",");
-                    if (parts.length >= 5) {
+
+                    // Mínimo aceitável: Origem, Destino, Distância
+                    if (parts.length >= 3) {
                         String fromId = parts[0].trim();
                         String toId = parts[1].trim();
                         double distance = Double.parseDouble(parts[2].trim());
-                        int capacity = Integer.parseInt(parts[3].trim());
-                        double cost = Double.parseDouble(parts[4].trim());
 
-                        // Get stations
+                        // Leitura robusta: Se não houver coluna 3 ou 4, usa DEFAULT
+                        int capacity = DEFAULT_CAPACITY;
+                        double cost = DEFAULT_COST;
+
+                        if (parts.length >= 4 && !parts[3].trim().isEmpty()) {
+                            try {
+                                capacity = Integer.parseInt(parts[3].trim());
+                            } catch (NumberFormatException e) {
+                                System.err.println("Aviso: Capacidade inválida na linha, usando default: " + DEFAULT_CAPACITY);
+                            }
+                        }
+
+                        if (parts.length >= 5 && !parts[4].trim().isEmpty()) {
+                            try {
+                                cost = Double.parseDouble(parts[4].trim());
+                            } catch (NumberFormatException e) {
+                            }
+                        }
+
+                        // Obter estações do mapa
                         Station from = stationMap.get(fromId);
                         Station to = stationMap.get(toId);
 
                         if (from != null && to != null) {
                             Connection conn = new Connection(from, to, distance, capacity, cost);
+
                             graph.addEdge(from, to, conn);
                             validLines++;
                         } else {
                             errorLines++;
-                            System.err.println("Warning: Unknown station(s) - from: " + fromId + ", to: " + toId);
                         }
                     }
                 } catch (NumberFormatException e) {
@@ -119,7 +144,7 @@ public class BelgianNetworkLoader {
         }
 
         if (errorLines > 0) {
-            System.out.println("  Error lines: " + errorLines);
+            System.out.println("  Ignored lines (errors/unknown stations): " + errorLines);
         }
 
         return validLines;
