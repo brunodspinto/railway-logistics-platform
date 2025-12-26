@@ -35,7 +35,6 @@ public class UpgradePlanResult {
 
     /**
      * Factory: resultado com ciclos
-     * ⭐ MUDOU: Agora recebe Set<Station> em vez de List<List<Station>>
      */
     public static UpgradePlanResult withCycles(Set<Station> stationsInCycles, int numStations, int numConnections, long executionTimeMs) {
         return new UpgradePlanResult(true, null, stationsInCycles, numStations, numConnections, executionTimeMs);
