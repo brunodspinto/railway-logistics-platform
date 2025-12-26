@@ -1,287 +1,127 @@
 package org.example.loader;
 
-import org.example.domain.Station;
 import org.example.domain.Connection;
+import org.example.domain.Station;
 import org.example.graph.Graph;
 import org.example.graph.map.MapGraph;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Carrega a rede ferroviária belga do dataset Infrabel
+ * Loader for Belgian Railway Network using simple CSV format (comma-separated)
+ * Uses lines.csv and stations.csv
  */
 public class BelgianNetworkLoader {
 
-    public static Graph<Station, Connection> loadNetwork(String filePath)
+    public static Graph<Station, Connection> loadNetwork(String stationsPath, String linesPath)
             throws IOException {
 
-        Graph<Station, Connection> graph = new MapGraph<>(true);
-        Map<String, Station> stationCache = new HashMap<>();
+        System.out.println("Loading Belgian railway network...");
 
-        int validLines = 0;
-        int errorLines = 0;
+        // 1. Load stations first
+        Map<String, Station> stationMap = loadStations(stationsPath);
+        System.out.println("Loaded " + stationMap.size() + " stations");
 
-        try (BufferedReader br = new BufferedReader(
-                new FileReader(filePath, StandardCharsets.UTF_8))) {
+        // 2. Create graph
+        Graph<Station, Connection> graph = new MapGraph<>(true); // directed
 
-            // Ler header
-            String header = br.readLine();
-            if (header == null) {
-                throw new IOException("Empty file");
-            }
-
-            // Remover BOM se existir
-            if (header.startsWith("\uFEFF")) {
-                header = header.substring(1);
-            }
-
-            System.out.println("Loading Belgian railway network...");
-
-            // Detectar separador do header
-            char delimiter = detectDelimiter(header);
-            System.out.printf("Detected delimiter: '%s'%n",
-                    delimiter == ';' ? "semicolon (;)" :
-                            delimiter == '\t' ? "tab" :
-                                    "comma (,)");
-
-            String line;
-            int lineNum = 0;
-            while ((line = br.readLine()) != null) {
-                lineNum++;
-
-                try {
-                    if (processLine(line, delimiter, graph, stationCache, validLines)) {
-                        validLines++;
-                    }
-                } catch (Exception e) {
-                    errorLines++;
-                    if (errorLines <= 10) {
-                        System.err.printf("Line %d error: %s%n", lineNum + 1, e.getMessage());
-                    }
-                }
-            }
+        // 3. Add all stations to graph
+        for (Station station : stationMap.values()) {
+            graph.addVertex(station);
         }
 
-        if (errorLines > 10) {
-            System.err.printf("... and %d more errors%n", errorLines - 10);
-        }
+        // 4. Load lines (connections)
+        int validLines = loadLines(linesPath, stationMap, graph);
 
-        System.out.printf("%nLoaded network:%n");
-        System.out.printf("  Stations: %d%n", graph.numVertices());
-        System.out.printf("  Connections: %d%n", graph.numEdges());
-        System.out.printf("  Valid lines: %d%n", validLines);
-        System.out.printf("  Error lines: %d%n", errorLines);
+        System.out.println("\nLoaded network:");
+        System.out.println("  Stations: " + graph.numVertices());
+        System.out.println("  Connections: " + graph.numEdges());
+        System.out.println("  Valid lines: " + validLines);
 
         return graph;
     }
 
     /**
-     * Detecta o separador do CSV
+     * Load stations from stations.csv
+     * Format: Station id,Station,Lat,Lon,CoordX,CoordY
      */
-    private static char detectDelimiter(String header) {
-        int semicolons = countChar(header, ';');
-        int tabs = countChar(header, '\t');
-        int commas = countChar(header, ',');
+    private static Map<String, Station> loadStations(String filePath) throws IOException {
+        Map<String, Station> stations = new HashMap<>();
 
-        // O maior vence
-        if (semicolons > tabs && semicolons > commas) {
-            return ';';
-        } else if (tabs > commas) {
-            return '\t';
-        } else {
-            return ',';
-        }
-    }
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line = br.readLine(); // skip header
 
-    private static int countChar(String str, char ch) {
-        int count = 0;
-        for (char c : str.toCharArray()) {
-            if (c == ch) count++;
-        }
-        return count;
-    }
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
 
-    /**
-     * Processa uma linha do CSV
-     */
-    private static boolean processLine(String line,
-                                       char delimiter,
-                                       Graph<Station, Connection> graph,
-                                       Map<String, Station> cache,
-                                       int validLines) {
+                String[] parts = line.split(",");
+                if (parts.length >= 2) {
+                    String id = parts[0].trim();
+                    String name = parts[1].trim();
 
-        List<String> fields = parseLine(line, delimiter);
-
-        // Debug primeiras 3 linhas válidas
-        if (validLines < 3) {
-            System.out.printf("%n=== DEBUG Line %d ===%n", validLines + 1);
-            System.out.printf("Raw line length: %d chars%n", line.length());
-            System.out.printf("Fields parsed: %d%n", fields.size());
-            for (int i = 0; i < Math.min(fields.size(), 7); i++) {
-                String preview = fields.get(i).trim();
-                if (preview.length() > 60) {
-                    preview = preview.substring(0, 60) + "...";
-                }
-                System.out.printf("  [%d]: %s%n", i, preview);
-            }
-        }
-
-        if (fields.size() < 7) {
-            throw new IllegalArgumentException(
-                    String.format("Expected 7 fields, got %d", fields.size()));
-        }
-
-        // Índices conforme header:
-        // 0: Geo Shape (ignorar)
-        // 1: Station van vertrek (id)
-        String fromId = cleanField(fields.get(1));
-        // 2: Station van vertrek (name)
-        String fromName = cleanField(fields.get(2));
-        // 3: Aankomstation (id)
-        String toId = cleanField(fields.get(3));
-        // 4: Aankomststation (name)
-        String toName = cleanField(fields.get(4));
-        // 5: Lengte (distance)
-        double distance = parseDouble(cleanField(fields.get(5)));
-        // 6: geo_point_2d
-        String geoPoint = cleanField(fields.get(6));
-        double[] coords = parseGeoPoint(geoPoint);
-
-        // Validações
-        if (fromId.isEmpty() || toId.isEmpty()) {
-            return false;
-        }
-        if (distance < 0) {
-            return false;
-        }
-
-        // Criar/obter estações
-        Station from = cache.computeIfAbsent(fromId, k -> {
-            Station s = new Station(fromId, fromName, coords[0], coords[1]);
-            graph.addVertex(s);
-            return s;
-        });
-
-        Station to = cache.computeIfAbsent(toId, k -> {
-            Station s = new Station(toId, toName, coords[0], coords[1]);
-            graph.addVertex(s);
-            return s;
-        });
-
-        // Adicionar conexão
-        Connection conn = new Connection(from, to, distance);
-        graph.addEdge(from, to, conn);
-
-        return true;
-    }
-
-    /**
-     * Parse de linha CSV com suporte a JSON nested
-     */
-    private static List<String> parseLine(String line, char delimiter) {
-        List<String> fields = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-
-        boolean inQuotes = false;
-        int braceDepth = 0;    // {}
-        int bracketDepth = 0;  // []
-
-        for (int i = 0; i < line.length(); i++) {
-            char c = line.charAt(i);
-
-            // Tracking JSON structures (quando não está em quotes)
-            if (!inQuotes) {
-                if (c == '{') {
-                    braceDepth++;
-                } else if (c == '}') {
-                    braceDepth--;
-                } else if (c == '[') {
-                    bracketDepth++;
-                } else if (c == ']') {
-                    bracketDepth--;
+                    Station station = new Station(id, name);
+                    stations.put(id, station);
                 }
             }
-
-            // Tracking quotes
-            if (c == '"' && (i == 0 || line.charAt(i-1) != '\\')) {
-                inQuotes = !inQuotes;
-            }
-
-            // É um separador se:
-            // - é o delimiter
-            // - NÃO está em quotes
-            // - NÃO está dentro de JSON (depth = 0)
-            boolean isSeparator = (c == delimiter) &&
-                    !inQuotes &&
-                    braceDepth == 0 &&
-                    bracketDepth == 0;
-
-            if (isSeparator) {
-                fields.add(current.toString());
-                current = new StringBuilder();
-            } else {
-                current.append(c);
-            }
         }
 
-        // Último campo
-        fields.add(current.toString());
-
-        return fields;
+        return stations;
     }
 
     /**
-     * Limpa campo: remove quotes externas e espaços
+     * Load lines from lines.csv
+     * Format: departure_stid,arrival_stid,dist,capacity,cost
      */
-    private static String cleanField(String field) {
-        field = field.trim();
+    private static int loadLines(String filePath, Map<String, Station> stationMap,
+                                 Graph<Station, Connection> graph) throws IOException {
+        int validLines = 0;
+        int errorLines = 0;
 
-        // Remove quotes externas se existirem
-        if (field.startsWith("\"") && field.endsWith("\"")) {
-            field = field.substring(1, field.length() - 1);
-        }
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+            String line = br.readLine(); // skip header
 
-        // Substitui "" por " (escape de quotes em CSV)
-        field = field.replace("\"\"", "\"");
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty()) continue;
 
-        return field.trim();
-    }
+                try {
+                    String[] parts = line.split(",");
+                    if (parts.length >= 5) {
+                        String fromId = parts[0].trim();
+                        String toId = parts[1].trim();
+                        double distance = Double.parseDouble(parts[2].trim());
+                        int capacity = Integer.parseInt(parts[3].trim());
+                        double cost = Double.parseDouble(parts[4].trim());
 
-    /**
-     * Parse de geo_point_2d: "lat, lon"
-     */
-    private static double[] parseGeoPoint(String geoPoint) {
-        try {
-            String[] parts = geoPoint.split(",");
-            if (parts.length >= 2) {
-                double lat = Double.parseDouble(parts[0].trim());
-                double lon = Double.parseDouble(parts[1].trim());
+                        // Get stations
+                        Station from = stationMap.get(fromId);
+                        Station to = stationMap.get(toId);
 
-                // Validar ranges
-                if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
-                    return new double[]{0.0, 0.0};
+                        if (from != null && to != null) {
+                            Connection conn = new Connection(from, to, distance, capacity, cost);
+                            graph.addEdge(from, to, conn);
+                            validLines++;
+                        } else {
+                            errorLines++;
+                            System.err.println("Warning: Unknown station(s) - from: " + fromId + ", to: " + toId);
+                        }
+                    }
+                } catch (NumberFormatException e) {
+                    errorLines++;
+                    System.err.println("Warning: Invalid number format in line: " + line);
                 }
-
-                return new double[]{lat, lon};
             }
-        } catch (NumberFormatException e) {
-            // Ignore
         }
-        return new double[]{0.0, 0.0};
-    }
 
-    /**
-     * Parse de double
-     */
-    private static double parseDouble(String value) {
-        try {
-            return Double.parseDouble(value);
-        } catch (NumberFormatException e) {
-            return 0.0;
+        if (errorLines > 0) {
+            System.out.println("  Error lines: " + errorLines);
         }
+
+        return validLines;
     }
 }
