@@ -36,7 +36,6 @@ public class UpgradePlanController {
     public void loadNetwork(String stationsPath, String linesPath) throws IOException {
         System.out.println("Loading Belgian railway network...");
         this.network = BelgianNetworkLoader.loadNetwork(stationsPath, linesPath);
-        //             ^^^^^^^^^^^^^^^^^^^^^^^^^ NOVO LOADER
     }
 
     /**
