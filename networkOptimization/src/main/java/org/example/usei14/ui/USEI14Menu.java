@@ -1,7 +1,7 @@
 package org.example.usei14.ui;
 
 import org.example.domain.Station;
-import org.example.controller.ComputeMaxFlowController;
+import org.example.usei14.controllers.ComputeMaxFlowController;
 
 import java.util.List;
 import java.util.Scanner;

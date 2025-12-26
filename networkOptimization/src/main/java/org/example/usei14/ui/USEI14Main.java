@@ -1,6 +1,6 @@
 package org.example.usei14.ui;
 
-import org.example.controller.ComputeMaxFlowController;
+import org.example.usei14.controllers.ComputeMaxFlowController;
 
 public class USEI14Main {
 
