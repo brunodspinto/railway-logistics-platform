@@ -32,7 +32,6 @@ public class UpgradePlanController {
 
     /**
      * Carrega a rede belga dos ficheiros
-     * ⭐ MUDOU: Agora recebe DOIS caminhos (stations.csv e lines.csv)
      */
     public void loadNetwork(String stationsPath, String linesPath) throws IOException {
         System.out.println("Loading Belgian railway network...");
@@ -55,50 +54,6 @@ public class UpgradePlanController {
         Set<Station> stationsInCycles = cycleDetector.findStationsInCycles(network);
 
         if (!stationsInCycles.isEmpty()) {
-
-            // ⭐⭐⭐ ADICIONAR AQUI - DEBUG BLOCK ⭐⭐⭐
-            /**
-            System.out.println("\n" + "=".repeat(70));
-            System.out.println("🔍 DEBUG: Analyzing cycles in the network");
-            System.out.println("=".repeat(70));
-
-            // Pegar nas primeiras 5 estações em ciclos
-            List<Station> sampleStations = new ArrayList<>(stationsInCycles);
-            int samplesToShow = Math.min(5, sampleStations.size());
-
-            for (int i = 0; i < samplesToShow; i++) {
-                Station station = sampleStations.get(i);
-                System.out.println("\n📍 Station: " + station.getName() +
-                        " (ID: " + station.getId() + ")");
-
-                // Conexões de SAÍDA (outgoing)
-                Collection<Edge<Station, Connection>> outgoing = network.outgoingEdges(station);
-                if (outgoing != null && !outgoing.isEmpty()) {
-                    System.out.println("   Outgoing connections:");
-                    outgoing.forEach(edge -> {
-                        System.out.printf("     → %s (ID: %s, dist: %.2f km)%n",
-                                edge.getVDest().getName(),
-                                edge.getVDest().getId(),
-                                edge.getWeight().getDistance());
-                    });
-                }
-
-                // Conexões de ENTRADA (incoming)
-                Collection<Edge<Station, Connection>> incoming = network.incomingEdges(station);
-                if (incoming != null && !incoming.isEmpty()) {
-                    System.out.println("   Incoming connections:");
-                    incoming.forEach(edge -> {
-                        System.out.printf("     ← %s (ID: %s, dist: %.2f km)%n",
-                                edge.getVOrig().getName(),
-                                edge.getVOrig().getId(),
-                                edge.getWeight().getDistance());
-                    });
-                }
-            }
-
-            System.out.println("\n" + "=".repeat(70));
-            // ⭐⭐⭐ FIM DO DEBUG BLOCK ⭐⭐⭐
-             */
             long elapsedTime = System.currentTimeMillis() - startTime;
             return UpgradePlanResult.withCycles(
                     stationsInCycles,
@@ -113,11 +68,7 @@ public class UpgradePlanController {
 
         long elapsedTime = System.currentTimeMillis() - startTime;
 
-        return UpgradePlanResult.withOrder(
-                order,
-                network.numVertices(),
-                network.numEdges(),
-                elapsedTime
+        return UpgradePlanResult.withOrder(order, network.numVertices(), network.numEdges(), elapsedTime
         );
     }
 

@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class UpgradePlanControllerTest {
 
-    // ⭐⭐⭐ MESMO CAMINHO QUE FUNCIONOU NO BelgianNetworkLoaderTest ⭐⭐⭐
     private static final String STATIONS_PATH = "../res/stations.csv";
     private static final String LINES_PATH = "../res/lines.csv";
 

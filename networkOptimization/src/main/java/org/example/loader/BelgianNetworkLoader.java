@@ -53,7 +53,7 @@ public class BelgianNetworkLoader {
         Map<String, Station> stations = new HashMap<>();
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line = br.readLine(); // skip header
+            String line = br.readLine();
 
             while ((line = br.readLine()) != null) {
                 line = line.trim();
@@ -83,7 +83,7 @@ public class BelgianNetworkLoader {
         int errorLines = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line = br.readLine(); // skip header
+            String line = br.readLine();
 
             while ((line = br.readLine()) != null) {
                 line = line.trim();

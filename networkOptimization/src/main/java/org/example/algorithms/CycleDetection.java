@@ -42,19 +42,11 @@ public class CycleDetection<V, E> {
         return new CycleDetectionResult<>(cycles);
     }
 
-    /**
-     * ⭐ NOVO MÉTODO - Retorna SET de estações em ciclos (conforme professora pediu)
-     *
-     * @param graph Grafo dirigido
-     * @return Set de vértices que fazem parte de pelo menos um ciclo
-     * Complexity: O(V + E)
-     */
     public Set<V> findStationsInCycles(Graph<V, E> graph) {
         CycleDetectionResult<V> result = detectCycles(graph);
 
         Set<V> stationsInCycles = new LinkedHashSet<>();
 
-        // Adicionar TODAS as estações de TODOS os ciclos ao SET
         for (List<V> cycle : result.getCycles()) {
             stationsInCycles.addAll(cycle);
         }
@@ -65,11 +57,7 @@ public class CycleDetection<V, E> {
     /**
      * DFS recursivo com deteção de ciclos
      */
-    private boolean coloredDFS(Graph<V, E> graph,
-                               V current,
-                               Map<V, Color> color,
-                               LinkedList<V> path,
-                               List<List<V>> cycles) {
+    private boolean coloredDFS(Graph<V, E> graph, V current, Map<V, Color> color, LinkedList<V> path, List<List<V>> cycles) {
 
         // Marcar como GRAY (em processamento)
         color.put(current, Color.GRAY);
@@ -83,10 +71,8 @@ public class CycleDetection<V, E> {
             for (V adjacent : adjVertices) {
 
                 if (color.get(adjacent) == Color.GRAY) {
-                    // CICLO ENCONTRADO!
                     extractCycle(path, adjacent, cycles);
                     foundCycle = true;
-                    // Continuar para encontrar todos os ciclos
 
                 } else if (color.get(adjacent) == Color.WHITE) {
                     if (coloredDFS(graph, adjacent, color, path, cycles)) {
@@ -118,7 +104,7 @@ public class CycleDetection<V, E> {
                 cycle.add(vertex);
             }
         }
-        cycle.add(cycleStart); // Fechar o ciclo
+        cycle.add(cycleStart);
 
         cycles.add(cycle);
     }
@@ -146,7 +132,7 @@ public class CycleDetection<V, E> {
         }
 
         /**
-         * ⭐ NOVO MÉTODO - Retorna set de estações em ciclos
+         * Retorna set de estações em ciclos
          */
         public Set<V> getStationsInCycles() {
             Set<V> stations = new LinkedHashSet<>();

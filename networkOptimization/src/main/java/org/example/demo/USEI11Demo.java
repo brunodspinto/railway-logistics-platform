@@ -18,7 +18,6 @@ public class USEI11Demo {
         try {
             UpgradePlanController controller = new UpgradePlanController();
 
-            // ⭐ MUDOU: Agora são DOIS ficheiros
             String stationsPath = "res/stations.csv";
             String linesPath = "res/lines.csv";
             controller.loadNetwork(stationsPath, linesPath);
