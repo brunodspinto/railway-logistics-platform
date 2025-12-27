@@ -23,13 +23,13 @@ class CsvGraphLoaderTest {
 
         // stations.csv — loader exige >= 5 colunas
         try (BufferedWriter w = Files.newBufferedWriter(stationsCsv)) {
-            w.write("id;name;lat;lon;dummy");
+            w.write("id;name,lat,lon,dummy");
             w.newLine();
-            w.write("1;A;50.0;4.0;x");
+            w.write("1,A,50.0,4.0,x");
             w.newLine();
-            w.write("2;B;51.0;5.0;x");
+            w.write("2,B,51.0,5.0,x");
             w.newLine();
-            w.write("3;C;52.0;6.0;x");
+            w.write("3,C,52.0,6.0,x");
             w.newLine();
         }
 
@@ -37,9 +37,9 @@ class CsvGraphLoaderTest {
         try (BufferedWriter w = Files.newBufferedWriter(linesCsv)) {
             w.write("fromId;toId;length;dummy");
             w.newLine();
-            w.write("1;2;10.5;x");
+            w.write("1,2,10.5,x");
             w.newLine();
-            w.write("2;3;20.0;x");
+            w.write("2,3,20.0,x");
             w.newLine();
         }
 
