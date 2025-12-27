@@ -1,4 +1,4 @@
-package org.example.controller;
+package org.example.usei14.controllers;
 
 import org.example.algorithms.EdmondsKarp;
 import org.example.domain.Connection;
