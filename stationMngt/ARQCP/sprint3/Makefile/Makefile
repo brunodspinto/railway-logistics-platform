@@ -1,6 +1,6 @@
 # ============================================
 # Makefile - ARQCP Sprint 3
-# USAC11 + USAC14
+# USAC10 + USAC11 + USAC14
 # ============================================
 
 CC = gcc
@@ -13,7 +13,7 @@ OBJ_DIR = $(BUILD_DIR)/obj
 BIN_DIR = $(BUILD_DIR)/bin
 
 # ============================================
-# Source files (código partilhado)
+# Source files
 # ============================================
 
 # Core C files
@@ -26,6 +26,8 @@ CORE_OBJ = $(OBJ_DIR)/core/config_loader.o \
            $(OBJ_DIR)/core/light_controller.o
 
 # Assembly files (Sprint 2)
+# Nota: O Makefile gera a lista de objectos, mas nos targets
+# abaixo ligamos apenas o necessário para cada teste.
 ASM_SRC = src/assembly/usac01.s \
           src/assembly/usac02.s \
           src/assembly/usac03.s \
@@ -36,13 +38,24 @@ ASM_SRC = src/assembly/usac01.s \
           src/assembly/usac08.s \
           src/assembly/usac09.s
 
-ASM_OBJ = $(ASM_SRC:src/assembly/%.s=$(OBJ_DIR)/assembly/%.o)
-
 # ============================================
 # Targets principais
 # ============================================
 
-all: test_usac11 test_usac14
+# Adicionei test_usac10 aqui
+all: test_usac10 test_usac11 test_usac14
+
+# ============================================
+# USAC10 - Test (NOVO)
+# ============================================
+
+# Depende do usac03 (extract_data) e usac04 (format_command)
+test_usac10: dirs $(OBJ_DIR)/assembly/usac03.o $(OBJ_DIR)/assembly/usac04.o
+	$(CC) $(CFLAGS) tests/test_usac10.c \
+	   $(OBJ_DIR)/assembly/usac03.o \
+	   $(OBJ_DIR)/assembly/usac04.o \
+	   -o $(BIN_DIR)/test_usac10
+	@echo "✓ USAC10 compilado: $(BIN_DIR)/test_usac10"
 
 # ============================================
 # USAC11 - Test
@@ -50,8 +63,8 @@ all: test_usac11 test_usac14
 
 test_usac11: dirs $(OBJ_DIR)/core/config_loader.o
 	$(CC) $(CFLAGS) tests/test_usac11.c \
-		$(OBJ_DIR)/core/config_loader.o \
-		-o $(BIN_DIR)/test_usac11
+	   $(OBJ_DIR)/core/config_loader.o \
+	   -o $(BIN_DIR)/test_usac11
 	@echo "✓ USAC11 compilado: $(BIN_DIR)/test_usac11"
 
 # ============================================
@@ -60,11 +73,11 @@ test_usac11: dirs $(OBJ_DIR)/core/config_loader.o
 
 test_usac14: dirs $(CORE_OBJ) $(OBJ_DIR)/assembly/usac04.o
 	$(CC) $(CFLAGS) tests/test_usac14.c \
-		$(OBJ_DIR)/core/config_loader.o \
-		$(OBJ_DIR)/core/serial_comm.o \
-		$(OBJ_DIR)/core/light_controller.o \
-		$(OBJ_DIR)/assembly/usac04.o \
-		-o $(BIN_DIR)/test_usac14
+	   $(OBJ_DIR)/core/config_loader.o \
+	   $(OBJ_DIR)/core/serial_comm.o \
+	   $(OBJ_DIR)/core/light_controller.o \
+	   $(OBJ_DIR)/assembly/usac04.o \
+	   -o $(BIN_DIR)/test_usac14
 	@echo "✓ USAC14 compilado: $(BIN_DIR)/test_usac14"
 
 # ============================================
@@ -105,6 +118,11 @@ cleanall: clean
 # Executar testes
 # ============================================
 
+# Adicionei run_usac10 aqui
+run_usac10: test_usac10
+	@echo "=== Executando USAC10 ==="
+	./$(BIN_DIR)/test_usac10
+
 run_usac11: test_usac11
 	@echo "=== Executando USAC11 ==="
 	./$(BIN_DIR)/test_usac11
@@ -120,11 +138,10 @@ run_usac14: test_usac14
 info:
 	@echo "=== Targets disponíveis ==="
 	@echo "  make all           - Compilar tudo"
-	@echo "  make test_usac11   - Compilar USAC11"
-	@echo "  make test_usac14   - Compilar USAC14"
+	@echo "  make test_usac10   - Compilar USAC10 (Protocolo HW)"
+	@echo "  make test_usac11   - Compilar USAC11 (Config Loader)"
+	@echo "  make test_usac14   - Compilar USAC14 (Lights Controller)"
+	@echo "  make run_usac10    - Executar USAC10"
 	@echo "  make run_usac11    - Executar USAC11"
 	@echo "  make run_usac14    - Executar USAC14"
 	@echo "  make clean         - Limpar build"
-	@echo "  make info          - Esta mensagem"
-
-.PHONY: all dirs clean cleanall run_usac11 run_usac14 info
