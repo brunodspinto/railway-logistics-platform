@@ -1,3 +1,7 @@
+/*
+ * USAC10 - Sensors and LightSigns Device Controller
+*/
+
 #include "DHT.h"
 
 // --- SENSOR ---
