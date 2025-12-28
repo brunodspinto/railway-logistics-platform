@@ -1,6 +1,6 @@
 # ============================================
 # Makefile - ARQCP Sprint 3
-# USAC10 + USAC11 + USAC12 + USAC13 + USAC14
+# USAC10 + USAC11 + USAC12 + USAC13 + USAC14 + USAC15
 # Arquitetura: RV64IMAFDC
 # ============================================
 
@@ -33,7 +33,7 @@ ASM_USAC04 = $(OBJ_DIR)/assembly/usac04.o
 # Targets principais
 # ============================================
 
-all: info test_usac10 test_usac11 test_usac12 test_usac13 test_usac14
+all: info test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac15
 
 # ============================================
 # USAC10 - Test (Protocolo Hardware)
@@ -101,6 +101,16 @@ test_usac14_hw: dirs $(CORE_OBJ) $(ASM_USAC04)
 	@echo "✓ USAC14 Hardware compilado (RV64)"
 
 # ============================================
+# USAC15 - Test (Synoptic Board)
+# ============================================
+
+test_usac15: dirs $(OBJ_DIR)/core/board.o
+	$(CC) $(CFLAGS) tests/test_usac15.c \
+		$(OBJ_DIR)/core/board.o \
+		-o $(BIN_DIR)/test_usac15
+	@echo "✓ USAC15 compilado (RV64)"
+
+# ============================================
 # Compilação de object files
 # ============================================
 
@@ -162,6 +172,9 @@ run_usac14_hw: test_usac14_hw
 	@echo "⚠️  Arduino deve estar ligado!"
 	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac14_hw
 
+run_usac15: test_usac15
+	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac15
+
 # ============================================
 # Info
 # ============================================
@@ -174,11 +187,10 @@ info:
 	@echo " make test_usac12   → Compilar USAC12"
 	@echo " make test_usac13   → Compilar USAC13"
 	@echo " make test_usac14   → Compilar USAC14"
-	@echo " make test_usac14_hw→ Compilar USAC14 (hardware)"
-	@echo " make run_usacXX    → Executar teste"
+	@echo " make test_usac15   → Compilar USAC15"
 	@echo " make clean         → Limpar build"
-	@echo " make cleanall      → Limpar build + logs"
+	@echo " make cleanall      → Limpar tudo + logs"
 
 .PHONY: all dirs clean cleanall info \
-        test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac14_hw \
-        run_usac10 run_usac11 run_usac12 run_usac13 run_usac14 run_usac14_hw
+        test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac14_hw test_usac15 \
+        run_usac10 run_usac11 run_usac12 run_usac13 run_usac14 run_usac14_hw run_usac15
