@@ -8,54 +8,69 @@ int main() {
     printf("  TESTE USAC14 - HARDWARE REAL\n");
     printf("========================================\n");
 
+    // 1. Criar a estrutura principal do sistema
+    StationSystem system;
+
     // Pedir porta ao utilizador
     char port[50];
     printf("\nPorta serial (ex: /dev/ttyACM0): ");
     scanf("%s", port);
 
-    // Inicializar
-    if (light_controller_init(port, 9600) != 0) {
+    // Inicializar controlador de luzes
+    // CORREÇÃO: A função retorna 1 em sucesso. Só é erro se for == 0.
+    if (light_controller_init(port) == 0) {
         printf("❌ Erro ao abrir %s\n", port);
         return 1;
     }
 
     printf("✓ Ligado ao Arduino em %s\n\n", port);
 
-    // Carregar config
-    if (load_station_config("config/station_config.txt") != 0) {
+    // 2. Carregar configuração (Usando a tua função correta)
+    // A tua função retorna 1 em caso de sucesso, 0 em erro
+    if (load_configuration("config/station_config.txt", &system) != 1) {
         printf("❌ Erro ao carregar config\n");
+        light_controller_close();
         return 1;
     }
 
     printf("✓ Configuração carregada\n");
-    printf("  Tracks: %d\n\n", get_track_count());
+    printf("  Tracks carregadas: %d\n\n", system.tracks.count);
 
-    // Testes interativos
-    printf("--- Teste Interativo ---\n");
-    printf("Track 1: FREE (Verde)\n");
-    tracks[0].state = TRACK_FREE;
-    set_track_light(&tracks[0]);
-    sleep(3);
+    // 3. Testes interativos
+    if (system.tracks.count > 0) {
+        // Vamos usar a primeira track da lista para testar
+        Track *test_track = &system.tracks.data[0];
 
-    printf("Track 1: ASSIGNED (Amarelo)\n");
-    tracks[0].state = TRACK_ASSIGNED;
-    set_track_light(&tracks[0]);
-    sleep(3);
+        printf("--- Teste Interativo (Track ID: %d) ---\n", test_track->id);
 
-    printf("Track 1: BUSY (Vermelho)\n");
-    tracks[0].state = TRACK_BUSY;
-    set_track_light(&tracks[0]);
-    sleep(3);
+        printf("Estado: FREE (Verde)\n");
+        test_track->state = (TrackState)0; // 0 = TRACK_FREE
+        set_track_light(test_track);
+        sleep(3);
 
-    printf("Track 1: INOPERATIVE (Vermelho a piscar)\n");
-    tracks[0].state = TRACK_INOPERATIVE;
-    set_track_light(&tracks[0]);
-    sleep(5);
+        printf("Estado: ASSIGNED (Amarelo)\n");
+        test_track->state = (TrackState)1; // 1 = TRACK_ASSIGNED
+        set_track_light(test_track);
+        sleep(3);
 
-    printf("\n✓ Testes concluídos\n");
+        printf("Estado: BUSY (Vermelho)\n");
+        test_track->state = (TrackState)2; // 2 = TRACK_BUSY
+        set_track_light(test_track);
+        sleep(3);
 
+        printf("Estado: INOPERATIVE (Vermelho a piscar)\n");
+        test_track->state = (TrackState)3; // 3 = TRACK_INOPERATIVE
+        set_track_light(test_track);
+        sleep(5); // Mais tempo para ver piscar
+
+        printf("\n✓ Testes concluídos\n");
+    } else {
+        printf("⚠️  Aviso: Nenhuma track encontrada na configuração para testar.\n");
+    }
+
+    // 4. Limpeza e fecho (Usando a tua função correta)
     light_controller_close();
-    cleanup_station_data();
+    free_station_system(&system);
 
     return 0;
 }

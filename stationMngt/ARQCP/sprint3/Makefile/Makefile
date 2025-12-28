@@ -8,7 +8,8 @@ CC = riscv64-linux-gnu-gcc
 AS = riscv64-linux-gnu-as
 QEMU = qemu-riscv64-static
 
-CFLAGS = -Wall -Wextra -g -Iinclude -march=rv64imafdc -mabi=lp64d -static
+# CORRIGIDO: Adicionado -Isrc/assembly para encontrar extract_data.h
+CFLAGS = -Wall -Wextra -g -Iinclude -Isrc/core -Isrc/assembly -march=rv64imafdc -mabi=lp64d -static
 ASFLAGS = -march=rv64imafdc -mabi=lp64d
 
 BUILD_DIR = build
@@ -84,10 +85,11 @@ test_usac13: dirs $(OBJ_DIR)/core/sensors_manager.o $(ASM_USAC03)
 # USAC14 - Test (Light Controller)
 # ============================================
 
-test_usac14: dirs $(CORE_OBJ) $(ASM_USAC04)
+test_usac14: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC01)
 	$(CC) $(CFLAGS) tests/test_usac14.c \
 	   $(CORE_OBJ) \
 	   $(ASM_USAC04) \
+	   $(ASM_USAC01) \
 	   -o $(BIN_DIR)/test_usac14
 	@echo "✓ USAC14 compilado (RV64 + Assembly)"
 
@@ -95,10 +97,11 @@ test_usac14: dirs $(CORE_OBJ) $(ASM_USAC04)
 # USAC14 Hardware - Test
 # ============================================
 
-test_usac14_hw: dirs $(CORE_OBJ) $(ASM_USAC04)
+test_usac14_hw: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC01)
 	$(CC) $(CFLAGS) tests/test_usac14_hardware.c \
 	   $(CORE_OBJ) \
 	   $(ASM_USAC04) \
+	   $(ASM_USAC01) \
 	   -o $(BIN_DIR)/test_usac14_hw
 	@echo "✓ USAC14 Hardware compilado (RV64)"
 
@@ -123,9 +126,6 @@ $(OBJ_DIR)/core/%.o: src/core/%.c
 $(OBJ_DIR)/assembly/%.o: src/assembly/%.s
 	@mkdir -p $(OBJ_DIR)/assembly
 	$(AS) $(ASFLAGS) $< -o $@
-
-# Regra específica removida porque a regra genérica acima (src/core/%.c) já trata do sensors_manager.c
-# desde que ele esteja na pasta src/core (o que parece estar).
 
 # ============================================
 # Diretórios
