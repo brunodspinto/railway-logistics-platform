@@ -1,6 +1,6 @@
 # ============================================
 # Makefile - ARQCP Sprint 3
-# USAC10 + USAC11 + USAC12 + USAC14
+# USAC10 + USAC11 + USAC12 + USAC13 + USAC14
 # Arquitetura: RV64IMAFDC
 # ============================================
 
@@ -33,8 +33,7 @@ ASM_USAC04 = $(OBJ_DIR)/assembly/usac04.o
 # Targets principais
 # ============================================
 
-# Compilar TUDO (incluindo USAC12)
-all: info test_usac10 test_usac11 test_usac12 test_usac14
+all: info test_usac10 test_usac11 test_usac12 test_usac13 test_usac14
 
 # ============================================
 # USAC10 - Test (Protocolo Hardware)
@@ -67,6 +66,17 @@ test_usac12: dirs $(OBJ_DIR)/core/config_loader.o $(OBJ_DIR)/core/log_manager.o
 		$(OBJ_DIR)/core/log_manager.o \
 		-o $(BIN_DIR)/test_usac12
 	@echo "✓ USAC12 compilado (RV64)"
+
+# ============================================
+# USAC13 - Test (Read Sensors)
+# ============================================
+
+test_usac13: dirs $(OBJ_DIR)/sensors_manager.o $(ASM_USAC03)
+	$(CC) $(CFLAGS) tests/test_usac13.c \
+		$(OBJ_DIR)/sensors_manager.o \
+		$(ASM_USAC03) \
+		-o $(BIN_DIR)/test_usac13
+	@echo "✓ USAC13 compilado (RV64)"
 
 # ============================================
 # USAC14 - Test (Light Controller)
@@ -102,6 +112,11 @@ $(OBJ_DIR)/assembly/%.o: src/assembly/%.s
 	@mkdir -p $(OBJ_DIR)/assembly
 	$(AS) $(ASFLAGS) $< -o $@
 
+# Sensor Manager (para USAC13)
+$(OBJ_DIR)/sensors_manager.o: src/sensors_manager.c
+	@mkdir -p $(OBJ_DIR)
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # ============================================
 # Diretórios
 # ============================================
@@ -129,80 +144,41 @@ cleanall: clean
 # ============================================
 
 run_usac10: test_usac10
-	@echo "=== Executando USAC10 (Protocolo) ==="
 	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac10
 
 run_usac11: test_usac11
-	@echo "=== Executando USAC11 (Config) ==="
 	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac11
 
 run_usac12: test_usac12
-	@echo "=== Executando USAC12 (Logs) ==="
 	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac12
 
+run_usac13: test_usac13
+	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac13
+
 run_usac14: test_usac14
-	@echo "=== Executando USAC14 (Lights Mock) ==="
 	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac14
 
 run_usac14_hw: test_usac14_hw
-	@echo "=== Executando USAC14 (Hardware Real) ==="
 	@echo "⚠️  Arduino deve estar ligado!"
 	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac14_hw
-
-# ============================================
-# Testes (TODOS)
-# ============================================
-
-test: all
-	@echo ""
-	@echo "========================================="
-	@echo "  Executando TODOS os testes"
-	@echo "========================================="
-	@echo ""
-	@make run_usac10
-	@echo ""
-	@make run_usac11
-	@echo ""
-	@make run_usac12
-	@echo ""
-	@make run_usac14
-	@echo ""
-	@echo "========================================="
-	@echo "  Todos os testes executados"
-	@echo "========================================="
 
 # ============================================
 # Info
 # ============================================
 
 info:
-	@echo "========================================="
-	@echo "  ARQCP Sprint 3 - Build System"
-	@echo "========================================="
-	@echo "  Arquitetura: RV64IMAFDC"
-	@echo "  ABI: lp64d"
-	@echo "  Compilador: $(CC)"
-	@echo "  Emulador: $(QEMU)"
-	@echo ""
-	@echo "  Assembly: RISC-V 64-bit"
-	@echo "  (Adaptado de RV32 do Sprint 2)"
-	@echo "========================================="
-	@echo ""
-	@echo "=== Targets disponíveis ==="
-	@echo "  make all           - Compilar tudo (10,11,12,14)"
-	@echo "  make test          - Executar todos os testes"
-	@echo ""
-	@echo "  make test_usac10   - Compilar USAC10 ✅"
-	@echo "  make test_usac11   - Compilar USAC11 ✅"
-	@echo "  make test_usac12   - Compilar USAC12 ✅"
-	@echo "  make test_usac14   - Compilar USAC14 ✅"
-	@echo "  make test_usac14_hw- Compilar USAC14 HW ✅"
-	@echo ""
-	@echo "  make run_usacXX    - Executar teste XX"
-	@echo "  make clean         - Limpar build"
-	@echo "  make cleanall      - Limpar build + logs"
-	@echo "========================================="
+	@echo "=== Targets ==="
+	@echo " make all           → Compilar tudo"
+	@echo " make test_usac10   → Compilar USAC10"
+	@echo " make test_usac11   → Compilar USAC11"
+	@echo " make test_usac12   → Compilar USAC12"
+	@echo " make test_usac13   → Compilar USAC13"
+	@echo " make test_usac14   → Compilar USAC14"
+	@echo " make test_usac14_hw→ Compilar USAC14 (hardware)"
+	@echo " make run_usacXX    → Executar teste"
+	@echo " make clean         → Limpar build"
+	@echo " make cleanall      → Limpar build + logs"
 
-.PHONY: all dirs clean cleanall test info \
-        run_usac10 run_usac11 run_usac12 run_usac14 run_usac14_hw \
-        test_usac10 test_usac11 test_usac12 test_usac14 test_usac14_hw
+.PHONY: all dirs clean cleanall info \
+        test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac14_hw \
+        run_usac10 run_usac11 run_usac12 run_usac13 run_usac14 run_usac14_hw
