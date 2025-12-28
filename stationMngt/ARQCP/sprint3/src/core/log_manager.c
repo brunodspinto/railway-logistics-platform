@@ -1,3 +1,7 @@
+/*
+ * USAC12 - Create a text file (.txt file)
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
