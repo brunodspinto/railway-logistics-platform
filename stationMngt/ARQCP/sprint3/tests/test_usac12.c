@@ -9,47 +9,42 @@ void setup_test_data(StationSystem *sys) {
     // 1. Inicializar arrays
     sys->users.data = malloc(2 * sizeof(User));
     sys->users.count = 2;
-    sys->logs.data = malloc(5 * sizeof(LogEntry)); // Usar LogEntry se for esse o nome na tua struct
+    sys->logs.data = malloc(5 * sizeof(LogEntry));
     sys->logs.count = 5;
 
     // 2. Criar Utilizadores
 
     // User 1: Boss (Será o Administrador neste teste)
-    sys->users.data[0].id = 1;
     strcpy(sys->users.data[0].name, "Chefe");
     strcpy(sys->users.data[0].username, "boss");
 
     // Configuração de Segurança para passar no Assembly (USAC01)
-    // Password real: "BOSS"
-    // Key: 1
-    // Cifra esperada (Caesar +1): "CPTT" (B->C, O->P, S->T, S->T)
     sys->users.data[0].caesar_key = 1;
     strcpy(sys->users.data[0].encrypted_password, "CPTT");
 
     // User 2: Admin (Outro user qualquer)
-    sys->users.data[1].id = 2;
     strcpy(sys->users.data[1].name, "Administrador Secundário");
     strcpy(sys->users.data[1].username, "admin");
     sys->users.data[1].caesar_key = 5;
-    strcpy(sys->users.data[1].encrypted_password, "FINT"); // Exemplo dummy
+    strcpy(sys->users.data[1].encrypted_password, "FINT");
 
     // 3. Criar Logs (Misturados)
 
     // Log 1 (Boss)
     sys->logs.data[0].id = 101;
-    sys->logs.data[0].user_id = 1;
+    strcpy(sys->logs.data[0].username, "boss");
     strcpy(sys->logs.data[0].timestamp, "2025-12-27 10:00");
     strcpy(sys->logs.data[0].action, "Login efetuado");
 
     // Log 2 (Admin) - NÃO deve aparecer no ficheiro do boss
     sys->logs.data[1].id = 102;
-    sys->logs.data[1].user_id = 2;
+    strcpy(sys->logs.data[1].username, "admin");
     strcpy(sys->logs.data[1].timestamp, "2025-12-27 10:05");
     strcpy(sys->logs.data[1].action, "Configuração alterada");
 
     // Log 3 (Boss)
     sys->logs.data[2].id = 103;
-    sys->logs.data[2].user_id = 1;
+    strcpy(sys->logs.data[2].username, "boss");
     strcpy(sys->logs.data[2].timestamp, "2025-12-27 10:10");
     strcpy(sys->logs.data[2].action, "Luz Track 1 alterada para VERDE");
 }
@@ -61,7 +56,7 @@ void cleanup_test_data(StationSystem *sys) {
 
 int main() {
     StationSystem system;
-    const char *output_file = "data/logs/test_boss_actions.txt";
+    const char *output_file = "test_boss_actions.txt";
 
     printf("=== TESTE USAC12 (Exportar Logs com Autenticação Assembly) ===\n");
 
@@ -76,7 +71,7 @@ int main() {
 
     if (res == 1) {
         printf("✓ Sucesso: Função retornou 1.\n");
-        printf("✓ Verifica o ficheiro em: %s\n", output_file);
+        printf("✓ Verifica o ficheiro criado: %s\n", output_file);
     } else {
         printf("X Falha: Função retornou 0 (Erro inesperado).\n");
     }

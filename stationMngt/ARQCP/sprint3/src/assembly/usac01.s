@@ -1,14 +1,14 @@
-	.text
+.text
 	.globl encrypt_data
 
 # encrypt_data(char* src, int shift, char* dest)
 
 encrypt_data:
 	addi sp, sp, -32          # reservar espaço na stack
-	sw ra, 24(sp)             # guardar ra
-	sw s0, 16(sp)             # guardar s0
-	sw s1, 8(sp)              # guardar s1
-	sw s2, 0(sp)              # guardar s2
+	sd ra, 24(sp)             # <--- ALTERADO: sw -> sd (Store Double 64-bit)
+	sd s0, 16(sp)             # <--- ALTERADO: sw -> sd
+	sd s1, 8(sp)              # <--- ALTERADO: sw -> sd
+	sd s2, 0(sp)              # <--- ALTERADO: sw -> sd
 
 	mv s0, a0                 # s0 = src
 	mv s1, a1                 # s1 = shift
@@ -49,9 +49,9 @@ fail:
 	li a0, 0                  # return 0 (erro)
 
 restore:
-	lw ra, 24(sp)
-	lw s0, 16(sp)
-	lw s1, 8(sp)
-	lw s2, 0(sp)
+	ld ra, 24(sp)             # <--- ALTERADO: lw -> ld (Load Double 64-bit)
+	ld s0, 16(sp)             # <--- ALTERADO: lw -> ld
+	ld s1, 8(sp)              # <--- ALTERADO: lw -> ld
+	ld s2, 0(sp)              # <--- ALTERADO: lw -> ld
 	addi sp, sp, 32
 	jr ra

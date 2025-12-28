@@ -62,7 +62,7 @@ typedef struct {
     int id;
     char username[30];
     char action[200];
-    time_t timestamp;
+    char timestamp[30];
 } LogEntry;
 
 typedef struct {

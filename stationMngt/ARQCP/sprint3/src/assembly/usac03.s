@@ -5,13 +5,14 @@
 # int extract_data(char* str, char* token, char* unit, int* value)
 
 extract_data:
-    addi sp, sp, -32
-    sw ra, 28(sp)
-    sw s0, 24(sp)
-    sw s1, 20(sp)
-    sw s2, 16(sp)
-    sw s3, 12(sp)
-    sw s4, 8(sp)
+    # Ajuste para 64-bit: 6 registos (ra, s0-s4) * 8 bytes = 48 bytes
+    addi sp, sp, -48
+    sd ra, 40(sp)      # sw -> sd
+    sd s0, 32(sp)      # sw -> sd
+    sd s1, 24(sp)      # sw -> sd
+    sd s2, 16(sp)      # sw -> sd
+    sd s3, 8(sp)       # sw -> sd
+    sd s4, 0(sp)       # sw -> sd
 
     mv s0, a0      # str
     mv s1, a1      # token
@@ -193,13 +194,13 @@ error:
     li a0, 0
 
 cleanup:
-    lw s4, 8(sp)
-    lw s3, 12(sp)
-    lw s2, 16(sp)
-    lw s1, 20(sp)
-    lw s0, 24(sp)
-    lw ra, 28(sp)
-    addi sp, sp, 32
+    ld s4, 0(sp)       # lw -> ld
+    ld s3, 8(sp)       # lw -> ld
+    ld s2, 16(sp)      # lw -> ld
+    ld s1, 24(sp)      # lw -> ld
+    ld s0, 32(sp)      # lw -> ld
+    ld ra, 40(sp)      # lw -> ld
+    addi sp, sp, 48
     ret
 
 

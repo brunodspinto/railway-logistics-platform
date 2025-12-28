@@ -19,13 +19,14 @@ BIN_DIR = $(BUILD_DIR)/bin
 # Source files
 # ============================================
 
-# Core C files (TODOS - incluindo log_manager)
+# Core C files
 CORE_OBJ = $(OBJ_DIR)/core/config_loader.o \
            $(OBJ_DIR)/core/serial_comm.o \
            $(OBJ_DIR)/core/light_controller.o \
            $(OBJ_DIR)/core/log_manager.o
 
 # Assembly files
+ASM_USAC01 = $(OBJ_DIR)/assembly/usac01.o
 ASM_USAC03 = $(OBJ_DIR)/assembly/usac03.o
 ASM_USAC04 = $(OBJ_DIR)/assembly/usac04.o
 
@@ -41,9 +42,9 @@ all: info test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac1
 
 test_usac10: dirs $(ASM_USAC03) $(ASM_USAC04)
 	$(CC) $(CFLAGS) tests/test_usac10.c \
-		$(ASM_USAC03) \
-		$(ASM_USAC04) \
-		-o $(BIN_DIR)/test_usac10
+	   $(ASM_USAC03) \
+	   $(ASM_USAC04) \
+	   -o $(BIN_DIR)/test_usac10
 	@echo "✓ USAC10 compilado (RV64)"
 
 # ============================================
@@ -52,30 +53,31 @@ test_usac10: dirs $(ASM_USAC03) $(ASM_USAC04)
 
 test_usac11: dirs $(OBJ_DIR)/core/config_loader.o
 	$(CC) $(CFLAGS) tests/test_usac11.c \
-		$(OBJ_DIR)/core/config_loader.o \
-		-o $(BIN_DIR)/test_usac11
+	   $(OBJ_DIR)/core/config_loader.o \
+	   -o $(BIN_DIR)/test_usac11
 	@echo "✓ USAC11 compilado (RV64)"
 
 # ============================================
 # USAC12 - Test (Log Export)
 # ============================================
 
-test_usac12: dirs $(OBJ_DIR)/core/config_loader.o $(OBJ_DIR)/core/log_manager.o
+test_usac12: dirs $(OBJ_DIR)/core/config_loader.o $(OBJ_DIR)/core/log_manager.o $(ASM_USAC01)
 	$(CC) $(CFLAGS) tests/test_usac12.c \
-		$(OBJ_DIR)/core/config_loader.o \
-		$(OBJ_DIR)/core/log_manager.o \
-		-o $(BIN_DIR)/test_usac12
+	   $(OBJ_DIR)/core/config_loader.o \
+	   $(OBJ_DIR)/core/log_manager.o \
+	   $(ASM_USAC01) \
+	   -o $(BIN_DIR)/test_usac12
 	@echo "✓ USAC12 compilado (RV64)"
 
 # ============================================
 # USAC13 - Test (Read Sensors)
 # ============================================
 
-test_usac13: dirs $(OBJ_DIR)/sensors_manager.o $(ASM_USAC03)
+test_usac13: dirs $(OBJ_DIR)/core/sensors_manager.o $(ASM_USAC03)
 	$(CC) $(CFLAGS) tests/test_usac13.c \
-		$(OBJ_DIR)/sensors_manager.o \
-		$(ASM_USAC03) \
-		-o $(BIN_DIR)/test_usac13
+	   $(OBJ_DIR)/core/sensors_manager.o \
+	   $(ASM_USAC03) \
+	   -o $(BIN_DIR)/test_usac13
 	@echo "✓ USAC13 compilado (RV64)"
 
 # ============================================
@@ -84,9 +86,9 @@ test_usac13: dirs $(OBJ_DIR)/sensors_manager.o $(ASM_USAC03)
 
 test_usac14: dirs $(CORE_OBJ) $(ASM_USAC04)
 	$(CC) $(CFLAGS) tests/test_usac14.c \
-		$(CORE_OBJ) \
-		$(ASM_USAC04) \
-		-o $(BIN_DIR)/test_usac14
+	   $(CORE_OBJ) \
+	   $(ASM_USAC04) \
+	   -o $(BIN_DIR)/test_usac14
 	@echo "✓ USAC14 compilado (RV64 + Assembly)"
 
 # ============================================
@@ -95,9 +97,9 @@ test_usac14: dirs $(CORE_OBJ) $(ASM_USAC04)
 
 test_usac14_hw: dirs $(CORE_OBJ) $(ASM_USAC04)
 	$(CC) $(CFLAGS) tests/test_usac14_hardware.c \
-		$(CORE_OBJ) \
-		$(ASM_USAC04) \
-		-o $(BIN_DIR)/test_usac14_hw
+	   $(CORE_OBJ) \
+	   $(ASM_USAC04) \
+	   -o $(BIN_DIR)/test_usac14_hw
 	@echo "✓ USAC14 Hardware compilado (RV64)"
 
 # ============================================
@@ -106,8 +108,8 @@ test_usac14_hw: dirs $(CORE_OBJ) $(ASM_USAC04)
 
 test_usac15: dirs $(OBJ_DIR)/core/board.o
 	$(CC) $(CFLAGS) tests/test_usac15.c \
-		$(OBJ_DIR)/core/board.o \
-		-o $(BIN_DIR)/test_usac15
+	   $(OBJ_DIR)/core/board.o \
+	   -o $(BIN_DIR)/test_usac15
 	@echo "✓ USAC15 compilado (RV64)"
 
 # ============================================
@@ -122,10 +124,8 @@ $(OBJ_DIR)/assembly/%.o: src/assembly/%.s
 	@mkdir -p $(OBJ_DIR)/assembly
 	$(AS) $(ASFLAGS) $< -o $@
 
-# Sensor Manager (para USAC13)
-$(OBJ_DIR)/sensors_manager.o: src/sensors_manager.c
-	@mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@
+# Regra específica removida porque a regra genérica acima (src/core/%.c) já trata do sensors_manager.c
+# desde que ele esteja na pasta src/core (o que parece estar).
 
 # ============================================
 # Diretórios

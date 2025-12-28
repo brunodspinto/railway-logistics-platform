@@ -48,47 +48,49 @@ int _authenticate_admin(StationSystem *system, const char *username, const char 
  */
 int export_user_logs(StationSystem *system, const char *admin_user, const char *admin_pass, const char *target_username, const char *filename) {
 
-    // 1. SEGURANÇA: Validar se quem pede é um Administrador legítimo
+    // 1. SEGURANÇA: Validar administrador
     printf("[LOG] A autenticar administrador '%s' via Assembly...\n", admin_user);
     if (!_authenticate_admin(system, admin_user, admin_pass)) {
-        printf("[ERRO] Autenticação falhou. Password errada ou utilizador inexistente.\n");
+        printf("[ERRO] Autenticação falhou.\n");
         return 0;
     }
 
-    // 2. Encontrar o ID do utilizador alvo (cujos logs queremos)
-    int target_user_id = -1;
+    // 2. Verificar se o utilizador alvo existe (procurando pelo username)
+    int user_found = 0;
     for (int i = 0; i < system->users.count; i++) {
+        // CORREÇÃO: Comparar strings (username) em vez de ID
         if (strcmp(system->users.data[i].username, target_username) == 0) {
-            target_user_id = system->users.data[i].id;
+            user_found = 1;
             break;
         }
     }
 
-    if (target_user_id == -1) {
-        printf("[ERRO] Utilizador alvo '%s' não encontrado no sistema.\n", target_username);
+    if (!user_found) {
+        printf("[ERRO] Utilizador alvo '%s' não encontrado.\n", target_username);
         return 0;
     }
 
-    // 3. Abrir o ficheiro para escrita
+    // 3. Abrir ficheiro
     FILE *file = fopen(filename, "w");
     if (file == NULL) {
         printf("[ERRO] Não foi possível criar o ficheiro '%s'.\n", filename);
         return 0;
     }
 
-    // 4. Escrever Conteúdo
+    // 4. Escrever Cabeçalho
     fprintf(file, "==================================================\n");
-    fprintf(file, " RELATÓRIO DE AÇÕES (Gerado por: %s)\n", admin_user);
-    fprintf(file, " ALVO: %s (ID: %d)\n", target_username, target_user_id);
+    fprintf(file, " RELATÓRIO DE AÇÕES (Admin: %s)\n", admin_user);
+    fprintf(file, " ALVO: %s\n", target_username);
     fprintf(file, "==================================================\n");
     fprintf(file, "%-20s | %s\n", "TIMESTAMP", "AÇÃO");
     fprintf(file, "--------------------------------------------------\n");
 
     int count = 0;
     for (int i = 0; i < system->logs.count; i++) {
-        if (system->logs.data[i].user_id == target_user_id) {
+        // CORREÇÃO: Comparar username do log com o alvo
+        if (strcmp(system->logs.data[i].username, target_username) == 0) {
             fprintf(file, "%-20s | %s\n",
-                    system->logs.data[i].timestamp,
+                    system->logs.data[i].timestamp, // Agora é seguro porque mudámos para char[]
                     system->logs.data[i].action);
             count++;
         }
