@@ -1,12 +1,15 @@
 # ============================================
 # Makefile - ARQCP Sprint 3
 # USAC10 + USAC11 + USAC12 + USAC14
+# Arquitetura: RV64IMAFDC
 # ============================================
 
-CC = gcc
-AS = as
-CFLAGS = -Wall -Wextra -g -Iinclude
-ASFLAGS = -g
+CC = riscv64-linux-gnu-gcc
+AS = riscv64-linux-gnu-as
+QEMU = qemu-riscv64-static
+
+CFLAGS = -Wall -Wextra -g -Iinclude -march=rv64imafdc -mabi=lp64d -static
+ASFLAGS = -march=rv64imafdc -mabi=lp64d
 
 BUILD_DIR = build
 OBJ_DIR = $(BUILD_DIR)/obj
@@ -16,48 +19,33 @@ BIN_DIR = $(BUILD_DIR)/bin
 # Source files
 # ============================================
 
-# Core C files
-# Adicionei log_manager.c aqui para a USAC12
-CORE_SRC = src/core/config_loader.c \
-           src/core/serial_comm.c \
-           src/core/light_controller.c \
-           src/core/log_manager.c
-
+# Core C files (TODOS - incluindo log_manager)
 CORE_OBJ = $(OBJ_DIR)/core/config_loader.o \
            $(OBJ_DIR)/core/serial_comm.o \
            $(OBJ_DIR)/core/light_controller.o \
            $(OBJ_DIR)/core/log_manager.o
 
-# Assembly files (Sprint 2)
-# Nota: O Makefile gera a lista de objectos, mas nos targets
-# abaixo ligamos apenas o necessário para cada teste.
-ASM_SRC = src/assembly/usac01.s \
-          src/assembly/usac02.s \
-          src/assembly/usac03.s \
-          src/assembly/usac04.s \
-          src/assembly/usac05.s \
-          src/assembly/usac06.s \
-          src/assembly/usac07.s \
-          src/assembly/usac08.s \
-          src/assembly/usac09.s
+# Assembly files
+ASM_USAC03 = $(OBJ_DIR)/assembly/usac03.o
+ASM_USAC04 = $(OBJ_DIR)/assembly/usac04.o
 
 # ============================================
 # Targets principais
 # ============================================
 
-all: test_usac10 test_usac11 test_usac12 test_usac14
+# Compilar TUDO (incluindo USAC12)
+all: info test_usac10 test_usac11 test_usac12 test_usac14
 
 # ============================================
 # USAC10 - Test (Protocolo Hardware)
 # ============================================
 
-# Depende do usac03 (extract_data) e usac04 (format_command)
-test_usac10: dirs $(OBJ_DIR)/assembly/usac03.o $(OBJ_DIR)/assembly/usac04.o
+test_usac10: dirs $(ASM_USAC03) $(ASM_USAC04)
 	$(CC) $(CFLAGS) tests/test_usac10.c \
-	   $(OBJ_DIR)/assembly/usac03.o \
-	   $(OBJ_DIR)/assembly/usac04.o \
-	   -o $(BIN_DIR)/test_usac10
-	@echo "✓ USAC10 compilado: $(BIN_DIR)/test_usac10"
+		$(ASM_USAC03) \
+		$(ASM_USAC04) \
+		-o $(BIN_DIR)/test_usac10
+	@echo "✓ USAC10 compilado (RV64)"
 
 # ============================================
 # USAC11 - Test (Config Loader)
@@ -65,42 +53,51 @@ test_usac10: dirs $(OBJ_DIR)/assembly/usac03.o $(OBJ_DIR)/assembly/usac04.o
 
 test_usac11: dirs $(OBJ_DIR)/core/config_loader.o
 	$(CC) $(CFLAGS) tests/test_usac11.c \
-	   $(OBJ_DIR)/core/config_loader.o \
-	   -o $(BIN_DIR)/test_usac11
-	@echo "✓ USAC11 compilado: $(BIN_DIR)/test_usac11"
+		$(OBJ_DIR)/core/config_loader.o \
+		-o $(BIN_DIR)/test_usac11
+	@echo "✓ USAC11 compilado (RV64)"
 
 # ============================================
 # USAC12 - Test (Log Export)
 # ============================================
 
-# Depende de todos os objetos CORE (incluindo log_manager.o)
-test_usac12: dirs $(CORE_OBJ)
+test_usac12: dirs $(OBJ_DIR)/core/config_loader.o $(OBJ_DIR)/core/log_manager.o
 	$(CC) $(CFLAGS) tests/test_usac12.c \
-	   $(CORE_OBJ) \
-	   -o $(BIN_DIR)/test_usac12
-	@echo "✓ USAC12 compilado: $(BIN_DIR)/test_usac12"
+		$(OBJ_DIR)/core/config_loader.o \
+		$(OBJ_DIR)/core/log_manager.o \
+		-o $(BIN_DIR)/test_usac12
+	@echo "✓ USAC12 compilado (RV64)"
 
 # ============================================
 # USAC14 - Test (Light Controller)
 # ============================================
 
-test_usac14: dirs $(CORE_OBJ) $(OBJ_DIR)/assembly/usac04.o
+test_usac14: dirs $(CORE_OBJ) $(ASM_USAC04)
 	$(CC) $(CFLAGS) tests/test_usac14.c \
-	   $(CORE_OBJ) \
-	   $(OBJ_DIR)/assembly/usac04.o \
-	   -o $(BIN_DIR)/test_usac14
-	@echo "✓ USAC14 compilado: $(BIN_DIR)/test_usac14"
+		$(CORE_OBJ) \
+		$(ASM_USAC04) \
+		-o $(BIN_DIR)/test_usac14
+	@echo "✓ USAC14 compilado (RV64 + Assembly)"
+
+# ============================================
+# USAC14 Hardware - Test
+# ============================================
+
+test_usac14_hw: dirs $(CORE_OBJ) $(ASM_USAC04)
+	$(CC) $(CFLAGS) tests/test_usac14_hardware.c \
+		$(CORE_OBJ) \
+		$(ASM_USAC04) \
+		-o $(BIN_DIR)/test_usac14_hw
+	@echo "✓ USAC14 Hardware compilado (RV64)"
 
 # ============================================
 # Compilação de object files
 # ============================================
 
-# Core C
 $(OBJ_DIR)/core/%.o: src/core/%.c
 	@mkdir -p $(OBJ_DIR)/core
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Assembly
 $(OBJ_DIR)/assembly/%.o: src/assembly/%.s
 	@mkdir -p $(OBJ_DIR)/assembly
 	$(AS) $(ASFLAGS) $< -o $@
@@ -113,6 +110,7 @@ dirs:
 	@mkdir -p $(BIN_DIR)
 	@mkdir -p $(OBJ_DIR)/core
 	@mkdir -p $(OBJ_DIR)/assembly
+	@mkdir -p config
 	@mkdir -p data/logs
 
 # ============================================
@@ -124,37 +122,87 @@ clean:
 
 cleanall: clean
 	rm -f data/logs/*.txt
+	rm -f config/*.bak
 
 # ============================================
 # Executar testes
 # ============================================
 
 run_usac10: test_usac10
-	@echo "=== Executando USAC10 ==="
-	./$(BIN_DIR)/test_usac10
+	@echo "=== Executando USAC10 (Protocolo) ==="
+	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac10
 
 run_usac11: test_usac11
-	@echo "=== Executando USAC11 ==="
-	./$(BIN_DIR)/test_usac11
+	@echo "=== Executando USAC11 (Config) ==="
+	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac11
 
 run_usac12: test_usac12
-	@echo "=== Executando USAC12 ==="
-	./$(BIN_DIR)/test_usac12
+	@echo "=== Executando USAC12 (Logs) ==="
+	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac12
 
 run_usac14: test_usac14
-	@echo "=== Executando USAC14 ==="
-	./$(BIN_DIR)/test_usac14
+	@echo "=== Executando USAC14 (Lights Mock) ==="
+	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac14
+
+run_usac14_hw: test_usac14_hw
+	@echo "=== Executando USAC14 (Hardware Real) ==="
+	@echo "⚠️  Arduino deve estar ligado!"
+	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac14_hw
+
+# ============================================
+# Testes (TODOS)
+# ============================================
+
+test: all
+	@echo ""
+	@echo "========================================="
+	@echo "  Executando TODOS os testes"
+	@echo "========================================="
+	@echo ""
+	@make run_usac10
+	@echo ""
+	@make run_usac11
+	@echo ""
+	@make run_usac12
+	@echo ""
+	@make run_usac14
+	@echo ""
+	@echo "========================================="
+	@echo "  Todos os testes executados"
+	@echo "========================================="
 
 # ============================================
 # Info
 # ============================================
 
 info:
+	@echo "========================================="
+	@echo "  ARQCP Sprint 3 - Build System"
+	@echo "========================================="
+	@echo "  Arquitetura: RV64IMAFDC"
+	@echo "  ABI: lp64d"
+	@echo "  Compilador: $(CC)"
+	@echo "  Emulador: $(QEMU)"
+	@echo ""
+	@echo "  Assembly: RISC-V 64-bit"
+	@echo "  (Adaptado de RV32 do Sprint 2)"
+	@echo "========================================="
+	@echo ""
 	@echo "=== Targets disponíveis ==="
-	@echo "  make all           - Compilar tudo"
-	@echo "  make test_usac10   - Compilar USAC10 (Protocolo HW)"
-	@echo "  make test_usac11   - Compilar USAC11 (Config Loader)"
-	@echo "  make test_usac12   - Compilar USAC12 (Log Export)"
-	@echo "  make test_usac14   - Compilar USAC14 (Lights Controller)"
+	@echo "  make all           - Compilar tudo (10,11,12,14)"
+	@echo "  make test          - Executar todos os testes"
+	@echo ""
+	@echo "  make test_usac10   - Compilar USAC10 ✅"
+	@echo "  make test_usac11   - Compilar USAC11 ✅"
+	@echo "  make test_usac12   - Compilar USAC12 ✅"
+	@echo "  make test_usac14   - Compilar USAC14 ✅"
+	@echo "  make test_usac14_hw- Compilar USAC14 HW ✅"
+	@echo ""
 	@echo "  make run_usacXX    - Executar teste XX"
 	@echo "  make clean         - Limpar build"
+	@echo "  make cleanall      - Limpar build + logs"
+	@echo "========================================="
+
+.PHONY: all dirs clean cleanall test info \
+        run_usac10 run_usac11 run_usac12 run_usac14 run_usac14_hw \
+        test_usac10 test_usac11 test_usac12 test_usac14 test_usac14_hw

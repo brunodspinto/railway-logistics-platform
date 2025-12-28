@@ -1,177 +1,260 @@
+.section .data
+    # Comandos válidos (2 chars)
+    cmd_re: .string "RE"
+    cmd_rb: .string "RB"
+    cmd_ye: .string "YE"
+    cmd_ge: .string "GE"
+    # Comando especial (3 chars)
+    cmd_gth: .string "GTH"
+    comma: .string ","
+
 .section .text
 .global format_command
 
-
-# int format_command(char* op, int n, char *cmd)
+# ========================================
+# int format_command(char* op, int n, char* cmd)
+# a0 = op (input string)
+# a1 = n (track number 0-99)
+# a2 = cmd (output buffer)
+#
+# Retorna: a0 = 1 (sucesso) ou 0 (erro)
+#
+# Adaptado de RV32IM para RV64IMAFDC
+# Alterações: sw/lw → sd/ld, addi sp,-32 → addi sp,-64
+# ========================================
 
 format_command:
-    addi sp, sp, -32
-    sw ra, 28(sp)
-    sw s0, 24(sp)
-    sw s1, 20(sp)
-    sw s2, 16(sp)
+    # Prólogo (64-bit stack frame)
+    addi sp, sp, -64
+    sd ra, 56(sp)
+    sd s0, 48(sp)
+    sd s1, 40(sp)
+    sd s2, 32(sp)
+    sd s3, 24(sp)
+    sd s4, 16(sp)
 
-    mv s0, a0       # op
-    mv s1, a1       # n
-    mv s2, a2       # cmd
+    # Guardar argumentos
+    mv s0, a0          # s0 = op
+    mv s1, a1          # s1 = n
+    mv s2, a2          # s2 = cmd
 
-    # Validate pointers
-    beqz s0, error
-    beqz s2, error
+    # Validar ponteiros NULL
+    beqz s0, error     # op == NULL?
+    beqz s2, error     # cmd == NULL?
 
-    # Trim and uppercase directly into cmd buffer
-    mv a0, s0
-    mv a1, s2
+    # Trim e uppercase de op (usar stack buffer)
+    addi a0, sp, 8     # buffer temporário no stack
+    mv a1, s0          # op original
     call trim_and_uppercase
 
-    # Check length: must be 2 or 3
-    mv a0, s2
+    # Calcular comprimento da string processada
+    addi a0, sp, 8
     call string_length
-    mv t6, a0       # t6 = length
+    mv s3, a0          # s3 = comprimento
 
-    li t0, 2
-    beq t6, t0, check_2char
+    # ========== Verificar GTH (3 caracteres) ==========
     li t0, 3
-    beq t6, t0, check_gth
-    j error         # Invalid length
+    bne s3, t0, check_2char
 
-check_gth:
-    # Must be "GTH"
-    lbu t0, 0(s2)
-    li t3, 'G'
-    bne t0, t3, error
+    # Comparar com "GTH"
+    addi a0, sp, 8
+    la a1, cmd_gth
+    call string_compare
+    bnez a0, not_gth   # se diferente, não é GTH
 
-    lbu t1, 1(s2)
-    li t3, 'T'
-    bne t1, t3, error
+    # É GTH - copiar para output
+    mv a0, s2
+    la a1, cmd_gth
+    call string_copy
+    li a0, 1           # sucesso
+    j end
 
-    lbu t2, 2(s2)
-    li t3, 'H'
-    bne t2, t3, error
+not_gth:
+    j error            # comando de 3 chars inválido
 
-    # Valid GTH - already in cmd
-    j success
-
+    # ========== Verificar comandos de 2 caracteres ==========
 check_2char:
-    # Validate n (0-99)
-    bltz s1, error
-    li t3, 99
-    bgt s1, t3, error
+    li t0, 2
+    bne s3, t0, error  # se não tem 2 chars, erro
 
-    # Check valid 2-char commands
-    lbu t0, 0(s2)
-    lbu t1, 1(s2)
+    # Comparar com RE
+    addi a0, sp, 8
+    la a1, cmd_re
+    call string_compare
+    beqz a0, valid_cmd
 
-    # Check RE
-    li t3, 'R'
-    bne t0, t3, check_ye
-    li t3, 'E'
-    beq t1, t3, valid_cmd
+    # Comparar com RB
+    addi a0, sp, 8
+    la a1, cmd_rb
+    call string_compare
+    beqz a0, valid_cmd
 
-    # Check RB
-    li t3, 'B'
-    beq t1, t3, valid_cmd
+    # Comparar com YE
+    addi a0, sp, 8
+    la a1, cmd_ye
+    call string_compare
+    beqz a0, valid_cmd
+
+    # Comparar com GE
+    addi a0, sp, 8
+    la a1, cmd_ge
+    call string_compare
+    beqz a0, valid_cmd
+
+    # Nenhum comando válido
     j error
-
-check_ye:
-    li t3, 'Y'
-    bne t0, t3, check_ge
-    li t3, 'E'
-    beq t1, t3, valid_cmd
-    j error
-
-check_ge:
-    li t3, 'G'
-    bne t0, t3, error
-    li t3, 'E'
-    bne t1, t3, error
 
 valid_cmd:
-    # Append ",NN" to cmd
-    li t0, ','
-    sb t0, 2(s2)        # cmd[2] = ','
+    # Validar n (0-99)
+    bltz s1, error     # n < 0?
+    li t0, 99
+    bgt s1, t0, error  # n > 99?
 
-    # Convert n to 2 digits
-    li t0, 10
-    div t1, s1, t0      # tens
-    rem t2, s1, t0      # units
+    # Copiar comando (2 chars) para output
+    mv a0, s2
+    addi a1, sp, 8
+    call string_copy
 
-    addi t1, t1, '0'
-    sb t1, 3(s2)        # cmd[3] = tens
+    # Adicionar vírgula
+    mv a0, s2
+    call string_length
+    add a0, s2, a0     # posição após comando
+    la a1, comma
+    lb t0, 0(a1)
+    sb t0, 0(a0)       # adicionar ','
 
-    addi t2, t2, '0'
-    sb t2, 4(s2)        # cmd[4] = units
+    # Converter n para 2 dígitos ASCII
+    addi a0, a0, 1     # posição após vírgula
+    mv a1, s1
+    call int_to_2digits
 
-    sb zero, 5(s2)      # null terminator
-
-success:
-    li a0, 1
-    j cleanup
+    li a0, 1           # sucesso
+    j end
 
 error:
+    # Retornar string vazia em cmd
+    beqz s2, skip_clear
     sb zero, 0(s2)
-    li a0, 0
+skip_clear:
+    li a0, 0           # erro
 
-cleanup:
-    lw ra, 28(sp)
-    lw s0, 24(sp)
-    lw s1, 20(sp)
-    lw s2, 16(sp)
-    addi sp, sp, 32
+end:
+    # Epílogo
+    ld ra, 56(sp)
+    ld s0, 48(sp)
+    ld s1, 40(sp)
+    ld s2, 32(sp)
+    ld s3, 24(sp)
+    ld s4, 16(sp)
+    addi sp, sp, 64
     ret
 
+# ========================================
+# Funções Auxiliares
+# ========================================
 
-# trim_and_uppercase(char* src, char* dest)
-# Remove ALL spaces and convert to uppercase
-
+# void trim_and_uppercase(char* dest, char* src)
+# Remove espaços e converte para maiúsculas
 trim_and_uppercase:
-    li t0, 0            # src index
-    li t1, 0            # dest index
+    mv t0, a0          # dest
+    mv t1, a1          # src
+    li t2, 0           # índice dest
 
 trim_loop:
-    add t2, a0, t0
-    lbu t3, 0(t2)
-    beqz t3, trim_done
+    lb t3, 0(t1)       # carregar char de src
+    beqz t3, trim_end  # '\0' → fim
 
-    # Skip ALL spaces (not just leading/trailing)
+    # Ignorar espaços
     li t4, ' '
     beq t3, t4, trim_skip
 
-    # Uppercase if lowercase
+    # Converter para maiúscula (a-z → A-Z)
     li t4, 'a'
-    blt t3, t4, trim_copy
+    blt t3, t4, not_lower
     li t4, 'z'
-    bgt t3, t4, trim_copy
-    addi t3, t3, -32    # to uppercase
+    bgt t3, t4, not_lower
+    addi t3, t3, -32   # 'a' - 'A' = 32
 
-trim_copy:
-    add t4, a1, t1
-    sb t3, 0(t4)
-    addi t1, t1, 1
+not_lower:
+    add t5, t0, t2     # dest[t2]
+    sb t3, 0(t5)       # guardar char
+    addi t2, t2, 1     # incrementar índice
 
 trim_skip:
-    addi t0, t0, 1
+    addi t1, t1, 1     # próximo char
     j trim_loop
 
-trim_done:
-    add t4, a1, t1
-    sb zero, 0(t4)
+trim_end:
+    add t5, t0, t2
+    sb zero, 0(t5)     # null terminator
     ret
 
-
-# string_length(char* str)
-# Returns length in a0
-
+# int string_length(char* str)
+# Retorna comprimento da string
 string_length:
     li t0, 0
-
-len_loop:
-    add t1, a0, t0
-    lbu t2, 0(t1)
-    beqz t2, len_done
+strlen_loop:
+    lb t1, 0(a0)
+    beqz t1, strlen_end
     addi t0, t0, 1
-    j len_loop
-
-len_done:
+    addi a0, a0, 1
+    j strlen_loop
+strlen_end:
     mv a0, t0
+    ret
+
+# int string_compare(char* s1, char* s2)
+# Retorna 0 se iguais, != 0 caso contrário
+string_compare:
+    mv t0, a0
+    mv t1, a1
+strcmp_loop:
+    lb t2, 0(t0)
+    lb t3, 0(t1)
+    bne t2, t3, strcmp_diff
+    beqz t2, strcmp_equal  # ambos '\0'
+    addi t0, t0, 1
+    addi t1, t1, 1
+    j strcmp_loop
+strcmp_diff:
+    sub a0, t2, t3
+    ret
+strcmp_equal:
+    li a0, 0
+    ret
+
+# void string_copy(char* dest, char* src)
+# Copia string incluindo '\0'
+string_copy:
+    mv t0, a0
+    mv t1, a1
+strcpy_loop:
+    lb t2, 0(t1)
+    sb t2, 0(t0)
+    beqz t2, strcpy_end
+    addi t0, t0, 1
+    addi t1, t1, 1
+    j strcpy_loop
+strcpy_end:
+    ret
+
+# void int_to_2digits(char* dest, int n)
+# Converte 0-99 para "00"-"99"
+int_to_2digits:
+    mv t0, a0          # dest
+    mv t1, a1          # n
+
+    # Dezena: n / 10
+    li t2, 10
+    div t3, t1, t2
+    addi t3, t3, '0'   # converter para ASCII
+    sb t3, 0(t0)
+
+    # Unidade: n % 10
+    rem t3, t1, t2
+    addi t3, t3, '0'
+    sb t3, 1(t0)
+
+    # Null terminator
+    sb zero, 2(t0)
     ret
