@@ -12,11 +12,11 @@ public class RollingStockItem {
     private final String description;    // Ex: "Siemens Vectron MS (5600 kW)"
     private final RollingStockStatus status;
     private final String location;       // Station name ou Train ID
-    private final int distanceFromStart; // km (se parked)
+    private final double distanceFromStart; // ← MUDADO PARA DOUBLE
 
     public RollingStockItem(int id, String type, String description,
                             RollingStockStatus status, String location,
-                            int distanceFromStart) {
+                            double distanceFromStart) { // ← MUDADO PARA DOUBLE
         this.id = id;
         this.type = type;
         this.description = description;
@@ -31,7 +31,7 @@ public class RollingStockItem {
     public String getDescription() { return description; }
     public RollingStockStatus getStatus() { return status; }
     public String getLocation() { return location; }
-    public int getDistanceFromStart() { return distanceFromStart; }
+    public double getDistanceFromStart() { return distanceFromStart; } // ← MUDADO PARA DOUBLE
 
     public boolean isParked() {
         return status == RollingStockStatus.PARKED;
