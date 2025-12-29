@@ -5,120 +5,159 @@ import java.util.Collection;
 import java.util.function.Predicate;
 
 /**
- * Interface para estrutura de dados Grafo
- * Baseada em ESINF06-Graph.pdf (slides 25-26)
- *
- * @param <V> Tipo dos vértices
- * @param <E> Tipo das arestas (peso/informação)
+ * @param <V> Vertex value type
+ * @param <E> Edge value type
+ * @author DEI-ESINF
  */
 public interface Graph<V, E> extends Cloneable {
 
-    /**
-     * Retorna se o grafo é dirigido
+    /** Check if graph is directed
+     *
+     * @return true if graph is directed, false otherwise
      */
     boolean isDirected();
 
-    /**
-     * Retorna o número de vértices do grafo
+    /** The total number of vertices in the graph
+     *
+     * @return the number of vertices of the graph
      */
     int numVertices();
 
-    /**
-     * Retorna todos os vértices do grafo
+    /** All the vertices in the graph
+     *
+     * @return all the vertices of the graph as an ArrayList. Each vertex is in its key position in the ArrayList.
      */
     ArrayList<V> vertices();
 
-    /**
-     * Valida se um vértice pertence ao grafo
+    /** Check is vertex is in graph
+     *
+     * @param vert the vertex to check
+     * @return true is vert exists in the graph, false otherwise
      */
     boolean validVertex(V vert);
 
-    /**
-     * Retorna a chave (índice) de um vértice
+    /** Check the numeric key for vert in the graph
+     *
+     * @param vert the vertex to check
+     * @return the numeric key associated with vert, -1 if vert is not in the graph
      */
     int key(V vert);
 
-    /**
-     * Retorna o vértice com uma dada chave
+    /** Check the vertex associated with a numeric key in the graph
+     *
+     * @param key the key to check
+     * @return the vertex associated with key, null if key is not in the graph
      */
     V vertex(int key);
 
-    /**
-     * Retorna o primeiro vértice que satisfaz o predicado
+    /** Find the first vertex for which Predicate is true.
+     *  An example to get the Person vertex with a particular name:
+     *  <pre>
+     *      Graph<Person, Integer> g = new ...;
+     *      g.vertex( p -> p.getName().equals(name) );
+     * </pre>
+     * @param p predicate (should be given in lambda form)
+     * @return the first vertex for which predicate p is true, null if not found
      */
     V vertex(Predicate<V> p);
 
-    /**
-     * Retorna os vértices adjacentes a um dado vértice
+    /** Find all adjacent vertices of a vertex
+     *
+     * @param vert the vertex for which to find adjacent vertices
+     * @return a collection of all the adjacent vertices of vert
      */
     Collection<V> adjVertices(V vert);
 
-    /**
-     * Retorna o número de arestas do grafo
+    /** The total number of edges of the graph
+     *
+     * @return the number of edges of the graph
      */
     int numEdges();
 
-    /**
-     * Retorna todas as arestas do grafo
+    /** All the edges of the graph
+     *
+     * @return a collection with all the edges of the graph.
      */
     Collection<Edge<V, E>> edges();
 
-    /**
-     * Retorna a aresta entre dois vértices (ou null se não existir)
+    /** Finds an edge in the graph given its end vertices
+     *
+     * @param vOrig origin vertex
+     * @param vDest destination vertex
+     * @return the edge from vOrig to vDest, or null if vertices are not adjacent
      */
     Edge<V, E> edge(V vOrig, V vDest);
 
-    /**
-     * Retorna a aresta entre dois vértices dados pelas chaves
+    /** Finds an edge in the graph given its end vertex keys
+     *
+     * @param vOrigKey the key of vertex vOrig
+     * @param vDestKey the key of vertex vDist
+     * @return the edge from vOrig to vDest, or null if vertices are not adjacent
      */
     Edge<V, E> edge(int vOrigKey, int vDestKey);
 
-    /**
-     * Retorna o grau de saída (out-degree) de um vértice
+    /** Finds the number of edges leaving a vertex
+     *
+     * @param vert the vertex of interest
+     * @return the number of edges leaving vert
      */
     int outDegree(V vert);
 
-    /**
-     * Retorna o grau de entrada (in-degree) de um vértice
+    /** Finds the number of edges for which a vertex is the destination
+     *
+     * @param vert the vertex of interest
+     * @return the number of edges for which vert is the destination
      */
     int inDegree(V vert);
 
-    /**
-     * Retorna as arestas que saem de um vértice
+    /** Finds the edges for which a vertex is the origin
+     *
+     * @param vert the vertex of interest
+     * @return a collection of edges for which vert is the origin
      */
     Collection<Edge<V, E>> outgoingEdges(V vert);
 
-    /**
-     * Retorna as arestas que entram num vértice
+    /** Finds the edges for which a vertex is the destination
+     *
+     * @param vert the vertex of interest
+     * @return a collection of edges for which vert is the destination
      */
     Collection<Edge<V, E>> incomingEdges(V vert);
 
-    /**
-     * Adiciona um vértice ao grafo
-     * @return true se adicionado com sucesso, false caso contrário
+    /** Adds a new vertex into the graph
+     *
+     * @param vert the vertex to add
+     * @return true if vert is not already in the graph, false otherwise
      */
     boolean addVertex(V vert);
 
-    /**
-     * Adiciona uma aresta ao grafo
-     * @return true se adicionado com sucesso, false caso contrário
+    /** Adds a new edge between two vertices. If the vertices are not already in the graph, they are added.
+     *
+     * @param vOrig origin vertex
+     * @param vDest destination vertex
+     * @param weight the weight of the edge
+     * @return false if edge is already present, true otherwise
      */
     boolean addEdge(V vOrig, V vDest, E weight);
 
-    /**
-     * Remove um vértice do grafo
-     * @return true se removido com sucesso, false caso contrário
+    /** Removes a vertex and all its incident edges from the graph
+     *
+     * @param vert the vertex to remove
+     * @return true if vert was present in the graph, false otherwise
      */
     boolean removeVertex(V vert);
 
-    /**
-     * Remove uma aresta do grafo
-     * @return true se removido com sucesso, false caso contrário
+    /** Removes the edge between two vertices
+     *
+     * @param vOrig vertex origin of the edge
+     * @param vDest vertex destination of the edge
+     * @return  true if an edge between vOrig and vDest was present in the graph, false otherwise
      */
     boolean removeEdge(V vOrig, V vDest);
 
-    /**
-     * Clona o grafo
+    /** Creates a deep copy clone of the graph
+     *
+     * @return a deep copy of graph
      */
     Graph<V, E> clone();
 }

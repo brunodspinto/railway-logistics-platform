@@ -1,60 +1,65 @@
 package org.example.domain;
 
 /**
- * Representa uma conexão dirigida entre duas estações
+ * Representa uma conexão (linha) entre duas estações.
+ * Agora inclui capacidade e custo para a USEI14.
  */
 public class Connection {
-    private final Station from;
-    private final Station to;
+
+    private final Station source;
+    private final Station target;
     private final double distance;
-    private final double cost;
+    private double capacity; // Capacidade (comboios/dia)
+    private double cost;
 
-    public Connection(Station from, Station to, double distance) {
-        if (from == null || to == null) {
-            throw new IllegalArgumentException("Stations cannot be null");
-        }
-        if (distance < 0) {
-            throw new IllegalArgumentException("Distance cannot be negative");
-        }
-
-        this.from = from;
-        this.to = to;
+    public Connection(Station source, Station target, double distance, double capacity, double cost) {
+        this.source = source;
+        this.target = target;
         this.distance = distance;
-        this.cost = calculateAdjustedCost(distance);
+        this.capacity = capacity;
+        this.cost = cost;
     }
 
-    private double calculateAdjustedCost(double distance) {
-        double penalty = 0.0;
-
-        if (distance > 100) {
-            penalty = -10.0;
-        } else if (distance < 10) {
-            penalty = 5.0;
-        }
-
-        return distance + penalty;
+    // Construtor simples (retrocompatibilidade, assume defaults)
+    public Connection(Station source, Station target, double distance) {
+        this(source, target, distance, 50.0, 0.0);
     }
 
-    public Station getFrom() {
-        return from;
+    public Station getSource() {
+        return source;
     }
 
-    public Station getTo() {
-        return to;
+    public Station getTarget() {
+        return target;
     }
 
     public double getDistance() {
         return distance;
     }
 
-    public double getCost() { return cost; }
+    public double getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(double capacity) {
+        this.capacity = capacity;
+    }
+
+    public double getCost() {
+        return cost;
+    }
+
+    public void setCost(double cost) {
+        this.cost = cost;
+    }
 
     @Override
     public String toString() {
-        return String.format("%s → %s (%.2f km)",
-                from.getName(),
-                to.getName(),
-                distance,
-                cost);
+        return "Connection{" +
+                "from=" + source.getName() +
+                ", to=" + target.getName() +
+                ", dist=" + distance +
+                ", cap=" + capacity +
+                '}';
     }
 }

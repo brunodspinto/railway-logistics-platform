@@ -4,10 +4,13 @@
 
 - Grafo não dirigido.
 - Representação em listas de adjacência.
-- `|V|` = número de estações
+- `|V|` = número de estações.
 - `|E|` = número de ligações (arestas) com distância.
 
-Iterar todos os vértices é `O(V)` e todas as arestas é `O(E)`.
+Iterar todos os vértices tem custo `O(V)` e iterar todas as arestas tem custo `O(E)`.
+
+A fase de carregamento dos ficheiros `stations.csv` e `lines.csv` tem custo linear  
+`O(V + E)` e não altera a complexidade assintótica final do algoritmo.
 
 ---
 
@@ -25,12 +28,12 @@ A Minimal Backbone Network é uma **Árvore Geradora Mínima (MST)** construída
     - Percorre-se a lista ordenada.
     - Para cada aresta `(u, v)` faz-se `find(u)` e `find(v)`:
         - se pertencem a componentes diferentes → `union(u, v)` e a aresta entra na MST;
-        - caso contrário, é ignorada.
-    - Com Union–Find com path compression e union by rank:
-        - cada operação é `O(α(V)) ≈ O(1)`;
-        - total: **`O(E)`**.
+        - caso contrário, a aresta é ignorada.
+    - Com Union–Find usando *path compression* e *union by rank*:
+        - cada operação tem custo `O(α(V)) ≈ O(1)`;
+        - custo total: **`O(E)`**.
 
-Passo dominante: **ordenar as arestas**.
+Passo dominante do algoritmo: **ordenar as arestas**.
 
 ---
 
@@ -38,12 +41,13 @@ Passo dominante: **ordenar as arestas**.
 
 Sobre a MST obtida:
 
-- Construção do grafo resultado (MST): `O(E_MST)` com `E_MST = V − 1`.
+- Construção do grafo resultado (MST):  
+  `O(E_MST)`, com `E_MST = V − 1`.
 - Geração do ficheiro DOT:
-    - escrever todos os vértices e arestas → **`O(V + E_MST)`**.
-- A chamada externa ao `neato` (SVG) não é considerada na análise assintótica do algoritmo.
+    - escrita de todos os vértices e arestas → **`O(V + E_MST)`**.
+- A chamada externa ao comando `neato` para geração do SVG não é considerada na análise assintótica do algoritmo.
 
-Logo, esta fase é **`O(V + E)`**, dominada por `O(E log E)` da fase de cálculo.
+Esta fase tem custo linear **`O(V + E)`** e é assintoticamente dominada pela fase de cálculo da MST.
 
 ---
 

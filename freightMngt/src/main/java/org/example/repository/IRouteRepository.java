@@ -1,43 +1,62 @@
 package org.example.repository;
 
 import org.example.domain.*;
+import org.example.service.RollingStockItem;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 
 public interface IRouteRepository {
-    // ===== EXISTENTE (manter) =====
+    // ===== INFRAESTRUTURA (Station, Line, etc.) =====
     Line findDirectLine(int originId, int destinationId);
     Station getStation(int id);
     Locomotive getLocomotive(int number);
+
     Collection<Line> getAllLines();
     Collection<Locomotive> getAllLocomotives();
     Collection<Station> getAllStations();
 
-    // ===== NOVO - Para USLP07 =====
-
-    // Wagon & WagonModel
+    // ===== RECURSOS MÓVEIS (Wagon, Train) =====
     WagonModel getWagonModel(int id);
     Wagon getWagon(String number);
+
     Collection<WagonModel> getAllWagonModels();
     Collection<Wagon> getAllWagons();
 
-    // Freight
+    Train getTrain(int id);
+    Collection<Train> getAllTrains();
+    List<Train> getTrainsByDate(LocalDate date);
+
+    // ===== CARGAS (Freights) =====
     Freight getFreight(int id);
     Collection<Freight> getAllFreights();
 
-    // Train
-    Train getTrain(int id);
-    Collection<Train> getAllTrains();
-    // IRouteRepository.java (interface)
-
     /**
-     * Busca todos os trains agendados para uma data
+     * Metodo essencial para substituir o getMockFreights() na UI.
+     * Deve retornar apenas as cargas que ainda nao foram entregues/processadas.
      */
-    List<Train> getTrainsByDate(LocalDate date);
+    List<Freight> getAllPendingFreights();
 
-    // Line Segments (útil para path building)
+    // ===== AUXILIARES (Segments) =====
     List<LineSegment> getSegmentsByLine(int lineId);
     Line getLineById(int lineId);
+
+    /**
+     * Obtém locomotives disponíveis (parked + in transit).
+     * Calcula distância até startStationId para parked items.
+     */
+    List<RollingStockItem> getAvailableLocomotives(int startStationId);
+
+    /**
+     * Obtém wagons disponíveis (parked + in transit).
+     */
+    List<RollingStockItem> getAvailableWagons(int startStationId);
+
+    /**
+     * Associa rolling stock a um train.
+     * @return true se sucesso
+     */
+    boolean assignTrainRollingStock(int trainId, List<Integer> locoIds,
+                                    List<Integer> wagonIds);
 }

@@ -5,7 +5,9 @@ import org.example.controller.UpgradePlanResult;
 import org.example.domain.Station;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Demonstração da USEI11 - Directed Line Upgrade Plan
@@ -14,21 +16,18 @@ public class USEI11Demo {
 
     public static void main(String[] args) {
         try {
-            // 1. Criar controller
             UpgradePlanController controller = new UpgradePlanController();
 
-            // 2. Carregar rede belga
-            String filePath = "src/main/java/pt/ipp/isep/dei/data/station_to_station.csv";
-            controller.loadNetwork(filePath);
+            String stationsPath = "res/stations.csv";
+            String linesPath = "res/lines.csv";
+            controller.loadNetwork(stationsPath, linesPath);
 
-            // 3. Calcular ordem de upgrades
             System.out.println("\n" + "=".repeat(70));
             System.out.println("USEI11 - DIRECTED LINE UPGRADE PLAN");
             System.out.println("=".repeat(70));
 
             UpgradePlanResult result = controller.calculateUpgradeOrder();
 
-            // 4. Apresentar resultados
             System.out.println("\n" + "=".repeat(70));
             System.out.println("RESULTS");
             System.out.println("=".repeat(70));
@@ -38,45 +37,11 @@ public class USEI11Demo {
                     result.getNumConnections());
 
             if (result.hasCycles()) {
-                // CASO 1: Grafo tem ciclos
-                System.out.println("\n❌ GRAPH HAS CYCLES - Cannot determine upgrade order!");
-                System.out.println("\nCycles detected: " + result.getCycles().size());
-
-                for (int i = 0; i < result.getCycles().size(); i++) {
-                    List<Station> cycle = result.getCycles().get(i);
-                    System.out.println("\nCycle #" + (i + 1) + ":");
-                    System.out.print("  ");
-                    for (int j = 0; j < cycle.size(); j++) {
-                        System.out.print(cycle.get(j).getName());
-                        if (j < cycle.size() - 1) {
-                            System.out.print(" → ");
-                        }
-                    }
-                    System.out.println();
-                }
-
+                displayCycleResults(result);
             } else {
-                // CASO 2: Ordem válida encontrada
-                System.out.println("\n✅ VALID UPGRADE ORDER FOUND!");
-                System.out.println("\nUpgrade sequence (first 20 stations):");
-
-                List<Station> order = result.getUpgradeOrder();
-                int showLimit = Math.min(20, order.size());
-
-                for (int i = 0; i < showLimit; i++) {
-                    System.out.printf("%3d. %s%n", i + 1, order.get(i));
-                }
-
-                if (order.size() > showLimit) {
-                    System.out.printf("\n... and %d more stations%n",
-                            order.size() - showLimit);
-                }
+                displayUpgradeOrder(result);
             }
 
-            System.out.println("\n" + "-".repeat(70));
-            System.out.printf("Execution time: %d ms%n", result.getExecutionTimeMs());
-            System.out.printf("Complexity: %s%n", result.getComplexity());
-            System.out.println("=".repeat(70));
 
         } catch (IOException e) {
             System.err.println("Error loading network: " + e.getMessage());
@@ -86,5 +51,56 @@ public class USEI11Demo {
             e.printStackTrace();
         }
     }
-}
 
+    private static void displayCycleResults(UpgradePlanResult result) {
+        Set<Station> stationsInCycles = result.getStationsInCycles();
+
+        System.out.println("\nGRAPH HAS CYCLES - Cannot determine upgrade order!");
+        System.out.println("\nStations involved in cycles: " + stationsInCycles.size());
+
+        List<Station> sortedStations = new ArrayList<>(stationsInCycles);
+        sortedStations.sort((s1, s2) -> s1.getName().compareTo(s2.getName()));
+
+        System.out.println("\nFirst 50 stations in cycles:");
+        System.out.println("-".repeat(70));
+
+        int display = Math.min(50, sortedStations.size());
+        for (int i = 0; i < display; i++) {
+            Station station = sortedStations.get(i);
+            System.out.printf("  %3d. [%-10s] %s%n",
+                    i + 1,
+                    station.getId(),
+                    station.getName());
+        }
+
+        if (sortedStations.size() > display) {
+            System.out.println("\n  ... and " + (sortedStations.size() - display) +
+                    " more stations");
+        }
+    }
+
+    private static void displayUpgradeOrder(UpgradePlanResult result) {
+        System.out.println("\nVALID UPGRADE ORDER FOUND!");
+        System.out.println("\nUpgrade sequence (first 20 stations):");
+        System.out.println("-".repeat(70));
+
+        List<Station> order = result.getUpgradeOrder();
+        int showLimit = Math.min(20, order.size());
+
+        for (int i = 0; i < showLimit; i++) {
+            Station station = order.get(i);
+            System.out.printf("  %3d. [%-10s] %s%n",
+                    i + 1,
+                    station.getId(),
+                    station.getName());
+        }
+
+        if (order.size() > showLimit) {
+            System.out.printf("\n  ... and %d more stations%n",
+                    order.size() - showLimit);
+        }
+
+        System.out.println("\n Stations should be upgraded in this order to respect");
+        System.out.println("   all directional dependencies.");
+    }
+}

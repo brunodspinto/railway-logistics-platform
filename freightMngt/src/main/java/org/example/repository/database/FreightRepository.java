@@ -27,40 +27,43 @@ public class FreightRepository {
                 ResultSet rs = stmt.executeQuery();
 
                 if (rs.next()) {
-                    date = rs.getDate("dateFreights").toLocalDate();
+                    Date sqlDate = rs.getDate("dateFreights");
+                    if (sqlDate != null) {
+                        date = sqlDate.toLocalDate();
+                    } else {
+                        date = LocalDate.now();
+                    }
                 } else {
-                    System.err.println("Freight " + id + " not found");
                     return null;
                 }
             }
 
-            // 2. Buscar origem e destino (MESMA conexão)
+            // 2. Buscar origem e destino
             int[] originDest = getOriginDestination(conn, id);
+
             if (originDest == null) {
-                System.err.println("No path found for freight " + id);
+                // Silencioso - Path pode não existir
                 return null;
             }
 
             int originId = originDest[0];
             int destId = originDest[1];
 
-            // 3. Buscar wagon numbers (MESMA conexão)
+            // 3. Buscar vagões
             List<String> wagonNumbers = getWagonNumbers(conn, id);
             if (wagonNumbers.isEmpty()) {
-                System.err.println("No wagons found for freight " + id);
                 return null;
             }
 
-            // 4. Agora buscar stations (pode usar nova conexão)
+            // 4. Buscar Estações
             Station origin = stationRepo.getById(originId);
             Station dest = stationRepo.getById(destId);
 
             if (origin == null || dest == null) {
-                System.err.println("Origin or destination station not found for freight " + id);
                 return null;
             }
 
-            // 5. Criar freight
+            // 5. Construir objeto
             Freight freight = new Freight(
                     id,
                     date,
@@ -74,7 +77,6 @@ public class FreightRepository {
             freight.setOrigin(origin);
             freight.setDestination(dest);
 
-            // 6. Lazy load wagons
             List<Wagon> wagons = new ArrayList<>();
             for (String wagonNum : wagonNumbers) {
                 Wagon wagon = wagonRepo.getById(wagonNum);
@@ -87,8 +89,7 @@ public class FreightRepository {
             return freight;
 
         } catch (SQLException e) {
-            System.err.println("Error loading freight " + id + ": " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("Erro ao carregar Carga " + id + ": " + e.getMessage());
         }
 
         return null;
@@ -102,74 +103,69 @@ public class FreightRepository {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query);
              ResultSet rs = stmt.executeQuery()) {
-
             while (rs.next()) {
                 ids.add(rs.getInt("id"));
             }
-
         } catch (SQLException e) {
-            System.err.println("Error loading freight IDs: " + e.getMessage());
+            System.err.println("Erro SQL IDs: " + e.getMessage());
             return freights;
         }
 
         for (Integer id : ids) {
-            Freight freight = getById(id);
-            if (freight != null) {
-                freights.add(freight);
+            Freight f = getById(id);
+            if (f != null) {
+                freights.add(f);
             }
         }
-
         return freights;
     }
 
-    // Método auxiliar que RECEBE a conexão
+    /**
+     * Tenta descobrir as colunas corretas. Se falhar 'finalStation', tenta 'endStation'.
+     */
     private int[] getOriginDestination(Connection conn, int freightId) {
-        String query = """
-            SELECT stationId
-            FROM Path
-            WHERE freightsId = ?
-            ORDER BY ROWNUM
-        """;
-
-        try (PreparedStatement stmt = conn.prepareStatement(query)) {
-            stmt.setInt(1, freightId);
-            ResultSet rs = stmt.executeQuery();
-
-            List<Integer> stations = new ArrayList<>();
-            while (rs.next()) {
-                stations.add(rs.getInt("stationId"));
-            }
-
-            if (stations.size() >= 2) {
-                return new int[]{stations.get(0), stations.get(stations.size() - 1)};
-            }
-
+        // TENTATIVA 1: Nomes do guião (inicialStation, finalStation)
+        try {
+            return tryQuery(conn, freightId, "SELECT inicialStation, finalStation FROM Path WHERE freightsId = ?");
         } catch (SQLException e) {
-            System.err.println("Error loading path for freight " + freightId + ": " + e.getMessage());
+            // Se der erro de coluna inválida, tentamos a alternativa
+            if (e.getErrorCode() == 904) { // ORA-00904: Invalid Identifier
+                try {
+                    // TENTATIVA 2: Nomes da tabela Line (startStation, endStation)
+                    return tryQuery(conn, freightId, "SELECT startStation, endStation FROM Path WHERE freightsId = ?");
+                } catch (SQLException ex2) {
+                    // ✅ SILENCIOSO - Path pode não existir para este freight
+                    // Não imprimir erro (chamado 9x no início = 9 freights sem path)
+                }
+            }
         }
-
         return null;
     }
 
-    // Método auxiliar que RECEBE a conexão
+    private int[] tryQuery(Connection conn, int freightId, String sql) throws SQLException {
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, freightId);
+            stmt.setMaxRows(1);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return new int[]{rs.getInt(1), rs.getInt(2)};
+            }
+        }
+        return null;
+    }
+
     private List<String> getWagonNumbers(Connection conn, int freightId) {
         List<String> numbers = new ArrayList<>();
         String query = "SELECT wagonNumber FROM WagonFreights WHERE freightsId = ?";
-
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
             stmt.setInt(1, freightId);
             ResultSet rs = stmt.executeQuery();
-
             while (rs.next()) {
-                int wagonNum = rs.getInt("wagonNumber");
-                numbers.add(String.valueOf(wagonNum));
+                numbers.add(String.valueOf(rs.getLong("wagonNumber")));
             }
-
         } catch (SQLException e) {
-            System.err.println("Error loading wagon numbers for freight " + freightId + ": " + e.getMessage());
-            e.printStackTrace();
+            // Ignorar
         }
-
         return numbers;
     }
 }

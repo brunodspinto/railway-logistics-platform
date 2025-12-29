@@ -171,4 +171,19 @@ public class Train {
                 time.format(DateTimeFormatter.ofPattern("HH:mm")),
                 freightIds.size(), locomotiveNumbers.size());
     }
+
+
+    /**
+     * Alias para getPathStationIds() - usado pela UI
+     */
+    public List<Integer> getPath() {
+        return getPathStationIds();
+    }
+
+    /**
+     * Setter para path (alias)
+     */
+    public void setPath(List<Integer> path) {
+        setPathStationIds(path);
+    }
 }

@@ -1,6 +1,7 @@
 package org.example.repository;
 
 import org.example.domain.*;
+import org.example.service.RollingStockItem;
 import org.example.utils.CSVReader;
 
 import java.io.IOException;
@@ -8,6 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CsvRouteRepository implements IRouteRepository {
 
@@ -247,7 +249,7 @@ public class CsvRouteRepository implements IRouteRepository {
                 wagonNumbers = wagonNumbers.stream()
                         .map(String::trim)
                         .filter(s -> !s.isEmpty())
-                        .collect(java.util.stream.Collectors.toList());
+                        .collect(Collectors.toList());
 
                 Freight freight = new Freight(id, date, originId, originName,
                         destinationId, destinationName, wagonNumbers);
@@ -552,6 +554,23 @@ public class CsvRouteRepository implements IRouteRepository {
         return freights.values();
     }
 
+    /**
+     * Retorna apenas as cargas que ainda NÃO foram associadas a nenhum comboio.
+     */
+    @Override
+    public List<Freight> getAllPendingFreights() {
+        // 1. Identificar IDs de cargas já agendadas
+        Set<Integer> assignedFreightIds = new HashSet<>();
+        for (Train t : trains.values()) {
+            assignedFreightIds.addAll(t.getFreightIds());
+        }
+
+        // 2. Retornar apenas as cargas que não estão nesse conjunto
+        return freights.values().stream()
+                .filter(f -> !assignedFreightIds.contains(f.getId()))
+                .collect(Collectors.toList());
+    }
+
     @Override
     public Train getTrain(int id) {
         return trains.get(id);
@@ -573,7 +592,7 @@ public class CsvRouteRepository implements IRouteRepository {
         return lines.get(lineId);
     }
 
-    // ===== MÉTODO PARA USLP07 - CONFLICT DETECTION =====
+    // ===== METODO PARA USLP07 - CONFLICT DETECTION =====
 
     @Override
     public List<Train> getTrainsByDate(LocalDate date) {
@@ -581,6 +600,29 @@ public class CsvRouteRepository implements IRouteRepository {
         return trains.values().stream()
                 .filter(train -> train.getDate().equals(date))
                 .sorted(Comparator.comparing(Train::getTime))  // Ordenar por hora
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
+    }
+
+    // ═══════════════════════════════════════════════════════════
+// USLP09 - Stub methods (CSV não suporta esta funcionalidade)
+// ═══════════════════════════════════════════════════════════
+
+    @Override
+    public List<RollingStockItem> getAvailableLocomotives(int startStationId) {
+        System.out.println("(!) getAvailableLocomotives() not supported in CSV mode.");
+        return new ArrayList<>();
+    }
+
+    @Override
+    public List<RollingStockItem> getAvailableWagons(int startStationId) {
+        System.out.println("(!) getAvailableWagons() not supported in CSV mode.");
+        return new ArrayList<>();
+    }
+
+    @Override
+    public boolean assignTrainRollingStock(int trainId, List<Integer> locoIds,
+                                           List<Integer> wagonIds) {
+        System.out.println("(!) assignTrainRollingStock() not supported in CSV mode.");
+        return false;
     }
 }

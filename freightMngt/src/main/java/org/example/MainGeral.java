@@ -5,6 +5,8 @@ import org.example.repository.IRouteRepository;
 import org.example.ui.SchedulerUI;
 import org.example.ui.TravelTimeUI;
 import org.example.ui.ManualSchedulerUI;
+import org.example.ui.RoutePlannerUI;
+import org.example.ui.TrainAssemblyUI; // <--- NOVO IMPORT USLP09
 import org.example.utils.DatabaseConnection;
 
 import java.util.InputMismatchException;
@@ -12,7 +14,7 @@ import java.util.Scanner;
 
 /**
  * Main Geral - Railway Logistics Management System
- * Integrates Sprint 1 (USLP03) and Sprint 2 (USLP07)
+ * Integrates Sprint 1 (USLP03), Sprint 2 (USLP07) and Sprint 3 (USLP08, USLP09)
  * Database Version
  */
 public class MainGeral {
@@ -20,17 +22,25 @@ public class MainGeral {
     private final IRouteRepository repository;
     private final DatabaseRepositoryFacade databaseRepository;
     private final Scanner scanner;
+
+    // UIs
     private TravelTimeUI travelTimeUI;
     private SchedulerUI schedulerUI;
     private ManualSchedulerUI manualSchedulerUI;
+    private RoutePlannerUI routePlannerUI;
+    private TrainAssemblyUI trainAssemblyUI; // <--- NOVA UI USLP09
 
     public MainGeral(IRouteRepository repository, DatabaseRepositoryFacade databaseRepository) {
         this.repository = repository;
         this.databaseRepository = databaseRepository;
         this.scanner = new Scanner(System.in);
+
+        // Inicialização das UIs
         this.travelTimeUI = new TravelTimeUI(repository);
         this.schedulerUI = new SchedulerUI(repository);
         this.manualSchedulerUI = new ManualSchedulerUI(databaseRepository);
+        this.routePlannerUI = new RoutePlannerUI(repository);
+        this.trainAssemblyUI = new TrainAssemblyUI(repository); // <--- INICIALIZAR USLP09
     }
 
     public void run() {
@@ -51,6 +61,12 @@ public class MainGeral {
                     break;
                 case 3:
                     runUSLP07();
+                    break;
+                case 4:
+                    runUSLP08();
+                    break;
+                case 5: // <--- NOVA OPÇÃO USLP09
+                    runUSLP09();
                     break;
                 case 0:
                     exit = true;
@@ -81,6 +97,8 @@ public class MainGeral {
         System.out.println("  1. Know the Development Team");
         System.out.println("  2. Run USLP03 - Travel Time Calculator (Sprint 1)");
         System.out.println("  3. Run USLP07 - Train Scheduler (Sprint 2)");
+        System.out.println("  4. Run USLP08 - Route Planner Manifest (Sprint 3)");
+        System.out.println("  5. Run USLP09 - Train Assembly (Sprint 3)"); // <--- NOVA LINHA
         System.out.println("  0. Exit");
         System.out.println("═".repeat(80));
         System.out.print("  Option: ");
@@ -90,19 +108,11 @@ public class MainGeral {
         System.out.println("\n" + "═".repeat(80));
         System.out.println("                           DEVELOPMENT TEAM");
         System.out.println("═".repeat(80));
-        System.out.println("\n  Course:      Engenharia Informatica");
-        System.out.println("  Institution: Instituto Superior de Engenharia do Porto (ISEP)");
-        System.out.println("  Academic Year: 2025/2026");
-        System.out.println("  Project:     sem3pi-2025-26 - Integrative Project");
-
-        System.out.println("\n" + "─".repeat(80));
-        System.out.println("  TEAM MEMBERS:");
-        System.out.println("─".repeat(80));
-        System.out.println("  Student 1: David Ribeiro     -  [removed]  -  [removed]");
-        System.out.println("  Student 2: Eduardo Oliveira  -  [removed]  -  [removed]");
-        System.out.println("  Student 3: Diogo Azevedo     -  [removed]  -  [removed]");
-        System.out.println("  Student 4: Bruno Pinto       -  [removed]  -  [removed]");
-        System.out.println("  Student 5: Rafael Santos     -  [removed]  -  [removed]");
+        System.out.println("  Sprint 1 (USLP03): Travel Time Calculator");
+        System.out.println("  Sprint 2 (USLP07): Train Scheduler - Diogo");
+        System.out.println("  Sprint 3 (USLP08): Route Planner - [Colega A]");
+        System.out.println("  Sprint 3 (USLP09): Train Assembly - Diogo");
+        System.out.println("═".repeat(80));
     }
 
     private void runUSLP03() {
@@ -111,14 +121,13 @@ public class MainGeral {
         System.out.println("═".repeat(80));
         System.out.println("  Sprint: 1");
         System.out.println("  User Story: USLP03");
-        System.out.println("  Goal: Calculate estimated travel time between two stations");
+        System.out.println("  Goal: Calculate travel time between stations");
         System.out.println("─".repeat(80) + "\n");
 
         try {
             travelTimeUI.run();
         } catch (Exception e) {
             System.err.println("\n✗ Error running USLP03: " + e.getMessage());
-            e.printStackTrace();
         }
     }
 
@@ -135,6 +144,40 @@ public class MainGeral {
             manualSchedulerUI.start();
         } catch (Exception e) {
             System.err.println("\n✗ Error running USLP07: " + e.getMessage());
+        }
+    }
+
+    private void runUSLP08() {
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("                 LAUNCHING USLP08 - ROUTE PLANNER");
+        System.out.println("═".repeat(80));
+        System.out.println("  Sprint: 3");
+        System.out.println("  User Story: USLP08");
+        System.out.println("  Goal: Generate Logistics Manifest (Load/Unload operations)");
+        System.out.println("─".repeat(80) + "\n");
+
+        try {
+            routePlannerUI.run();
+        } catch (Exception e) {
+            System.err.println("\n✗ Error running USLP08: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // <--- NOVO MÉTODO USLP09
+    private void runUSLP09() {
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("                 LAUNCHING USLP09 - TRAIN ASSEMBLY");
+        System.out.println("═".repeat(80));
+        System.out.println("  Sprint: 3");
+        System.out.println("  User Story: USLP09");
+        System.out.println("  Goal: Assemble and assign rolling stock to trains");
+        System.out.println("─".repeat(80) + "\n");
+
+        try {
+            trainAssemblyUI.run();
+        } catch (Exception e) {
+            System.err.println("\n✗ Error running USLP09: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -165,14 +208,8 @@ public class MainGeral {
         System.out.println("═".repeat(80));
         System.out.println("\nInitializing system...");
 
-        // Test database connection
         if (!DatabaseConnection.testConnection()) {
             System.err.println("\n✗ FATAL ERROR: Cannot connect to database!");
-            System.err.println("Please check database.properties configuration");
-            System.err.println("\nRequired properties:");
-            System.err.println("  - db.url");
-            System.err.println("  - db.username");
-            System.err.println("  - db.password");
             System.exit(1);
         }
 
@@ -180,14 +217,8 @@ public class MainGeral {
 
         try {
             System.out.println("Loading system data from database...");
-
-            // Create repository facade for database access
             DatabaseRepositoryFacade databaseRepository = new DatabaseRepositoryFacade();
-
-            // For USLP03, if it still uses IRouteRepository interface
-            // you might need an adapter or keep using CSV for that specific feature
-            // Here I'm assuming you have a way to use the database repository
-            IRouteRepository routeRepository = databaseRepository; // or create an adapter
+            IRouteRepository routeRepository = databaseRepository;
 
             System.out.println("✓ System ready!\n");
 
@@ -196,12 +227,10 @@ public class MainGeral {
 
         } catch (Exception e) {
             System.err.println("\n✗ FATAL ERROR: Could not initialize system!");
-            System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
             System.exit(1);
         } finally {
             DatabaseConnection.closeConnection();
-            System.out.println("\n✓ Database connection closed.");
         }
     }
 }

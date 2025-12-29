@@ -35,23 +35,29 @@ public class CycleDetection<V, E> {
         for (V vertex : graph.vertices()) {
             if (color.get(vertex) == Color.WHITE) {
                 LinkedList<V> path = new LinkedList<>();
-                if (coloredDFS(graph, vertex, color, path, cycles)) {
-                    // Ciclo encontrado
-                }
+                coloredDFS(graph, vertex, color, path, cycles);
             }
         }
 
         return new CycleDetectionResult<>(cycles);
     }
 
+    public Set<V> findStationsInCycles(Graph<V, E> graph) {
+        CycleDetectionResult<V> result = detectCycles(graph);
+
+        Set<V> stationsInCycles = new LinkedHashSet<>();
+
+        for (List<V> cycle : result.getCycles()) {
+            stationsInCycles.addAll(cycle);
+        }
+
+        return stationsInCycles;
+    }
+
     /**
      * DFS recursivo com deteção de ciclos
      */
-    private boolean coloredDFS(Graph<V, E> graph,
-                               V current,
-                               Map<V, Color> color,
-                               LinkedList<V> path,
-                               List<List<V>> cycles) {
+    private boolean coloredDFS(Graph<V, E> graph, V current, Map<V, Color> color, LinkedList<V> path, List<List<V>> cycles) {
 
         // Marcar como GRAY (em processamento)
         color.put(current, Color.GRAY);
@@ -60,17 +66,18 @@ public class CycleDetection<V, E> {
         boolean foundCycle = false;
 
         // Explorar adjacentes
-        for (V adjacent : graph.adjVertices(current)) {
+        Collection<V> adjVertices = graph.adjVertices(current);
+        if (adjVertices != null) {
+            for (V adjacent : adjVertices) {
 
-            if (color.get(adjacent) == Color.GRAY) {
-                // CICLO ENCONTRADO!
-                extractCycle(path, adjacent, cycles);
-                foundCycle = true;
-                // Continuar para encontrar todos os ciclos
-
-            } else if (color.get(adjacent) == Color.WHITE) {
-                if (coloredDFS(graph, adjacent, color, path, cycles)) {
+                if (color.get(adjacent) == Color.GRAY) {
+                    extractCycle(path, adjacent, cycles);
                     foundCycle = true;
+
+                } else if (color.get(adjacent) == Color.WHITE) {
+                    if (coloredDFS(graph, adjacent, color, path, cycles)) {
+                        foundCycle = true;
+                    }
                 }
             }
         }
@@ -97,7 +104,7 @@ public class CycleDetection<V, E> {
                 cycle.add(vertex);
             }
         }
-        cycle.add(cycleStart); // Fechar o ciclo
+        cycle.add(cycleStart);
 
         cycles.add(cycle);
     }
@@ -123,6 +130,16 @@ public class CycleDetection<V, E> {
         public int getNumCycles() {
             return cycles.size();
         }
+
+        /**
+         * Retorna set de estações em ciclos
+         */
+        public Set<V> getStationsInCycles() {
+            Set<V> stations = new LinkedHashSet<>();
+            for (List<V> cycle : cycles) {
+                stations.addAll(cycle);
+            }
+            return stations;
+        }
     }
 }
-

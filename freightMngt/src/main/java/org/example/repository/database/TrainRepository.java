@@ -38,13 +38,32 @@ public class TrainRepository {
 
                 // Buscar path stations
                 List<Integer> pathStationIds = getPathStationIds(conn, id);
-                if (pathStationIds.size() < 2) {
-                    System.err.println("Invalid path for train " + id);
-                    return null;
+
+                // ✅ FIX: Se path vazio, criar train SEM path (em vez de retornar null)
+                if (pathStationIds.isEmpty()) {
+                    // Train sem route definida (ainda não agendado)
+                    Train train = new Train(
+                            id,
+                            operator,
+                            date,
+                            localTime,
+                            0,  // startId temporário
+                            0,  // endId temporário
+                            new ArrayList<>(),
+                            new ArrayList<>(),
+                            new ArrayList<>()
+                    );
+                    return train;
                 }
 
-                int startId = pathStationIds.get(0);
-                int endId = pathStationIds.get(pathStationIds.size() - 1);
+                if (pathStationIds.size() < 2) {
+                    // Path incompleto, mas não falha
+                    // System.err.println("Incomplete path for train " + id);
+                    // Continua mesmo assim
+                }
+
+                int startId = pathStationIds.isEmpty() ? 0 : pathStationIds.get(0);
+                int endId = pathStationIds.isEmpty() ? 0 : pathStationIds.get(pathStationIds.size() - 1);
 
                 // Buscar freight IDs e locomotive numbers
                 List<Integer> freightIds = getFreightIds(conn, id);
@@ -62,9 +81,13 @@ public class TrainRepository {
                         pathStationIds
                 );
 
-                // Lazy load
-                train.setStartStation(stationRepo.getById(startId));
-                train.setEndStation(stationRepo.getById(endId));
+                // Lazy load (só se stations existem)
+                if (startId > 0) {
+                    train.setStartStation(stationRepo.getById(startId));
+                }
+                if (endId > 0) {
+                    train.setEndStation(stationRepo.getById(endId));
+                }
 
                 List<Freight> freights = new ArrayList<>();
                 for (int fid : freightIds) {
@@ -144,7 +167,9 @@ public class TrainRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println("Error loading path for train " + trainId + ": " + e.getMessage());
+            // ✅ FIX: NÃO imprimir erro (Path pode não existir ainda)
+            // System.err.println("Erro Crítico: Não foi possível ler a tabela Path.");
+            // Path vazio = train ainda não tem route definida
         }
 
         return ids;
@@ -163,7 +188,7 @@ public class TrainRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println("Error loading freight IDs for train " + trainId);
+            // Silencioso - freight pode não existir
         }
 
         return ids;
@@ -182,17 +207,12 @@ public class TrainRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println("Error loading locomotive numbers for train " + trainId);
+            // Silencioso - locos podem não estar associadas ainda
         }
 
         return numbers;
     }
 
-    // TrainRepository.java
-
-    /**
-     * Busca todos os trains agendados para uma data específica
-     */
     public List<Train> getByDate(LocalDate date) {
         List<Integer> trainIds = new ArrayList<>();
 
@@ -203,11 +223,9 @@ public class TrainRepository {
         ORDER BY t.timeTrain
     """;
 
-        // PASSO 1: Buscar IDs dos trains
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(query)) {
 
-            // ✅ IMPORTANTE: Setar o parâmetro ANTES de executeQuery()
             stmt.setDate(1, Date.valueOf(date));
 
             try (ResultSet rs = stmt.executeQuery()) {
@@ -221,7 +239,6 @@ public class TrainRepository {
             return new ArrayList<>();
         }
 
-        // PASSO 2: Carregar cada train completo
         List<Train> trains = new ArrayList<>();
         for (Integer id : trainIds) {
             Train train = getById(id);

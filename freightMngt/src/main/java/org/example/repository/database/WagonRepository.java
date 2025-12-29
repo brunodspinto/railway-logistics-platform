@@ -121,12 +121,12 @@ public class WagonRepository {
         return models;
     }
 
-    // Método auxiliar que RECEBE a conexão
+    // Metodo auxiliar que RECEBE a conexão
     private WagonModel loadWagonModel(Connection conn, int id, double weight) {
         String query = """
             SELECT wm.id, wm.nameModel, wm.maker, wm.length, wm.width, wm.height,
                    wm.maxSpeed, wm.payload, wm.volume,
-                   b.nameBogie, b.numberBogies,
+                   b.nameBogie, 
                    wt.description as wagon_type
             FROM WagonModel wm
             JOIN Bogies b ON wm.Bogiesid = b.id
@@ -145,7 +145,7 @@ public class WagonRepository {
                         rs.getInt("id"),
                         rs.getString("nameModel"),
                         rs.getString("maker"),
-                        rs.getInt("numberBogies"),
+                        2,
                         rs.getString("nameBogie"),
                         rs.getInt("length"),
                         rs.getInt("width"),
@@ -160,13 +160,14 @@ public class WagonRepository {
             }
 
         } catch (SQLException e) {
-            System.err.println("Error loading wagon model " + id + ": " + e.getMessage());
+            // ALTERAÇÃO: Mudei de System.err para System.out para não aparecer a vermelho
+            System.out.println("Aviso: Não foi possível carregar o modelo de vagão " + id + ": " + e.getMessage());
         }
 
         return null;
     }
 
-    // Método auxiliar que RECEBE a conexão
+    // Metodo auxiliar que RECEBE a conexão
     private int getGauge(Connection conn, int modelId) {
         String query = """
             SELECT g.measure

@@ -1,14 +1,20 @@
 package org.example.controller;
 
+
+
 import org.example.algorithms.CycleDetection;
 import org.example.algorithms.TopologicalSort;
-import org.example.domain.Station;
 import org.example.domain.Connection;
+import org.example.domain.Station;
+import org.example.graph.Edge;
 import org.example.graph.Graph;
 import org.example.loader.BelgianNetworkLoader;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Controller para USEI11 - Directed Line Upgrade Plan
@@ -25,17 +31,15 @@ public class UpgradePlanController {
     }
 
     /**
-     * Carrega a rede belga do ficheiro
+     * Carrega a rede belga dos ficheiros
      */
-    public void loadNetwork(String filePath) throws IOException {
+    public void loadNetwork(String stationsPath, String linesPath) throws IOException {
         System.out.println("Loading Belgian railway network...");
-        this.network = BelgianNetworkLoader.loadNetwork(filePath);
+        this.network = BelgianNetworkLoader.loadNetwork(stationsPath, linesPath);
     }
 
     /**
      * USEI11: Calcula ordem de upgrades ou identifica ciclos
-     *
-     * @return Resultado com ordem ou ciclos
      */
     public UpgradePlanResult calculateUpgradeOrder() {
         if (network == null) {
@@ -44,38 +48,29 @@ public class UpgradePlanController {
 
         long startTime = System.currentTimeMillis();
 
-        // FASE 1: Verificar ciclos
         System.out.println("\nPhase 1: Checking for cycles...");
-        CycleDetection.CycleDetectionResult<Station> cycleResult =
-                cycleDetector.detectCycles(network);
 
-        if (cycleResult.hasCycles()) {
+        Set<Station> stationsInCycles = cycleDetector.findStationsInCycles(network);
+
+        if (!stationsInCycles.isEmpty()) {
             long elapsedTime = System.currentTimeMillis() - startTime;
             return UpgradePlanResult.withCycles(
-                    cycleResult.getCycles(),
+                    stationsInCycles,
                     network.numVertices(),
                     network.numEdges(),
                     elapsedTime
             );
         }
 
-        // FASE 2: Executar Topological Sort
         System.out.println("Phase 2: Computing topological order...");
         List<Station> order = topologicalSort.kahn(network);
 
         long elapsedTime = System.currentTimeMillis() - startTime;
 
-        return UpgradePlanResult.withOrder(
-                order,
-                network.numVertices(),
-                network.numEdges(),
-                elapsedTime
+        return UpgradePlanResult.withOrder(order, network.numVertices(), network.numEdges(), elapsedTime
         );
     }
 
-    /**
-     * Obtém o grafo carregado
-     */
     public Graph<Station, Connection> getNetwork() {
         return network;
     }

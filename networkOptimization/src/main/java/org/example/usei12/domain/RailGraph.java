@@ -14,15 +14,14 @@ public class RailGraph {
     private final Map<String, Station> stations = new HashMap<>();
 
     /**
-     * Lista global de arestas.
+     * Lista global de arestas (não dirigidas).
      * Necessária para USEI12 (MST, exportação DOT).
      */
     private final List<Edge> edges = new ArrayList<>();
 
     /**
      * Lista de adjacência (USEI13).
-     * Associa cada estação às suas arestas de saída,
-     * permitindo acesso eficiente aos vizinhos.
+     * Cada estação mantém todas as arestas incidentes.
      */
     private final Map<String, List<Edge>> adj = new HashMap<>();
 
@@ -39,42 +38,63 @@ public class RailGraph {
     }
 
     /**
-     * Obtém a estação com o ID dado.
-     * Se não existir, cria-a e inicializa a sua lista de adjacência.
+     * Cria explicitamente uma estação (vértice).
+     * Usado ao carregar stations.csv.
      */
-    public Station getOrCreateStation(String id, String name, double lat, double lon) {
+    public void addStation(Station station) {
+        stations.putIfAbsent(station.getId(), station);
+        adj.putIfAbsent(station.getId(), new ArrayList<>());
+    }
 
-        Station s = stations.get(id);
+    /**
+     * Cria uma aresta NÃO DIRIGIDA entre duas estações.
+     * Se já existir ligação entre o mesmo par, mantém a de menor distância.
+     */
+    public void addEdge(Station a, Station b, double length) {
 
-        if (s == null) {
-            s = new Station(id, name, lat, lon);
-            stations.put(id, s);
+        // verificar se já existe ligação entre a e b
+        Edge existing = findEdgeBetween(a, b);
 
-            // inicialização da lista de adjacência (USEI13)
-            adj.put(id, new ArrayList<>());
+        if (existing != null) {
+            if (length < existing.getLength()) {
+                removeEdge(existing);
+            } else {
+                return; // mantém a existente
+            }
         }
 
-        return s;
-    }
-
-    /**
-     * Cria uma nova aresta entre duas estações.
-     * A aresta é registada na lista global e na lista de adjacência.
-     */
-    public Edge addEdge(Station from, Station to, double length) {
-
-        Edge e = new Edge(from, to, length);
+        Edge e = new Edge(a, b, length);
         edges.add(e);
 
-        // registo da aresta como vizinha da estação de origem
-        adj.get(from.getId()).add(e);
-
-        return e;
+        // registo nos dois sentidos (grafo não dirigido)
+        adj.get(a.getId()).add(e);
+        adj.get(b.getId()).add(e);
     }
 
     /**
-     * Devolve as arestas adjacentes (de saída) de uma estação.
-     * Se não existirem, devolve uma lista vazia.
+     * Procura uma aresta existente entre duas estações (ordem irrelevante).
+     */
+    private Edge findEdgeBetween(Station a, Station b) {
+        for (Edge e : edges) {
+            boolean same = (e.getFrom().equals(a) && e.getTo().equals(b)) || (e.getFrom().equals(b) && e.getTo().equals(a));
+            if (same) {
+                return e;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Remove uma aresta do grafo (lista global e adjacências).
+     */
+    private void removeEdge(Edge e) {
+        edges.remove(e);
+        adj.get(e.getFrom().getId()).remove(e);
+        adj.get(e.getTo().getId()).remove(e);
+    }
+
+    /**
+     * Devolve as arestas adjacentes a uma estação.
      */
     public List<Edge> getAdjEdges(String stationId) {
         return adj.getOrDefault(stationId, Collections.emptyList());
