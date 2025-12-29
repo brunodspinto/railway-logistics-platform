@@ -1,8 +1,6 @@
 #ifndef SENSORS_MANAGER_H
 #define SENSORS_MANAGER_H
 
-#include "structures.h"
-
 // ========= BUFFER DE SENSOR =========
 typedef struct {
     int values[10];        // armazena valores recebidos
@@ -14,12 +12,11 @@ typedef struct {
     char unit[20];         // unidade do sensor
 } SensorBuffer;
 
-// ========= ESTRUTURA GERAL ==========
-//  !!! Esta estrutura tem de ser removida pq já existe em structures.h !!!
-//  typedef struct {
-//      SensorBuffer temperature;
-//      SensorBuffer humidity;
-//  } SensorData;
+// ========= ESTRUTURA GERAL =========
+typedef struct {
+    SensorBuffer temperature; // dados de temperatura
+    SensorBuffer humidity;    // dados de humidade
+} SensorData;
 
 // ========= FUNÇÃO PRINCIPAL =========
 int manager_get_sensors_data(SensorData *out);

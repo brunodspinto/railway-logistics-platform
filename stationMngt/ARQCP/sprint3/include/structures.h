@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include <time.h>
+#include "sensors_manager.h"
 
 // ============ USER ============
 typedef struct {
@@ -41,21 +42,6 @@ typedef struct {
     int count;
     int capacity;
 } TrainList;
-
-// ============ SENSOR ============
-typedef struct {
-    int* buffer;
-    int buffer_length;
-    int median_window;
-    int nelem;
-    int tail;
-    int head;
-} SensorConfig;
-
-typedef struct {
-    SensorConfig temperature;
-    SensorConfig humidity;
-} SensorData;
 
 // ============ LOG ============
 typedef struct {
