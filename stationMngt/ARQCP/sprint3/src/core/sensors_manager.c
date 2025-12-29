@@ -62,7 +62,7 @@ int manager_get_sensors_data(SensorData *out){
         strncpy(out->temperature.unit, unit, 19);
         out->temperature.last = calc_median(&out->temperature);
     } else {
-        printf("⚠️ Falha ao extrair TEMP do buffer: %s\n", buffer);
+        printf("Falha ao extrair TEMP do buffer: %s\n", buffer);
     }
 
     // 3. Extrair HUMIDADE (Usando o teu Assembly)
@@ -74,7 +74,7 @@ int manager_get_sensors_data(SensorData *out){
         strncpy(out->humidity.unit, unit, 19);
         out->humidity.last = calc_median(&out->humidity);
     } else {
-         printf("⚠️ Falha ao extrair HUM do buffer\n");
+         printf("Falha ao extrair HUM do buffer\n");
     }
 
     // Output para veres acontecer
