@@ -1,10 +1,10 @@
-package org.example.controller;
+package org.example.usei15.controller;
 
-import org.example.algorithms.BellmanFordShortestPath;
-import org.example.algorithms.NegativeCycleException;
+import org.example.usei15.algorithm.BellmanFordShortestPath;
+import org.example.usei15.algorithm.NegativeCycleException;
 import org.example.domain.Connection;
 import org.example.domain.Station;
-import org.example.domain.ShortestPathResult;
+import org.example.usei15.result.ShortestPathResult;
 import org.example.graph.Graph;
 
 import java.util.List;
@@ -38,7 +38,9 @@ public class USEI15Controller {
             printShortestPath(result);
 
         } catch (NegativeCycleException e) {
-            printNegativeCycle(e.getCycle());
+            System.out.println("\n=== USEI15 — Negative Cycle Detected ===");
+            System.out.println(e.getDetailedMessage());
+            System.out.println("\n⚠ Configuration inconsistency detected.");
         }
     }
 
@@ -47,32 +49,25 @@ public class USEI15Controller {
     private void printShortestPath(ShortestPathResult<Station> result) {
 
         System.out.println("\n=== USEI15 — Risk-Aware Shortest Path ===");
+
+        if (!result.hasPath()) {
+            System.out.println("No path exists between the selected stations.");
+            return;
+        }
+
         System.out.println("Path:");
 
         List<Station> path = result.getPath();
+
         for (Station s : path) {
-            System.out.printf(" - %s (%s)%n",
+            System.out.printf(" - %s (%s) [cost: %.2f]%n",
                     s.getId(),
-                    s.getName());
+                    s.getName(),
+                    result.getCostTo(s));
         }
 
         System.out.printf("Total cost to target: %.2f%n",
                 result.getTotalCost());
-    }
-
-    private void printNegativeCycle(List<?> cycle) {
-
-        System.out.println("\n=== USEI15 — Negative Cycle Detected ===");
-        System.out.println("Stations involved:");
-
-        for (Object obj : cycle) {
-            Station s = (Station) obj;
-            System.out.printf(" - %s (%s)%n",
-                    s.getId(),
-                    s.getName());
-        }
-
-        System.out.println("⚠ Configuration inconsistency detected.");
     }
 }
 

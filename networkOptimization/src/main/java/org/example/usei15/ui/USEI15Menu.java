@@ -1,6 +1,6 @@
-package org.example.ui.usei15;
+package org.example.usei15.ui;
 
-import org.example.controller.USEI15Controller;
+import org.example.usei15.controller.USEI15Controller;
 import org.example.domain.Connection;
 import org.example.domain.Station;
 import org.example.graph.Graph;
