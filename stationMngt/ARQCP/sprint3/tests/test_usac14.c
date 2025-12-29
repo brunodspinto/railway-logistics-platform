@@ -14,7 +14,7 @@ int main(void) {
     // ===================================
     printf("\n--- Teste 1: Carregamento Config ---\n");
 
-    StationSystem system = {0};  // ← StationSystem (não StationConfig)
+    StationSystem system = {0};
 
     if (load_configuration("config/station_config.txt", &system) == 0) {
         printf("✗ Erro ao carregar configuração\n");
@@ -22,8 +22,20 @@ int main(void) {
     }
     printf("✓ Config carregada\n");
 
-    Track* tracks = system.tracks.data;  // ← .tracks.data (não .tracks)
-    int num_tracks = system.tracks.count; // ← .tracks.count
+    Track* tracks = system.tracks.data;
+    int num_tracks = system.tracks.count;
+
+    // ===================================
+    // *** CORREÇÃO 1: INICIALIZAR ***
+    // ===================================
+    printf("\n--- Inicialização Light Controller ---\n");
+
+    if (!light_controller_init(NULL)) {  // NULL = MODO MOCK
+        printf("✗ Erro ao inicializar Light Controller\n");
+        return 1;
+    }
+
+    printf("✓ Light Controller inicializado\n");
 
     // ===================================
     // Teste 2: Mock Light Commands
@@ -32,11 +44,9 @@ int main(void) {
 
     printf("Track 01 [FREE]        → ");
     set_track_light(&tracks[0]);
-    printf("GE,01\n");
 
     printf("Track 02 [FREE]        → ");
     set_track_light(&tracks[1]);
-    printf("GE,02\n");
 
     printf("✓ Comandos gerados\n");
 
@@ -45,7 +55,7 @@ int main(void) {
     // ===================================
     printf("\n--- Teste 3: Integração USAC11 + USAC14 ---\n");
 
-    for (int i = 0; i < num_tracks; i++) {  // ← num_tracks
+    for (int i = 0; i < num_tracks; i++) {
         printf("Track %02d [", tracks[i].id);
 
         switch (tracks[i].state) {
@@ -57,7 +67,6 @@ int main(void) {
 
         printf("→ ");
         set_track_light(&tracks[i]);
-        printf("\n");
     }
 
     printf("✓ Integração testada\n");
@@ -69,30 +78,26 @@ int main(void) {
 
     // FREE
     tracks[0].state = TRACK_FREE;
-    tracks[0].assigned_train_id = -1;  // ← assigned_train_id
+    tracks[0].assigned_train_id = -1;
     printf("Track 01 [FREE]        → ");
     set_track_light(&tracks[0]);
-    printf("GE,01\n");
 
     // ASSIGNED
     tracks[0].state = TRACK_ASSIGNED;
-    tracks[0].assigned_train_id = 101;  // ← assigned_train_id
+    tracks[0].assigned_train_id = 101;
     printf("Track 01 [ASSIGNED]    → ");
     set_track_light(&tracks[0]);
-    printf("YE,01\n");
 
     // BUSY
     tracks[0].state = TRACK_BUSY;
     printf("Track 01 [BUSY]        → ");
     set_track_light(&tracks[0]);
-    printf("RE,01\n");
 
     // INOPERATIVE
     tracks[0].state = TRACK_INOPERATIVE;
-    tracks[0].assigned_train_id = -1;  // ← assigned_train_id
+    tracks[0].assigned_train_id = -1;
     printf("Track 01 [INOPERATIVE] → ");
     set_track_light(&tracks[0]);
-    printf("RB,01\n");
 
     printf("✓ Todas as transições testadas\n");
 
@@ -109,6 +114,12 @@ int main(void) {
     }
 
     printf("✓ Comando sensor testado\n");
+
+    // ===================================
+    // *** CORREÇÃO 2: CLEANUP ***
+    // ===================================
+    printf("\n--- Finalização ---\n");
+    light_controller_close();
 
     // ===================================
     // Fim
