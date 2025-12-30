@@ -421,6 +421,47 @@ INSERT INTO LineFreights (freightsId, lineId, timeStation) VALUES (2051, 22, TO_
 INSERT INTO LineFreights (freightsId, lineId, timeStation) VALUES (2051, 23, TO_DATE('2025-10-06 12:30:00', 'YYYY-MM-DD HH24:MI:SS'));
 INSERT INTO LineFreights (freightsId, lineId, timeStation) VALUES (2051, 24, TO_DATE('2025-10-06 12:45:00', 'YYYY-MM-DD HH24:MI:SS'));
 
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563077);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563078);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563079);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563080);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563081);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563082);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563083);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563084);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563085);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563086);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563087);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563088);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563089);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563090);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563091);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3563092);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',823045);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',823046);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',823047);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',823048);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',741001);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',741002);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',741003);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',741004);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',741005);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',741006);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',1811010);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',1811011);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',1811012);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',1811013);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',1811014);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3330001);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3330002);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3330003);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3330004);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3330005);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3330006);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3330007);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3330008);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3330009);
+INSERT INTO OperatorWagon (operatorVatNumber, wagonNumber) VALUES ('PT509017800',3330010);
 
 --INSERT INTO Freights (id, dateFreights, trainId) VALUES (2007,TO_DATE('2025-10-03', 'YYYY-MM-DD'),5437);
 
