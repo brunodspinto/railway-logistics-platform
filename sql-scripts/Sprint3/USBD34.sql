@@ -5,46 +5,60 @@ CREATE OR REPLACE FUNCTION associate_freight_train(
     p_train_id   IN train.id%TYPE
 ) RETURN NUMBER
 IS
-    v_qtd_wagons NUMBER;
-    v_aux       NUMBER;
+    v_exists NUMBER;
+    v_train_max NUMBER;
+    v_current NUMBER;
+    v_new NUMBER;
 BEGIN
-    -- valida freight
-    SELECT COUNT(*) INTO v_aux
+    -- verificar freight
+    SELECT COUNT(*) INTO v_exists
     FROM freights
     WHERE id = p_freight_id;
 
-    IF v_aux = 0 THEN
-        RAISE_APPLICATION_ERROR(-20001, 'Freight inexistente.');
+    IF v_exists = 0 THEN
+        RAISE_APPLICATION_ERROR(-20001,'Freight inexistente.');
     END IF;
 
-    -- valida train
-    SELECT COUNT(*) INTO v_aux
+    -- verificar train
+    SELECT COUNT(*) INTO v_exists
     FROM train
     WHERE id = p_train_id;
 
-    IF v_aux = 0 THEN
-        RAISE_APPLICATION_ERROR(-20002, 'Train inexistente.');
+    IF v_exists = 0 THEN
+        RAISE_APPLICATION_ERROR(-20002,'Train inexistente.');
     END IF;
 
-    -- associar
-    UPDATE freights
-       SET trainId = p_train_id
-     WHERE id = p_freight_id;
+    -- obter maxLenght
+    SELECT maxLenght INTO v_train_max
+    FROM train
+    WHERE id = p_train_id;
 
-    IF SQL%ROWCOUNT = 0 THEN
-        RAISE_APPLICATION_ERROR(-20003, 'Falha ao associar freight ao train.');
-    END IF;
+    -- wagons já associados ao train via freights
+    SELECT COUNT(*) INTO v_current
+    FROM wagonfreights wf
+    JOIN freights f ON f.id = wf.freightsid
+    WHERE f.trainid = p_train_id;
 
-    -- contar wagons
-    SELECT COUNT(*) INTO v_qtd_wagons
+    -- wagons do freight atual
+    SELECT COUNT(*) INTO v_new
     FROM wagonfreights
-    WHERE freightsId = p_freight_id;
+    WHERE freightsid = p_freight_id;
 
-    RETURN v_qtd_wagons;
+    -- validar capacidade
+    IF (v_current + v_new) > v_train_max THEN
+        RAISE_APPLICATION_ERROR(-20003,'Capacidade máxima do comboio excedida.');
+    END IF;
+
+    -- associar freight ao train
+    UPDATE freights
+    SET trainid = p_train_id
+    WHERE id = p_freight_id;
+
+    RETURN v_new;
 
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20099, 'Erro inesperado na USBD34: ' || SQLERRM);
+        RAISE_APPLICATION_ERROR(-20099,'Erro inesperado na USBD34: '||SQLERRM);
 END;
 /
 
