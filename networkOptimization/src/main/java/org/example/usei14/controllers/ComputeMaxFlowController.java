@@ -32,7 +32,7 @@ public class ComputeMaxFlowController {
      * @throws IOException Se houver erro na leitura dos ficheiros.
      */
     public void loadNetwork(String stationsPath, String linesPath) throws IOException {
-        this.network = BelgianNetworkLoader.loadNetwork(stationsPath, linesPath);
+        this.network = BelgianNetworkLoader.loadNetwork(stationsPath, linesPath, true);
     }
 
     /**

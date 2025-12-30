@@ -40,7 +40,8 @@ class UpgradePlanControllerTest {
         Graph<Station, Connection> network = controller.getNetwork();
         assertNotNull(network, "Network should be loaded");
         assertEquals(559, network.numVertices(), "Should have 559 stations");
-        assertEquals(691, network.numEdges(), "Should have 691 connections");
+        // Espera 691 porque o Controller USEI11 deve usar loadNetwork(..., false)
+        assertEquals(691, network.numEdges(), "Should have 691 connections (Directed Graph)");
     }
 
     /**
@@ -57,9 +58,13 @@ class UpgradePlanControllerTest {
         // Assert
         assertNotNull(result, "Result should not be null");
         assertTrue(result.hasCycles(),
-                "Belgian network is expected to have cycles");
+                "Belgian network is expected to have cycles in Directed Mode");
+
+        // Se o grafo fosse bidirecional, seriam 559 estações em ciclo.
+        // Como é direcionado, esperamos apenas os ciclos lógicos reais (125).
         assertEquals(125, result.getStationsInCycles().size(),
-                "Should detect 125 stations in cycles");
+                "Should detect exactly 125 stations in logical cycles");
+
         assertNull(result.getUpgradeOrder(),
                 "Order should be null when cycles exist");
         assertEquals(559, result.getNumStations());

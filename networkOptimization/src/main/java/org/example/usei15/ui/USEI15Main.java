@@ -17,7 +17,8 @@ public class USEI15Main {
             System.out.println("=== USEI15 — Risk-Aware Shortest Paths ===");
             String stationsPath = "res/stations.csv";
             String linesPath = "res/lines.csv";
-            Graph<Station, Connection> graph = BelgianNetworkLoader.loadNetwork(stationsPath, linesPath);
+
+            Graph<Station, Connection> graph = BelgianNetworkLoader.loadNetwork(stationsPath, linesPath, false);
 
             USEI15Controller controller = new USEI15Controller(graph);
 

@@ -19,13 +19,15 @@ class BelgianNetworkLoaderTest {
     @Test
     void testLoadNetwork_Success() throws IOException {
         // Act
+        // PASSAMOS 'FALSE' PARA CARREGAR APENAS AS LINHAS DO CSV (Grafo Direcionado)
+        // Se fosse 'true', carregaria 1382 arestas (ida e volta).
         Graph<Station, Connection> graph =
-                BelgianNetworkLoader.loadNetwork(STATIONS_PATH, LINES_PATH);
+                BelgianNetworkLoader.loadNetwork(STATIONS_PATH, LINES_PATH, false);
 
         // Assert
         assertNotNull(graph, "Graph should not be null");
         assertEquals(559, graph.numVertices(), "Should load 559 stations");
-        assertEquals(691, graph.numEdges(), "Should load 691 connections");
+        assertEquals(691, graph.numEdges(), "Should load 691 connections (Directed)");
         assertTrue(graph.isDirected(), "Graph should be directed");
     }
 
@@ -33,7 +35,7 @@ class BelgianNetworkLoaderTest {
     void testLoadNetwork_SpecificStations() throws IOException {
         // Act
         Graph<Station, Connection> graph =
-                BelgianNetworkLoader.loadNetwork(STATIONS_PATH, LINES_PATH);
+                BelgianNetworkLoader.loadNetwork(STATIONS_PATH, LINES_PATH, false);
 
         // Assert
         boolean foundMons = false;
@@ -55,7 +57,7 @@ class BelgianNetworkLoaderTest {
     void testLoadNetwork_StationsFileNotFound() {
         // Act & Assert
         assertThrows(IOException.class,
-                () -> BelgianNetworkLoader.loadNetwork("invalid/path.csv", LINES_PATH),
+                () -> BelgianNetworkLoader.loadNetwork("invalid/path.csv", LINES_PATH, false),
                 "Should throw IOException when stations file not found");
     }
 
@@ -63,7 +65,7 @@ class BelgianNetworkLoaderTest {
     void testLoadNetwork_LinesFileNotFound() {
         // Act & Assert
         assertThrows(IOException.class,
-                () -> BelgianNetworkLoader.loadNetwork(STATIONS_PATH, "invalid/path.csv"),
+                () -> BelgianNetworkLoader.loadNetwork(STATIONS_PATH, "invalid/path.csv", false),
                 "Should throw IOException when lines file not found");
     }
 
@@ -71,7 +73,7 @@ class BelgianNetworkLoaderTest {
     void testLoadNetwork_SpecificConnection() throws IOException {
         // Act
         Graph<Station, Connection> graph =
-                BelgianNetworkLoader.loadNetwork(STATIONS_PATH, LINES_PATH);
+                BelgianNetworkLoader.loadNetwork(STATIONS_PATH, LINES_PATH, false);
 
         // Assert - Procurar MONS
         Station mons = null;
@@ -91,7 +93,7 @@ class BelgianNetworkLoaderTest {
     void testLoadNetwork_IsDirected() throws IOException {
         // Act
         Graph<Station, Connection> graph =
-                BelgianNetworkLoader.loadNetwork(STATIONS_PATH, LINES_PATH);
+                BelgianNetworkLoader.loadNetwork(STATIONS_PATH, LINES_PATH, false);
 
         // Assert
         assertTrue(graph.isDirected(),

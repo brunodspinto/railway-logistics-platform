@@ -17,20 +17,25 @@ import java.util.Map;
  */
 public class BelgianNetworkLoader {
 
-    // Capacidade por defeito caso não exista no CSV (para evitar fluxo 0 na USEI14)
     private static final int DEFAULT_CAPACITY = 50;
     private static final double DEFAULT_COST = 0.0;
 
-    public static Graph<Station, Connection> loadNetwork(String stationsPath, String linesPath)
+    /**
+     * Carrega a rede.
+     * @param isBidirectional Se true, cria arestas de ida e volta (para MaxFlow/Backbone).
+     * Se false, carrega apenas o sentido do CSV (para UpgradePlan/TopologicalSort).
+     */
+    public static Graph<Station, Connection> loadNetwork(String stationsPath, String linesPath, boolean isBidirectional)
             throws IOException {
 
-        System.out.println("Loading Belgian railway network...");
+        System.out.println("Loading Belgian railway network (Bidirectional: " + isBidirectional + ")...");
 
         // 1. Load stations first
         Map<String, Station> stationMap = loadStations(stationsPath);
         System.out.println("Loaded " + stationMap.size() + " stations");
 
-        // 2. Create graph (Directed = true, pois o fluxo é direcional)
+        // 2. Create graph (Directed = true).
+        // Mesmo sendo bidirecional físico, representamo-lo como directed com arestas opostas.
         Graph<Station, Connection> graph = new MapGraph<>(true);
 
         // 3. Add all stations to graph
@@ -39,37 +44,27 @@ public class BelgianNetworkLoader {
         }
 
         // 4. Load lines (connections)
-        int validLines = loadLines(linesPath, stationMap, graph);
+        int validLines = loadLines(linesPath, stationMap, graph, isBidirectional);
 
         System.out.println("\nLoaded network:");
         System.out.println("  Stations: " + graph.numVertices());
         System.out.println("  Connections (Edges): " + graph.numEdges());
-        System.out.println("  Valid physical lines: " + validLines);
+        System.out.println("  Valid physical lines from CSV: " + validLines);
 
         return graph;
     }
 
-    /**
-     * Load stations from stations.csv
-     * Format: Station id,Station,Lat,Lon,CoordX,CoordY
-     */
     private static Map<String, Station> loadStations(String filePath) throws IOException {
         Map<String, Station> stations = new HashMap<>();
-
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line = br.readLine(); // Skip header if exists, or handle in loop
-
+            String line = br.readLine();
             while ((line = br.readLine()) != null) {
                 line = line.trim();
                 if (line.isEmpty()) continue;
-
                 String[] parts = line.split(",");
-                // Formato mínimo esperado: ID, Nome
                 if (parts.length >= 2) {
                     String id = parts[0].trim();
                     String name = parts[1].trim();
-
-                    // Podes adicionar coordenadas aqui se o construtor de Station suportar
                     Station station = new Station(id, name);
                     stations.put(id, station);
                 }
@@ -78,13 +73,8 @@ public class BelgianNetworkLoader {
         return stations;
     }
 
-    /**
-     * Load lines from lines.csv
-     * Format esperado: departure_stid,arrival_stid,dist,capacity,cost
-     * Se faltarem colunas, usa defaults.
-     */
     private static int loadLines(String filePath, Map<String, Station> stationMap,
-                                 Graph<Station, Connection> graph) throws IOException {
+                                 Graph<Station, Connection> graph, boolean isBidirectional) throws IOException {
         int validLines = 0;
         int errorLines = 0;
 
@@ -98,13 +88,11 @@ public class BelgianNetworkLoader {
                 try {
                     String[] parts = line.split(",");
 
-                    // Mínimo aceitável: Origem, Destino, Distância
                     if (parts.length >= 3) {
                         String fromId = parts[0].trim();
                         String toId = parts[1].trim();
                         double distance = Double.parseDouble(parts[2].trim());
 
-                        // Leitura robusta: Se não houver coluna 3 ou 4, usa DEFAULT
                         int capacity = DEFAULT_CAPACITY;
                         double cost = DEFAULT_COST;
 
@@ -112,30 +100,30 @@ public class BelgianNetworkLoader {
                             try {
                                 capacity = Integer.parseInt(parts[3].trim());
                             } catch (NumberFormatException e) {
-                                System.err.println("Aviso: Capacidade inválida na linha, usando default: " + DEFAULT_CAPACITY);
+                                // ignore
                             }
                         }
-
                         if (parts.length >= 5 && !parts[4].trim().isEmpty()) {
                             try {
                                 cost = Double.parseDouble(parts[4].trim());
                             } catch (NumberFormatException e) {
-                                // Ignora erro no custo, usa default
+                                // ignore
                             }
                         }
 
-                        // Obter estações do mapa
                         Station from = stationMap.get(fromId);
                         Station to = stationMap.get(toId);
 
                         if (from != null && to != null) {
-                            // Sentido de Ida (Do CSV: A -> B)
+                            // 1. Sentido de Ida (Sempre adicionado, conforme o CSV)
                             Connection connForward = new Connection(from, to, distance, capacity, cost);
                             graph.addEdge(from, to, connForward);
 
-                            // Sentido de Volta (Inverso: B -> A)
-                            Connection connBackward = new Connection(to, from, distance, capacity, cost);
-                            graph.addEdge(to, from, connBackward);
+                            // 2. Sentido de Volta (Só se for bidirecional)
+                            if (isBidirectional) {
+                                Connection connBackward = new Connection(to, from, distance, capacity, cost);
+                                graph.addEdge(to, from, connBackward);
+                            }
 
                             validLines++;
                         } else {
@@ -144,15 +132,9 @@ public class BelgianNetworkLoader {
                     }
                 } catch (NumberFormatException e) {
                     errorLines++;
-                    System.err.println("Warning: Invalid number format in line: " + line);
                 }
             }
         }
-
-        if (errorLines > 0) {
-            System.out.println("  Ignored lines (errors/unknown stations): " + errorLines);
-        }
-
         return validLines;
     }
 }
