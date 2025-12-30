@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Demonstração da USEI11 - Directed Line Upgrade Plan
+ * Demonstracao da USEI11 - Directed Line Upgrade Plan
  */
 public class USEI11Demo {
 
@@ -18,6 +18,7 @@ public class USEI11Demo {
         try {
             UpgradePlanController controller = new UpgradePlanController();
 
+            // Caminho relativo ao modulo (funciona tanto standalone como no menu)
             String stationsPath = "res/stations.csv";
             String linesPath = "res/lines.csv";
             controller.loadNetwork(stationsPath, linesPath);
@@ -42,6 +43,10 @@ public class USEI11Demo {
                 displayUpgradeOrder(result);
             }
 
+            System.out.println("\n" + "=".repeat(70));
+            System.out.printf("Execution time: %d ms%n", result.getExecutionTimeMs());
+            System.out.printf("Complexity: %s%n", result.getComplexity());
+            System.out.println("=".repeat(70));
 
         } catch (IOException e) {
             System.err.println("Error loading network: " + e.getMessage());
@@ -61,10 +66,10 @@ public class USEI11Demo {
         List<Station> sortedStations = new ArrayList<>(stationsInCycles);
         sortedStations.sort((s1, s2) -> s1.getName().compareTo(s2.getName()));
 
-        System.out.println("\nFirst 50 stations in cycles:");
+        System.out.println("\nFirst 20 stations in cycles:");
         System.out.println("-".repeat(70));
 
-        int display = Math.min(50, sortedStations.size());
+        int display = Math.min(20, sortedStations.size());
         for (int i = 0; i < display; i++) {
             Station station = sortedStations.get(i);
             System.out.printf("  %3d. [%-10s] %s%n",
@@ -100,7 +105,7 @@ public class USEI11Demo {
                     order.size() - showLimit);
         }
 
-        System.out.println("\n Stations should be upgraded in this order to respect");
-        System.out.println("   all directional dependencies.");
+        System.out.println("\nStations should be upgraded in this order to respect");
+        System.out.println("all directional dependencies.");
     }
 }
