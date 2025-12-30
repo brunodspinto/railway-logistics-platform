@@ -18,7 +18,7 @@ public class USEI15Main {
             String stationsPath = "res/stations.csv";
             String linesPath = "res/lines.csv";
 
-            Graph<Station, Connection> graph = BelgianNetworkLoader.loadNetwork(stationsPath, linesPath, true);
+            Graph<Station, Connection> graph = BelgianNetworkLoader.loadNetwork(stationsPath, linesPath, false);
 
             USEI15Controller controller = new USEI15Controller(graph);
 
