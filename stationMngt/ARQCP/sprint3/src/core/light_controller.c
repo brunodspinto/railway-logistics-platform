@@ -11,7 +11,7 @@
 // ========================================
 
 static int serial_fd = -1;
-static int mock_mode = 0;  // ← NOVA VARIÁVEL
+static int mock_mode = 0;
 
 // ========================================
 // Inicializar Light Controller
@@ -60,7 +60,7 @@ void light_controller_close() {
 }
 
 // ========================================
-// USAC14 - Função Principal
+// USAC14 - Função Principal (COM ASSEMBLY!)
 // ========================================
 
 int set_track_light(Track* track) {
@@ -76,33 +76,22 @@ int set_track_light(Track* track) {
         return 0;
     }
 
-    // Determinar comando baseado no estado
-    char op[4];
-
-    switch (track->state) {
-        case TRACK_FREE:
-            strcpy(op, "GE");
-            break;
-        case TRACK_ASSIGNED:
-            strcpy(op, "YE");
-            break;
-        case TRACK_BUSY:
-            strcpy(op, "RE");
-            break;
-        case TRACK_INOPERATIVE:
-            strcpy(op, "RB");
-            break;
-        default:
-            fprintf(stderr, "ERRO: Estado inválido (%d)\n", track->state);
-            return 0;
-    }
-
-    // Usar USAC04 (Assembly) para formatar comando
+    // ========================================
+    // USAR ASSEMBLY COM STRUCT! ⭐
+    // Função assembly: generate_command_from_track()
+    // Recebe: Track* track, char* cmd
+    // Retorna: 1 (sucesso) ou 0 (erro)
+    //
+    // A função acessa:
+    //   - track->state (offset +4) para determinar comando
+    //   - track->id (offset +0) para número da track
+    // ========================================
     char cmd[20];
-    int result = format_command(op, track->id, cmd);
+    int result = generate_command_from_track(track, cmd);
+    // ========================================
 
     if (!result) {
-        fprintf(stderr, "ERRO: Falha ao formatar comando\n");
+        fprintf(stderr, "ERRO: Falha ao gerar comando (assembly)\n");
         return 0;
     }
 

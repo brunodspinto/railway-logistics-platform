@@ -1,6 +1,8 @@
 #ifndef ASM_FUNCTIONS_H
 #define ASM_FUNCTIONS_H
 
+#include "structures.h"
+
 // USAC01
 int encrypt_data(char* in, int key, char* out);
 
@@ -27,5 +29,9 @@ int sort_array(int* vec, int length, char order);
 
 // USAC09
 int median(int* vec, int length, int* me);
+
+// SPRINT3
+// USAC14
+int generate_command_from_track(Track* track, char* cmd);
 
 #endif
