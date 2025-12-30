@@ -11,6 +11,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * Controlador responsável pelo cálculo do Fluxo Máximo na rede.
+ * Interage com o grafo e utiliza o algoritmo de Edmonds-Karp.
+ */
 public class ComputeMaxFlowController {
 
     private Graph<Station, Connection> network;
@@ -20,10 +24,22 @@ public class ComputeMaxFlowController {
         this.maxFlowAlgorithm = new EdmondsKarp<>();
     }
 
+    /**
+     * Carrega a rede ferroviária a partir dos ficheiros CSV especificados.
+     *
+     * @param stationsPath Caminho para o ficheiro de estações.
+     * @param linesPath    Caminho para o ficheiro de linhas/conexões.
+     * @throws IOException Se houver erro na leitura dos ficheiros.
+     */
     public void loadNetwork(String stationsPath, String linesPath) throws IOException {
         this.network = BelgianNetworkLoader.loadNetwork(stationsPath, linesPath);
     }
 
+    /**
+     * Retorna a lista de todas as estações disponíveis, ordenadas alfabeticamente pelo nome.
+     *
+     * @return Lista de estações ou lista vazia se a rede for nula.
+     */
     public List<Station> getStations() {
         if (network == null) {
             return new ArrayList<>();
@@ -33,14 +49,22 @@ public class ComputeMaxFlowController {
         return stations;
     }
 
+    /**
+     * Calcula o fluxo máximo entre duas estações e mede o desempenho da operação.
+     *
+     * @param source Estação de origem.
+     * @param sink   Estação de destino.
+     * @return O valor do fluxo máximo calculado.
+     */
     public Double calculateMaxFlow(Station source, Station sink) {
         if (network == null) {
-            throw new IllegalStateException("Network not loaded.");
+            throw new IllegalStateException("The network has not been loaded.");
         }
 
-        System.out.println("Executing Edmonds-Karp algorithm...");
+        System.out.println("Running the Edmonds-Karp algorithm...");
         long startTime = System.nanoTime();
 
+        // Execução do algoritmo
         double maxFlow = maxFlowAlgorithm.computeMaxFlow(network, source, sink);
 
         long endTime = System.nanoTime();

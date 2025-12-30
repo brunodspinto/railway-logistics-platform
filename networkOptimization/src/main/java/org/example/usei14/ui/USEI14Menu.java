@@ -6,28 +6,41 @@ import org.example.usei14.controllers.ComputeMaxFlowController;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Interface de utilizador (UI) para a USEI14 - Cálculo de Fluxo Máximo.
+ * Responsável por interagir com o utilizador, solicitar dados e apresentar os resultados.
+ */
 public class USEI14Menu {
 
-    // Hardcoded paths for automation
+    // Caminhos predefinidos para os ficheiros de dados
     private static final String DEFAULT_STATIONS_CSV = "res/stations.csv";
     private static final String DEFAULT_LINES_CSV    = "res/lines.csv";
 
     private final ComputeMaxFlowController controller;
     private final Scanner in;
 
+    /**
+     * Construtor do menu.
+     *
+     * @param controller O controlador responsável pela lógica de negócio do fluxo máximo.
+     */
     public USEI14Menu(ComputeMaxFlowController controller) {
         this.controller = controller;
         this.in = new Scanner(System.in);
     }
 
+    /**
+     * Inicia o ciclo de vida do menu.
+     * Carrega a rede ferroviária automaticamente e apresenta as opções ao utilizador.
+     */
     public void start() {
         try {
-            // --- AUTOMATION: Load immediately without asking ---
+            // Carrega a rede imediatamente sem perguntar ao utilizador
             System.out.println("Loading railway network...");
             controller.loadNetwork(DEFAULT_STATIONS_CSV, DEFAULT_LINES_CSV);
             System.out.println("Data loaded successfully!");
 
-            // Main Menu Loop
+            // Ciclo do Menu Principal
             while (true) {
                 System.out.println("\n========================================");
                 System.out.println("       MAIN MENU - MAXIMUM FLOW         ");
@@ -54,34 +67,41 @@ public class USEI14Menu {
         }
     }
 
+    /**
+     * Gere o fluxo de interação para o cálculo do fluxo máximo:
+     * 1. Lista as estações.
+     * 2. Pede a origem.
+     * 3. Pede o destino.
+     * 4. Executa o cálculo e mostra o resultado.
+     */
     private void processFlowCalculation() {
-        // 1. Get List
+        // 1. Obter a lista de estações do controlador
         List<Station> stations = controller.getStations();
         if (stations.isEmpty()) {
             System.out.println("Error: No stations loaded.");
             return;
         }
 
-        // 2. Show list with numbers
+        // 2. Apresentar a lista numerada para facilitar a escolha
         printStationsNumerically(stations);
 
-        // 3. Pick Source
+        // 3. Escolher a estação de Origem
         System.out.println("\n--- SOURCE Selection ---");
         Station source = pickStationByNumber(stations);
-        if (source == null) return; // User cancelled
+        if (source == null) return; // O utilizador cancelou a operação
 
-        // 4. Pick Destination
+        // 4. Escolher a estação de Destino
         System.out.println("\n--- DESTINATION Selection ---");
         Station sink = pickStationByNumber(stations);
         if (sink == null) return;
 
-        // Validation
+        // Validação básica: Origem não pode ser igual ao Destino
         if (source.equals(sink)) {
             System.out.println("Error: Source and Destination are the same station.");
             return;
         }
 
-        // 5. Calculate
+        // 5. Executar o cálculo
         try {
             System.out.printf("\nCalculating flow from [%s] to [%s]...%n", source.getName(), sink.getName());
             Double maxFlow = controller.calculateMaxFlow(source, sink);
@@ -99,15 +119,20 @@ public class USEI14Menu {
         }
     }
 
+    /**
+     * Imprime a lista de estações na consola com um índice numérico.
+     * Formata a saída em duas colunas para melhor leitura.
+     *
+     * @param stations A lista de estações a imprimir.
+     */
     private void printStationsNumerically(List<Station> stations) {
         System.out.println("\n--- Station List ---");
         int count = 0;
         for (int i = 0; i < stations.size(); i++) {
-            // Format: [1] Name (ID)
+            // Formato: [1] Nome (ID)
             System.out.printf("[%3d] %-25s (ID: %s)  ", i + 1, stations.get(i).getName(), stations.get(i).getId());
 
             count++;
-            // New line every 2 columns for better readability
             if (count % 2 == 0) {
                 System.out.println();
             }
@@ -116,6 +141,13 @@ public class USEI14Menu {
         System.out.println("-------------------------");
     }
 
+    /**
+     * Solicita ao utilizador que insira o número correspondente a uma estação da lista.
+     * Inclui validação de entrada (apenas números dentro do intervalo).
+     *
+     * @param stations A lista de estações disponíveis.
+     * @return A estação selecionada ou {@code null} se o utilizador escolher cancelar (opção 0).
+     */
     private Station pickStationByNumber(List<Station> stations) {
         while (true) {
             System.out.print("Enter station NUMBER (or '0' to cancel): ");
@@ -124,7 +156,7 @@ public class USEI14Menu {
             try {
                 int index = Integer.parseInt(input);
 
-                if (index == 0) return null; // Cancel
+                if (index == 0) return null; // Cancelar
 
                 if (index > 0 && index <= stations.size()) {
                     return stations.get(index - 1);

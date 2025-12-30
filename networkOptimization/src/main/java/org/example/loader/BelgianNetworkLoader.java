@@ -43,8 +43,8 @@ public class BelgianNetworkLoader {
 
         System.out.println("\nLoaded network:");
         System.out.println("  Stations: " + graph.numVertices());
-        System.out.println("  Connections: " + graph.numEdges());
-        System.out.println("  Valid lines: " + validLines);
+        System.out.println("  Connections (Edges): " + graph.numEdges());
+        System.out.println("  Valid physical lines: " + validLines);
 
         return graph;
     }
@@ -120,6 +120,7 @@ public class BelgianNetworkLoader {
                             try {
                                 cost = Double.parseDouble(parts[4].trim());
                             } catch (NumberFormatException e) {
+                                // Ignora erro no custo, usa default
                             }
                         }
 
@@ -128,9 +129,14 @@ public class BelgianNetworkLoader {
                         Station to = stationMap.get(toId);
 
                         if (from != null && to != null) {
-                            Connection conn = new Connection(from, to, distance, capacity, cost);
+                            // Sentido de Ida (Do CSV: A -> B)
+                            Connection connForward = new Connection(from, to, distance, capacity, cost);
+                            graph.addEdge(from, to, connForward);
 
-                            graph.addEdge(from, to, conn);
+                            // Sentido de Volta (Inverso: B -> A)
+                            Connection connBackward = new Connection(to, from, distance, capacity, cost);
+                            graph.addEdge(to, from, connBackward);
+
                             validLines++;
                         } else {
                             errorLines++;
