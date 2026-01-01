@@ -26,6 +26,7 @@ CORE_OBJ = $(OBJ_DIR)/core/config_loader.o \
            $(OBJ_DIR)/core/log_manager.o \
            $(OBJ_DIR)/core/sensors_manager.o \
            $(OBJ_DIR)/core/board.o \
+           $(OBJ_DIR)/core/manager_board.o \
            $(OBJ_DIR)/core/track_manager.o
 
 # Assembly files
@@ -38,7 +39,7 @@ ASM_USAC14 = $(OBJ_DIR)/assembly/usac14.o
 # Targets principais
 # ============================================
 
-all: info test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac15 test_usac16
+all: info test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac15 test_usac16 app
 
 # ============================================
 # USAC10 - Test (Protocolo Hardware)
@@ -86,7 +87,6 @@ test_usac13: dirs $(OBJ_DIR)/core/sensors_manager.o $(ASM_USAC03)
 
 # ============================================
 # USAC14 - Test (Light Controller)
-# ⭐ ATUALIZADO: Adicionado ASM_USAC14!
 # ============================================
 
 test_usac14: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14) $(ASM_USAC01)
@@ -100,7 +100,6 @@ test_usac14: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14) $(ASM_USAC01)
 
 # ============================================
 # USAC14 Hardware - Test
-# ⭐ ATUALIZADO: Adicionado ASM_USAC14!
 # ============================================
 
 test_usac14_hw: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14) $(ASM_USAC01)
@@ -253,16 +252,18 @@ info:
 	@echo ""
 	@echo "Targets disponíveis:"
 	@echo " make all           → Compilar tudo"
+	@echo " make test_usac10   → Compilar USAC10"
+	@echo " make test_usac11   → Compilar USAC11"
+	@echo " make test_usac12   → Compilar USAC12"
+	@echo " make test_usac13   → Compilar USAC13"
+	@echo " make test_usac14   → Compilar USAC14 (com assembly struct)"
+	@echo " make test_usac14_hw→ Compilar USAC14 Hardware"
+	@echo " make test_usac15   → Compilar USAC15"
+	@echo " make test_usac16   → Compilar USAC16"
 	@echo ""
-	@echo " make run_usac10    → Executar USAC10"
-	@echo " make run_usac11    → Executar USAC11"
-	@echo " make run_usac12    → Executar USAC12"
-	@echo " make run_usac13    → Executar USAC13"
+	@echo " make run_app       → Executar Aplicação Principal"
 	@echo " make run_usac14    → Executar USAC14 (mock)"
 	@echo " make run_usac14_hw → Executar USAC14 (hardware)"
-	@echo " make run_usac15    → Executar USAC15"
-	@echo " make run_usac16    → Executar USAC16"
-	@echo " make run_app       → Executar Aplicação Principal"
 	@echo ""
 	@echo " make clean         → Limpar build"
 	@echo " make cleanall      → Limpar tudo + logs"

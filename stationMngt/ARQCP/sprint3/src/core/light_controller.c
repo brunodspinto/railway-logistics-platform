@@ -211,3 +211,8 @@ int set_track_blink(int track_id) {
 
     return serial_send(serial_fd, cmd);
 }
+
+// Permitir que outros módulos usem a porta serial aberta
+int light_controller_get_fd() {
+    return serial_fd;
+}
