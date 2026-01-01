@@ -3,6 +3,7 @@
 #include "light_controller.h"
 #include "board.h" // Se tiveres o header do board disponível
 #include "types.h" // Para os enums TRACK_FREE, etc.
+#include "sensors_manager.h"
 
 // Declaração externa da função do board (caso não esteja num header público)
 void manager_send_data_to_board(StationSystem *sys);
