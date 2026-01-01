@@ -24,7 +24,10 @@ BIN_DIR = $(BUILD_DIR)/bin
 CORE_OBJ = $(OBJ_DIR)/core/config_loader.o \
            $(OBJ_DIR)/core/serial_comm.o \
            $(OBJ_DIR)/core/light_controller.o \
-           $(OBJ_DIR)/core/log_manager.o
+           $(OBJ_DIR)/core/log_manager.o \
+           $(OBJ_DIR)/core/sensors_manager.o \
+           $(OBJ_DIR)/core/board.o \
+           $(OBJ_DIR)/core/track_manager.o
 
 # Assembly files (ADICIONADO USAC14!)
 ASM_USAC01 = $(OBJ_DIR)/assembly/usac01.o
@@ -121,6 +124,18 @@ test_usac15: dirs $(OBJ_DIR)/core/board.o
 	@echo "✓ USAC15 compilado (RV64)"
 
 # ============================================
+# USAC16 - Test (Track Manager Logic)
+# ============================================
+
+test_usac16: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14)
+	$(CC) $(CFLAGS) tests/test_usac16.c \
+	   $(CORE_OBJ) \
+	   $(ASM_USAC04) \
+	   $(ASM_USAC14) \
+	   -o $(BIN_DIR)/test_usac16
+	@echo "✓ USAC16 compilado"
+
+# ============================================
 # Compilação de object files
 # ============================================
 
@@ -180,6 +195,9 @@ run_usac14_hw: test_usac14_hw
 run_usac15: test_usac15
 	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac15
 
+run_usac16: test_usac16
+	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac16
+
 # ============================================
 # Info
 # ============================================
@@ -196,6 +214,7 @@ info:
 	@echo " make test_usac14   → Compilar USAC14 (com assembly struct)"
 	@echo " make test_usac14_hw→ Compilar USAC14 Hardware"
 	@echo " make test_usac15   → Compilar USAC15"
+	@echo " make test_usac16   → Compilar USAC16"
 	@echo ""
 	@echo " make run_usac14    → Executar USAC14 (mock)"
 	@echo " make run_usac14_hw → Executar USAC14 (hardware)"
@@ -204,5 +223,5 @@ info:
 	@echo " make cleanall      → Limpar tudo + logs"
 
 .PHONY: all dirs clean cleanall info \
-        test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac14_hw test_usac15 \
-        run_usac10 run_usac11 run_usac12 run_usac13 run_usac14 run_usac14_hw run_usac15
+        test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac14_hw test_usac15 test_usac16\
+        run_usac10 run_usac11 run_usac12 run_usac13 run_usac14 run_usac14_hw run_usac15 run_usac16
