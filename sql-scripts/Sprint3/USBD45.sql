@@ -122,3 +122,165 @@ EXCEPTION
 END add_new_line;
 /
 
+
+-- Bloco Anónimo USBD45 1--
+
+DECLARE
+v_cursor SYS_REFCURSOR;
+    v_line_id NUMBER;
+    v_line_name VARCHAR2(100);
+    v_start_station NUMBER;
+    v_end_station NUMBER;
+    v_owner_vat VARCHAR2(20);
+    v_gauge NUMBER;
+    v_segment_id NUMBER;
+    v_length NUMBER;
+    v_max_weight NUMBER;
+    v_electrified NUMBER;
+    v_siding_id NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Test 1: Create simple line without siding');
+
+    v_cursor := add_new_line(
+        p_line_name => 'Ramal Teste Porto-Braga',
+        p_owner_vat => 'PT503933813',
+        p_start_station_id => 5,
+        p_end_station_id => 30,
+        p_gauge_measure => 1668,
+        p_segment_max_weight => 8000,
+        p_segment_length => 55000,
+        p_is_electrified => 1,
+        p_segment_type_id => 2
+    );
+
+    LOOP
+FETCH v_cursor INTO v_line_id, v_line_name, v_start_station, v_end_station,
+                           v_owner_vat, v_gauge, v_segment_id, v_length,
+                           v_max_weight, v_electrified, v_siding_id;
+        EXIT WHEN v_cursor%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE('Line ID: ' || v_line_id ||
+                           ', Name: ' || v_line_name ||
+                           ', Start: ' || v_start_station ||
+                           ', End: ' || v_end_station ||
+                           ', Segment ID: ' || v_segment_id ||
+                           ', Siding: ' || NVL(TO_CHAR(v_siding_id), 'No'));
+END LOOP;
+
+CLOSE v_cursor;
+DBMS_OUTPUT.PUT_LINE('');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        DBMS_OUTPUT.PUT_LINE('');
+END;
+/
+
+-- Bloco Anónimo USBD45 2--
+
+DECLARE
+v_cursor SYS_REFCURSOR;
+    v_line_id NUMBER;
+    v_line_name VARCHAR2(100);
+    v_start_station NUMBER;
+    v_end_station NUMBER;
+    v_owner_vat VARCHAR2(20);
+    v_gauge NUMBER;
+    v_segment_id NUMBER;
+    v_length NUMBER;
+    v_max_weight NUMBER;
+    v_electrified NUMBER;
+    v_siding_id NUMBER;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Test 2: Create line with siding');
+
+    v_cursor := add_new_line(
+        p_line_name => 'Linha Teste com Siding',
+        p_owner_vat => 'PT503933813',
+        p_start_station_id => 1,
+        p_end_station_id => 2,
+        p_gauge_measure => 1668,
+        p_segment_max_weight => 7500,
+        p_segment_length => 45000,
+        p_is_electrified => 0,
+        p_segment_type_id => 1,
+        p_has_siding => 1,
+        p_siding_position => 22500,
+        p_siding_length => 800
+    );
+
+    LOOP
+FETCH v_cursor INTO v_line_id, v_line_name, v_start_station, v_end_station,
+                           v_owner_vat, v_gauge, v_segment_id, v_length,
+                           v_max_weight, v_electrified, v_siding_id;
+        EXIT WHEN v_cursor%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE('Line ID: ' || v_line_id ||
+                           ', Name: ' || v_line_name ||
+                           ', Start: ' || v_start_station ||
+                           ', End: ' || v_end_station ||
+                           ', Segment ID: ' || v_segment_id ||
+                           ', Siding: ' || NVL(TO_CHAR(v_siding_id), 'No'));
+END LOOP;
+
+CLOSE v_cursor;
+DBMS_OUTPUT.PUT_LINE('');
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        DBMS_OUTPUT.PUT_LINE('');
+END;
+/
+
+-- Bloco Anónimo USBD45 3--
+DECLARE
+v_cursor SYS_REFCURSOR;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Test 3: Invalid operator (should fail)');
+
+    v_cursor := add_new_line(
+        p_line_name => 'Linha Invalida',
+        p_owner_vat => 'PT999999999',
+        p_start_station_id => 1,
+        p_end_station_id => 2,
+        p_gauge_measure => 1668,
+        p_segment_max_weight => 8000,
+        p_segment_length => 50000,
+        p_is_electrified => 1,
+        p_segment_type_id => 2
+    );
+
+CLOSE v_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        DBMS_OUTPUT.PUT_LINE('');
+END;
+/
+
+-- Bloco Anónimo USBD45 4
+-- --
+DECLARE
+v_cursor SYS_REFCURSOR;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Test 4: Same start/end station (should fail)');
+
+    v_cursor := add_new_line(
+        p_line_name => 'Linha Circular',
+        p_owner_vat => 'PT503933813',
+        p_start_station_id => 5,
+        p_end_station_id => 5,
+        p_gauge_measure => 1668,
+        p_segment_max_weight => 8000,
+        p_segment_length => 50000,
+        p_is_electrified => 1,
+        p_segment_type_id => 2
+    );
+
+CLOSE v_cursor;
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        DBMS_OUTPUT.PUT_LINE('');
+END;
+/

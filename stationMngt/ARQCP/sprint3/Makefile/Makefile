@@ -1,14 +1,13 @@
 # ============================================
 # Makefile - ARQCP Sprint 3
-# USAC10 + USAC11 + USAC12 + USAC13 + USAC14 + USAC15
-# Arquitetura: RV64IMAFDC
+# USAC10 a USAC16 - Arquitetura: RV64IMAFDC
 # ============================================
 
 CC = riscv64-linux-gnu-gcc
 AS = riscv64-linux-gnu-as
 QEMU = qemu-riscv64-static
 
-# CORRIGIDO: Adicionado -Isrc/assembly para encontrar headers assembly
+# Flags incluem assembly include
 CFLAGS = -Wall -Wextra -g -Iinclude -Isrc/core -Isrc/assembly -march=rv64imafdc -mabi=lp64d -static
 ASFLAGS = -march=rv64imafdc -mabi=lp64d
 
@@ -29,7 +28,7 @@ CORE_OBJ = $(OBJ_DIR)/core/config_loader.o \
            $(OBJ_DIR)/core/board.o \
            $(OBJ_DIR)/core/track_manager.o
 
-# Assembly files (ADICIONADO USAC14!)
+# Assembly files
 ASM_USAC01 = $(OBJ_DIR)/assembly/usac01.o
 ASM_USAC03 = $(OBJ_DIR)/assembly/usac03.o
 ASM_USAC04 = $(OBJ_DIR)/assembly/usac04.o
@@ -39,7 +38,7 @@ ASM_USAC14 = $(OBJ_DIR)/assembly/usac14.o
 # Targets principais
 # ============================================
 
-all: info test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac15
+all: info test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac15 test_usac16
 
 # ============================================
 # USAC10 - Test (Protocolo Hardware)
@@ -50,7 +49,7 @@ test_usac10: dirs $(ASM_USAC03) $(ASM_USAC04)
 	   $(ASM_USAC03) \
 	   $(ASM_USAC04) \
 	   -o $(BIN_DIR)/test_usac10
-	@echo "✓ USAC10 compilado (RV64)"
+	@echo "✓ USAC10 compilado"
 
 # ============================================
 # USAC11 - Test (Config Loader)
@@ -60,7 +59,7 @@ test_usac11: dirs $(OBJ_DIR)/core/config_loader.o
 	$(CC) $(CFLAGS) tests/test_usac11.c \
 	   $(OBJ_DIR)/core/config_loader.o \
 	   -o $(BIN_DIR)/test_usac11
-	@echo "✓ USAC11 compilado (RV64)"
+	@echo "✓ USAC11 compilado"
 
 # ============================================
 # USAC12 - Test (Log Export)
@@ -72,7 +71,7 @@ test_usac12: dirs $(OBJ_DIR)/core/config_loader.o $(OBJ_DIR)/core/log_manager.o 
 	   $(OBJ_DIR)/core/log_manager.o \
 	   $(ASM_USAC01) \
 	   -o $(BIN_DIR)/test_usac12
-	@echo "✓ USAC12 compilado (RV64)"
+	@echo "✓ USAC12 compilado"
 
 # ============================================
 # USAC13 - Test (Read Sensors)
@@ -83,7 +82,7 @@ test_usac13: dirs $(OBJ_DIR)/core/sensors_manager.o $(ASM_USAC03)
 	   $(OBJ_DIR)/core/sensors_manager.o \
 	   $(ASM_USAC03) \
 	   -o $(BIN_DIR)/test_usac13
-	@echo "✓ USAC13 compilado (RV64)"
+	@echo "✓ USAC13 compilado"
 
 # ============================================
 # USAC14 - Test (Light Controller)
@@ -97,7 +96,7 @@ test_usac14: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14) $(ASM_USAC01)
 	   $(ASM_USAC14) \
 	   $(ASM_USAC01) \
 	   -o $(BIN_DIR)/test_usac14
-	@echo "✓ USAC14 compilado (RV64 + Assembly com Struct)"
+	@echo "✓ USAC14 compilado"
 
 # ============================================
 # USAC14 Hardware - Test
@@ -111,7 +110,7 @@ test_usac14_hw: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14) $(ASM_USAC01)
 	   $(ASM_USAC14) \
 	   $(ASM_USAC01) \
 	   -o $(BIN_DIR)/test_usac14_hw
-	@echo "✓ USAC14 Hardware compilado (RV64 + Assembly com Struct)"
+	@echo "✓ USAC14 Hardware compilado"
 
 # ============================================
 # USAC15 - Test (Synoptic Board)
@@ -121,7 +120,7 @@ test_usac15: dirs $(OBJ_DIR)/core/board.o
 	$(CC) $(CFLAGS) tests/test_usac15.c \
 	   $(OBJ_DIR)/core/board.o \
 	   -o $(BIN_DIR)/test_usac15
-	@echo "✓ USAC15 compilado (RV64)"
+	@echo "✓ USAC15 compilado"
 
 # ============================================
 # USAC16 - Test (Track Manager Logic)
@@ -133,7 +132,7 @@ test_usac16: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14)
 	   $(ASM_USAC04) \
 	   $(ASM_USAC14) \
 	   -o $(BIN_DIR)/test_usac16
-	@echo "✓ USAC16 compilado"
+	@echo "✓ USAC16 compilado (Completo)"
 
 # ============================================
 # APP PRINCIPAL (Station Controller Integrado)
@@ -165,7 +164,7 @@ $(OBJ_DIR)/assembly/%.o: src/assembly/%.s
 	$(AS) $(ASFLAGS) $< -o $@
 
 # ============================================
-# Diretórios
+# Diretórios e Limpeza
 # ============================================
 
 dirs:
@@ -187,7 +186,7 @@ cleanall: clean
 	rm -f config/*.bak
 
 # ============================================
-# Executar testes
+# Runners
 # ============================================
 
 run_usac10: test_usac10
@@ -223,7 +222,6 @@ info:
 	@echo "=== ARQCP Sprint 3 - Makefile ==="
 	@echo ""
 	@echo "Targets disponíveis:"
-	@echo " make app           → Compilar Aplicação Principal"
 	@echo " make all           → Compilar tudo"
 	@echo " make test_usac10   → Compilar USAC10"
 	@echo " make test_usac11   → Compilar USAC11"
