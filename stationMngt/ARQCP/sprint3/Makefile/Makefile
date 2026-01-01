@@ -44,7 +44,6 @@ all: info test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac1
 # ============================================
 # USAC10 - Test (Protocolo Hardware)
 # ============================================
-
 test_usac10: dirs $(ASM_USAC03) $(ASM_USAC04)
 	$(CC) $(CFLAGS) tests/test_usac10.c \
 	   $(ASM_USAC03) \
@@ -55,7 +54,6 @@ test_usac10: dirs $(ASM_USAC03) $(ASM_USAC04)
 # ============================================
 # USAC11 - Test (Config Loader)
 # ============================================
-
 test_usac11: dirs $(OBJ_DIR)/core/config_loader.o
 	$(CC) $(CFLAGS) tests/test_usac11.c \
 	   $(OBJ_DIR)/core/config_loader.o \
@@ -65,7 +63,6 @@ test_usac11: dirs $(OBJ_DIR)/core/config_loader.o
 # ============================================
 # USAC12 - Test (Log Export)
 # ============================================
-
 test_usac12: dirs $(OBJ_DIR)/core/config_loader.o $(OBJ_DIR)/core/log_manager.o $(ASM_USAC01)
 	$(CC) $(CFLAGS) tests/test_usac12.c \
 	   $(OBJ_DIR)/core/config_loader.o \
@@ -77,7 +74,6 @@ test_usac12: dirs $(OBJ_DIR)/core/config_loader.o $(OBJ_DIR)/core/log_manager.o 
 # ============================================
 # USAC13 - Test (Read Sensors)
 # ============================================
-
 test_usac13: dirs $(OBJ_DIR)/core/sensors_manager.o $(ASM_USAC03)
 	$(CC) $(CFLAGS) tests/test_usac13.c \
 	   $(OBJ_DIR)/core/sensors_manager.o \
@@ -88,7 +84,6 @@ test_usac13: dirs $(OBJ_DIR)/core/sensors_manager.o $(ASM_USAC03)
 # ============================================
 # USAC14 - Test (Light Controller)
 # ============================================
-
 test_usac14: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14) $(ASM_USAC01)
 	$(CC) $(CFLAGS) tests/test_usac14.c \
 	   $(CORE_OBJ) \
@@ -101,7 +96,6 @@ test_usac14: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14) $(ASM_USAC01)
 # ============================================
 # USAC14 Hardware - Test
 # ============================================
-
 test_usac14_hw: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14) $(ASM_USAC01)
 	$(CC) $(CFLAGS) tests/test_usac14_hardware.c \
 	   $(CORE_OBJ) \
@@ -114,7 +108,6 @@ test_usac14_hw: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14) $(ASM_USAC01)
 # ============================================
 # USAC15 - Test (Synoptic Board)
 # ============================================
-
 test_usac15: dirs $(OBJ_DIR)/core/board.o
 	$(CC) $(CFLAGS) tests/test_usac15.c \
 	   $(OBJ_DIR)/core/board.o \
@@ -124,49 +117,19 @@ test_usac15: dirs $(OBJ_DIR)/core/board.o
 # ============================================
 # USAC16 - Test (Track Manager Logic)
 # ============================================
-
-test_usac16: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14)
+test_usac16: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14) $(ASM_USAC01) $(ASM_USAC03)
 	$(CC) $(CFLAGS) tests/test_usac16.c \
 	   $(CORE_OBJ) \
 	   $(ASM_USAC04) \
 	   $(ASM_USAC14) \
+	   $(ASM_USAC01) \
+	   $(ASM_USAC03) \
 	   -o $(BIN_DIR)/test_usac16
 	@echo "✓ USAC16 compilado (Completo)"
 
 # ============================================
-# Runners
-# ============================================
-
-run_usac10: test_usac10
-	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac10
-
-run_usac11: test_usac11
-	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac11
-
-run_usac12: test_usac12
-	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac12
-
-run_usac13: test_usac13
-	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac13
-
-run_usac14: test_usac14
-	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac14
-
-run_usac14_hw: test_usac14_hw
-	@echo "⚠️  Arduino deve estar ligado!"
-	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac14_hw
-
-run_usac15: test_usac15
-	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac15
-
-run_usac16: test_usac16
-	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac16
-
-
-# ============================================
 # APP PRINCIPAL (Station Controller Integrado)
 # ============================================
-
 app: dirs $(CORE_OBJ) $(ASM_USAC01) $(ASM_USAC03) $(ASM_USAC04) $(ASM_USAC14)
 	$(CC) $(CFLAGS) src/core/main.c \
 	   $(CORE_OBJ) \
@@ -177,13 +140,9 @@ app: dirs $(CORE_OBJ) $(ASM_USAC01) $(ASM_USAC03) $(ASM_USAC04) $(ASM_USAC14)
 	   -o $(BIN_DIR)/station_app
 	@echo "✓ Station App (Menu Integrado) compilada com sucesso!"
 
-run_app: app
-	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/station_app
-
 # ============================================
 # Compilação de object files
 # ============================================
-
 $(OBJ_DIR)/core/%.o: src/core/%.c
 	@mkdir -p $(OBJ_DIR)/core
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -195,17 +154,12 @@ $(OBJ_DIR)/assembly/%.o: src/assembly/%.s
 # ============================================
 # Diretórios e Limpeza
 # ============================================
-
 dirs:
 	@mkdir -p $(BIN_DIR)
 	@mkdir -p $(OBJ_DIR)/core
 	@mkdir -p $(OBJ_DIR)/assembly
 	@mkdir -p config
 	@mkdir -p data/logs
-
-# ============================================
-# Limpeza
-# ============================================
 
 clean:
 	rm -rf $(BUILD_DIR)
@@ -217,7 +171,6 @@ cleanall: clean
 # ============================================
 # Runners
 # ============================================
-
 run_usac10: test_usac10
 	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac10
 
@@ -243,32 +196,19 @@ run_usac15: test_usac15
 run_usac16: test_usac16
 	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/test_usac16
 
+run_app: app
+	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/station_app
+
 # ============================================
 # Info
 # ============================================
-
 info:
 	@echo "=== ARQCP Sprint 3 - Makefile ==="
-	@echo ""
-	@echo "Targets disponíveis:"
 	@echo " make all           → Compilar tudo"
-	@echo " make test_usac10   → Compilar USAC10"
-	@echo " make test_usac11   → Compilar USAC11"
-	@echo " make test_usac12   → Compilar USAC12"
-	@echo " make test_usac13   → Compilar USAC13"
-	@echo " make test_usac14   → Compilar USAC14 (com assembly struct)"
-	@echo " make test_usac14_hw→ Compilar USAC14 Hardware"
-	@echo " make test_usac15   → Compilar USAC15"
-	@echo " make test_usac16   → Compilar USAC16"
-	@echo ""
 	@echo " make run_app       → Executar Aplicação Principal"
-	@echo " make run_usac14    → Executar USAC14 (mock)"
 	@echo " make run_usac14_hw → Executar USAC14 (hardware)"
-	@echo ""
 	@echo " make clean         → Limpar build"
-	@echo " make cleanall      → Limpar tudo + logs"
 
 .PHONY: all dirs clean cleanall info \
-        test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac14_hw test_usac15 test_usac16\
-        run_usac10 run_usac11 run_usac12 run_usac13 run_usac14 run_usac14_hw run_usac15 run_usac16 \
+        test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac14_hw test_usac15 test_usac16 \
         app run_app

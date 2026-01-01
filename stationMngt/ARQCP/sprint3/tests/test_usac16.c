@@ -6,30 +6,27 @@
 #include "light_controller.h"
 
 // =========================================================
-// MOCKS - Funções Falsas para enganar o Linker
-// Necessárias porque o sensors_manager.o e track_manager.o
-// estão no Makefile mas não temos o hardware real aqui.
+// MOCKS
 // =========================================================
 
-int send_cmd_to_sensors(const char *cmd) {
-    (void)cmd; // Ignorar warning de "não usado"
-    return 1;  // Fingir sucesso
-}
+// Mock para Sensores (Hardware)
+int send_cmd_to_sensors(const char *cmd) { (void)cmd; return 1; }
+int wait_for_data_from_sensors(char *buffer, int max) { (void)buffer; (void)max; return 0; }
 
-int wait_for_data_from_sensors(char *buffer, int max) {
-    (void)buffer;
-    (void)max;
-    // Retornar 0 bytes lidos para simular que não há dados novos
+// Mock para Assembly USAC03 (Extract Data)
+// O log_manager e sensors_manager precisam disto, mas como
+// vamos adicionar o Assembly real no Makefile, podemos remover este mock
+// OU mantê-lo APENAS se não linkarmos o usac03.
+// PARA EVITAR ERROS DE DUPLA DEFINIÇÃO COM O ASSEMBLY, VAMOS REMOVER ESTE TAMBÉM:
+/* int extract_data(char* str, char* token, char* unit, int* value) {
+    (void)str; (void)token; (void)unit; (void)value;
     return 0;
 }
+*/
+// (Se der erro "undefined reference to extract_data", descomenta acima,
+// mas o plano é adicionar o ASM no Makefile)
 
-// CORREÇÃO CRÍTICA: Adicionado este Mock para resolver o erro do Linker
-void manager_send_data_to_board(int track_id, int train_id, int state) {
-    // Simplesmente ignoramos os parâmetros para o teste compilar
-    (void)track_id;
-    (void)train_id;
-    (void)state;
-}
+// REMOVIDO: manager_send_data_to_board (Agora usamos a real do manager_board.c)
 
 // =========================================================
 // SETUP DO SISTEMA
@@ -50,9 +47,6 @@ void setup_system(StationSystem *sys, int num_tracks) {
         sys->tracks.data[i].assigned_train_id = -1;
     }
 
-    // Inicializar controlador de luzes com porta falsa
-    // Vai falhar a abrir a porta, mas permite que o código corra sem crashar
-    // As funções set_track_light vão apenas imprimir erro no stderr, o que é OK para teste lógico.
     light_controller_init("/dev/null");
 }
 
@@ -74,7 +68,7 @@ void print_test_header(const char* title) {
 int main() {
     StationSystem sys = {0};
 
-    // Setup: Criar estação pequena com APENAS 2 VIAS para facilitar teste de cheio
+    // Setup: Criar estação pequena com APENAS 2 VIAS
     setup_system(&sys, 2);
 
     printf(">>> INÍCIO DOS TESTES USAC16 (Lógica de Vias) <<<\n");
@@ -83,20 +77,18 @@ int main() {
     // TESTE 1: Chegada de Comboio (Sucesso)
     // -----------------------------------------------------
     print_test_header("Chegada Normal (Comboio 101)");
-    // Esperamos que vá para a via 1
     int track_id = process_train_arrival(&sys, 101);
 
     if (track_id == 1 && sys.tracks.data[0].state == TRACK_ASSIGNED) {
         printf("PASS: Comboio 101 atribuído à Via %d corretamente.\n", track_id);
     } else {
-        printf("FAIL: Esperado Via 1, obtido Via %d (Estado: %d).\n", track_id, sys.tracks.data[0].state);
+        printf("FAIL: Esperado Via 1, obtido Via %d.\n", track_id);
     }
 
     // -----------------------------------------------------
     // TESTE 2: Ocupar a segunda via
     // -----------------------------------------------------
     print_test_header("Ocupar Restante (Comboio 102)");
-    // Esperamos que vá para a via 2
     track_id = process_train_arrival(&sys, 102);
 
     if (track_id == 2) {
@@ -109,10 +101,10 @@ int main() {
     // TESTE 3: Estação Cheia (Emergency Stop)
     // -----------------------------------------------------
     print_test_header("Estação Cheia (Emergency Stop)");
-    track_id = process_train_arrival(&sys, 103); // Comboio 103 (Não cabe!)
+    track_id = process_train_arrival(&sys, 103);
 
     if (track_id == -1) {
-        printf("PASS: Emergency Stop acionado corretamente (retornou -1).\n");
+        printf("PASS: Emergency Stop acionado corretamente.\n");
     } else {
         printf("FAIL: Devia ter dado erro (-1), mas atribuiu via %d.\n", track_id);
     }
@@ -121,19 +113,19 @@ int main() {
     // TESTE 4: Libertar Via
     // -----------------------------------------------------
     print_test_header("Partida de Comboio (Via 1)");
-    process_train_departure(&sys, 1); // Libertar Via 1
+    process_train_departure(&sys, 1);
 
     if (sys.tracks.data[0].state == TRACK_FREE) {
         printf("PASS: Via 1 está LIVRE novamente.\n");
     } else {
-        printf("FAIL: Via 1 não ficou livre (Estado atual: %d).\n", sys.tracks.data[0].state);
+        printf("FAIL: Via 1 não ficou livre.\n");
     }
 
     // -----------------------------------------------------
     // TESTE 5: Manutenção
     // -----------------------------------------------------
     print_test_header("Colocar em Manutenção (Via 1)");
-    set_track_unavailable(&sys, 1); // Bloquear Via 1
+    set_track_unavailable(&sys, 1);
 
     if (sys.tracks.data[0].state == TRACK_INOPERATIVE) {
         printf("PASS: Via 1 está INOPERACIONAL.\n");
@@ -144,15 +136,13 @@ int main() {
     // -----------------------------------------------------
     // TESTE 6: Tentar usar via em manutenção
     // -----------------------------------------------------
-    // Cenário: Via 1 Inoperacional. Via 2 Ocupada (pelo comboio 102).
-    // Resultado esperado: Emergency Stop (-1).
     print_test_header("Chegada com Via em Manutenção");
     track_id = process_train_arrival(&sys, 104);
 
     if (track_id == -1) {
-        printf("PASS: Não atribuiu via (Correto: Vias ocupadas ou inoperacionais).\n");
+        printf("PASS: Não atribuiu via (Correto).\n");
     } else {
-        printf("FAIL: Atribuiu via %d indevidamente (Via 1 devia estar fechada).\n", track_id);
+        printf("FAIL: Atribuiu via %d indevidamente.\n", track_id);
     }
 
     teardown_system(&sys);
