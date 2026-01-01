@@ -1,4 +1,5 @@
 #include "ui.c"
+#include "stdlib.h"
 
 int main(){
     int main(){
