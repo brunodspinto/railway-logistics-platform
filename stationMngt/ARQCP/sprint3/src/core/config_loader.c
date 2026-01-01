@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Importante: Para sabermos o que é SensorBuffer e SensorData
+#include "sensors_manager.h"
+
 #define MAX_LINE 256
 #define INITIAL_CAPACITY 10
 
@@ -32,13 +35,26 @@ static void init_log_list(LogList* list) {
     list->capacity = INITIAL_CAPACITY;
 }
 
-static void init_sensor_config(SensorConfig* config, int buf_size, int window) {
-    config->buffer = calloc(buf_size, sizeof(int));
-    config->buffer_length = buf_size;
-    config->median_window = window;
+// CORREÇÃO: Usamos SensorBuffer em vez de SensorConfig
+// E removemos o malloc porque o buffer é estático (int values[10])
+static void init_sensor_config(SensorBuffer* config, int buf_size, int window) {
+    // Não fazemos malloc porque 'values' é um array fixo na struct
+    // config->buffer = calloc(buf_size, sizeof(int)); // REMOVIDO
+
+    (void)buf_size; // Ignorar buf_size se for fixo no header
+
+    // Configurar a janela deslizante
+    // Nota: O campo na struct chama-se 'win', não 'median_window'
+    config->win = window;
+
     config->nelem = 0;
     config->tail = 0;
     config->head = 0;
+
+    // Limpar o array de valores (opcional, mas boa prática)
+    for(int i=0; i<10; i++) { // Assumindo tamanho 10
+        config->values[i] = 0;
+    }
 }
 
 // ========== ADD COM EXPANSÃO DINÂMICA ==========
@@ -122,7 +138,11 @@ static int parse_sensor(const char* line, SensorData* sensors) {
     if (!token) return 0;
     int window = atoi(token);
 
-    if (buf_size <= 0 || window <= 0 || window > buf_size) return 0;
+    // Validação básica
+    if (buf_size <= 0 || window <= 0) return 0;
+
+    // Se o buffer for fixo (ex: 10), garantimos que window <= 10
+    if (window > 10) window = 10;
 
     if (strcmp(type, "TEMPERATURE") == 0) {
         init_sensor_config(&sensors->temperature, buf_size, window);
@@ -178,7 +198,7 @@ static int parse_train(const char* line, Train* train) {
     return 1;
 }
 
-// ========== USAC11 - FUNÇÃO PRINCIPAL ==========
+// ========== FUNÇÃO PRINCIPAL ==========
 
 int load_configuration(const char* filename, StationSystem* system) {
     FILE* file = fopen(filename, "r");
@@ -249,16 +269,13 @@ int load_configuration(const char* filename, StationSystem* system) {
         return 0;
     }
 
+    // CORREÇÃO: Prints atualizados para os campos corretos
     printf("\n✓ Configuração carregada com sucesso!\n");
     printf("  Users: %d\n", system->users.count);
     printf("  Tracks: %d\n", system->tracks.count);
     printf("  Trains: %d\n", system->trains.count);
-    printf("  Temp buffer: %d (window: %d)\n",
-           system->sensors.temperature.buffer_length,
-           system->sensors.temperature.median_window);
-    printf("  Hum buffer: %d (window: %d)\n",
-           system->sensors.humidity.buffer_length,
-           system->sensors.humidity.median_window);
+    printf("  Temp Window: %d\n", system->sensors.temperature.win);
+    printf("  Hum Window: %d\n", system->sensors.humidity.win);
 
     return 1;
 }
@@ -270,6 +287,9 @@ void free_station_system(StationSystem* system) {
     free(system->tracks.data);
     free(system->trains.data);
     free(system->logs.data);
-    free(system->sensors.temperature.buffer);
-    free(system->sensors.humidity.buffer);
+
+    // CORREÇÃO: Removemos os free() dos sensores
+    // Como os buffers são estáticos (values[10]), não se pode fazer free!
+    // free(system->sensors.temperature.buffer); // REMOVIDO
+    // free(system->sensors.humidity.buffer);    // REMOVIDO
 }
