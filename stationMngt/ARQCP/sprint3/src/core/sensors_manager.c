@@ -43,8 +43,6 @@ int manager_get_sensors_data(SensorData *out){
 
     buffer[n]='\0';
 
-    printf(">> DEBUG: Recebi do Arduino [%d bytes]: '%s'\n", n, buffer);
-
     // ---- TEMP ----
     if(!extract_data(buffer,"TEMP",unit,&value)) return 0;
     if(out->temperature.win==0) out->temperature.win=5;
