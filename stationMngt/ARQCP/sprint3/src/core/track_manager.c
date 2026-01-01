@@ -9,7 +9,7 @@
 void manager_send_data_to_board(StationSystem *sys);
 
 // (Verifica se esta função recebe mesmo 'sys' como argumento no teu código original)
-void manager_get_sensors_data(StationSystem *sys);
+int manager_get_sensors_data(StationSystem *sys);
 
 // Função auxiliar pura em C para encontrar via livre
 static Track* find_first_free_track(StationSystem* sys) {
