@@ -6,9 +6,7 @@
 #include "structures.h"
 
 // =========================================================
-// MOCKS - A "Vacina" para os erros de Linker
-// Estas funções enganam o compilador para ele não pedir
-// o hardware de sensores nem o assembly USAC03.
+// MOCKS
 // =========================================================
 
 // Mock para Sensores (Hardware)
@@ -16,16 +14,12 @@ int send_cmd_to_sensors(const char *cmd) { (void)cmd; return 1; }
 int wait_for_data_from_sensors(char *buffer, int max) { (void)buffer; (void)max; return 0; }
 
 // Mock para Assembly USAC03 (Extract Data)
-// Definimos aqui em C para não precisares de alterar o Makefile
 int extract_data(char* str, char* token, char* unit, int* value) {
     (void)str; (void)token; (void)unit; (void)value;
     return 0;
 }
 
-// Mock para Track Manager / Board
-void manager_send_data_to_board(int track_id, int train_id, int state) {
-    (void)track_id; (void)train_id; (void)state;
-}
+// REMOVIDO: manager_send_data_to_board (Agora usamos a real do manager_board.c)
 
 // =========================================================
 // TESTE USAC14 (Luzes com Mock Serial)
@@ -36,11 +30,9 @@ int main() {
     printf("  TESTE USAC14 - LIGHT CONTROLLER (MOCK)\n");
     printf("========================================\n");
 
-    // 1. Inicializar com porta virtual (não precisa de Arduino real aqui)
-    // O sistema vai usar o mock interno do light_controller ou falhar graciosamente
-    if (light_controller_init("/dev/ttyUSB_MOCK") == 0) {
-        printf("⚠️  Aviso: Falha esperada ao abrir porta mock (normal se não houver lógica de mock interna).\n");
-        printf("   A continuar teste lógico...\n");
+    // 1. Inicializar com porta virtual
+    if (light_controller_init(NULL) == 0) { // NULL ativa modo mock interno se implementado
+        printf("⚠️  Aviso: Falha ao abrir porta (normal se for teste sem hardware).\n");
     } else {
         printf("✓ Controlador inicializado.\n");
     }
@@ -48,7 +40,7 @@ int main() {
     // 2. Criar uma Track de teste
     Track t1;
     t1.id = 1;
-    t1.state = TRACK_FREE; // Começa Livre (Verde)
+    t1.state = TRACK_FREE;
 
     // 3. Testar sequência de luzes
     printf("\n--- Teste de Sequência de Cores ---\n");
