@@ -7,6 +7,12 @@
 #include <string.h>
 
 // ========================================
+// Protótipo da função Assembly USAC14
+// (Adicionado para evitar warning de declaração implícita)
+// ========================================
+int generate_command_from_track(Track* track, char* cmd_buffer);
+
+// ========================================
 // Variáveis globais
 // ========================================
 
@@ -81,10 +87,6 @@ int set_track_light(Track* track) {
     // Função assembly: generate_command_from_track()
     // Recebe: Track* track, char* cmd
     // Retorna: 1 (sucesso) ou 0 (erro)
-    //
-    // A função acessa:
-    //   - track->state (offset +4) para determinar comando
-    //   - track->id (offset +0) para número da track
     // ========================================
     char cmd[20];
     int result = generate_command_from_track(track, cmd);
@@ -212,7 +214,9 @@ int set_track_blink(int track_id) {
     return serial_send(serial_fd, cmd);
 }
 
+// ========================================
 // Permitir que outros módulos usem a porta serial aberta
+// ========================================
 int light_controller_get_fd() {
     return serial_fd;
 }
