@@ -7,6 +7,9 @@
 // Declaração externa da função do board (caso não esteja num header público)
 void manager_send_data_to_board(StationSystem *sys);
 
+// (Verifica se esta função recebe mesmo 'sys' como argumento no teu código original)
+void manager_get_sensors_data(StationSystem *sys);
+
 // Função auxiliar pura em C para encontrar via livre
 static Track* find_first_free_track(StationSystem* sys) {
     if (!sys || sys->tracks.count == 0) return NULL;
@@ -54,6 +57,9 @@ int process_train_arrival(StationSystem* sys, int train_id) {
 
     // 4. Atualizar Hardware e Painel
     set_track_light(track);       // Atualiza semáforo (USAC14)
+
+    manager_get_sensors_data(sys); // Atualiza dados sensores (USAC15)
+
     manager_send_data_to_board(sys); // Atualiza dashboard (USAC15)
 
     return track->id;
@@ -84,6 +90,9 @@ void process_train_departure(StationSystem* sys, int track_id) {
 
     // Atualizar Hardware e Painel
     set_track_light(track);
+
+    manager_get_sensors_data(sys);
+
     manager_send_data_to_board(sys);
 }
 
@@ -105,5 +114,8 @@ void set_track_unavailable(StationSystem* sys, int track_id) {
     printf("✓ Via %d marcada como INOPERACIONAL.\n", track_id);
 
     set_track_light(track);
+
+    manager_get_sensors_data(sys);
+
     manager_send_data_to_board(sys);
 }
