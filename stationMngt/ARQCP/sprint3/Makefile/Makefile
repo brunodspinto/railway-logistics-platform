@@ -136,6 +136,23 @@ test_usac16: dirs $(CORE_OBJ) $(ASM_USAC04) $(ASM_USAC14)
 	@echo "✓ USAC16 compilado"
 
 # ============================================
+# APP PRINCIPAL (Station Controller Integrado)
+# ============================================
+
+app: dirs $(CORE_OBJ) $(ASM_USAC01) $(ASM_USAC03) $(ASM_USAC04) $(ASM_USAC14)
+	$(CC) $(CFLAGS) src/core/main.c \
+	   $(CORE_OBJ) \
+	   $(ASM_USAC01) \
+	   $(ASM_USAC03) \
+	   $(ASM_USAC04) \
+	   $(ASM_USAC14) \
+	   -o $(BIN_DIR)/station_app
+	@echo "✓ Station App (Menu Integrado) compilada com sucesso!"
+
+run_app: app
+	$(QEMU) -L /usr/riscv64-linux-gnu ./$(BIN_DIR)/station_app
+
+# ============================================
 # Compilação de object files
 # ============================================
 
@@ -206,6 +223,7 @@ info:
 	@echo "=== ARQCP Sprint 3 - Makefile ==="
 	@echo ""
 	@echo "Targets disponíveis:"
+	@echo " make app           → Compilar Aplicação Principal"
 	@echo " make all           → Compilar tudo"
 	@echo " make test_usac10   → Compilar USAC10"
 	@echo " make test_usac11   → Compilar USAC11"
@@ -216,6 +234,7 @@ info:
 	@echo " make test_usac15   → Compilar USAC15"
 	@echo " make test_usac16   → Compilar USAC16"
 	@echo ""
+	@echo " make run_app       → Executar Aplicação Principal"
 	@echo " make run_usac14    → Executar USAC14 (mock)"
 	@echo " make run_usac14_hw → Executar USAC14 (hardware)"
 	@echo ""
@@ -224,4 +243,5 @@ info:
 
 .PHONY: all dirs clean cleanall info \
         test_usac10 test_usac11 test_usac12 test_usac13 test_usac14 test_usac14_hw test_usac15 test_usac16\
-        run_usac10 run_usac11 run_usac12 run_usac13 run_usac14 run_usac14_hw run_usac15 run_usac16
+        run_usac10 run_usac11 run_usac12 run_usac13 run_usac14 run_usac14_hw run_usac15 run_usac16 \
+        app run_app
