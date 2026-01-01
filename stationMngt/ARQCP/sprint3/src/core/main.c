@@ -1,25 +1,64 @@
-#include "ui.c"
-#include "stdlib.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include "structures.h"
+#include "light_controller.h"
+#include "serial_comm.h"
+#include "config_loader.h"
+#include "ui.c" // Incluímos o c diretamente como estavas a fazer (embora o ideal fosse .h)
 
-int main(){
-    int main(){
-        StationSystem sys = {0}; // Inicializa a estrutura a zeros
+// =========================================================
+// GLUE CODE (A "Cola" para o Hardware)
+// Implementamos aqui as funções que o sensors_manager pede
+// =========================================================
 
-        // Configurações iniciais (Exemplo)
-        sys.tracks.count = 3;
-        sys.tracks.data = calloc(3, sizeof(Track));
-        sys.tracks.data[0].id = 1; // Via 1
-        sys.tracks.data[1].id = 2; // Via 2
-        sys.tracks.data[2].id = 3; // Via 3
+int send_cmd_to_sensors(const char *cmd) {
+    // Buscar o file descriptor aberto pelo light_controller
+    int fd = light_controller_get_fd();
+    return serial_send(fd, cmd);
+}
 
-        // Iniciar controladores
-        light_controller_init(NULL); // NULL para modo Mock, ou "/dev/ttyACM0" para Arduino
+int wait_for_data_from_sensors(char *buffer, int max) {
+    int fd = light_controller_get_fd();
+    // Pequeno delay para dar tempo ao Arduino de responder
+    usleep(100000); // 100ms
+    return serial_receive(fd, buffer, max);
+}
 
-        // Passar o endereço de sys para o menu
-        menu(&sys);
+// =========================================================
+// MAIN PRINCIPAL
+// =========================================================
 
-        // Limpeza final
-        free(sys.tracks.data);
-        return 0;
+int main() {
+    StationSystem sys = {0};
+
+    printf(">>> A INICIAR STATION CONTROLLER <<<\n");
+
+    // 1. Carregar Configuração
+    // Cria um ficheiro dummy se não existir ou ajusta o caminho
+    if (!load_configuration("config/station_config.txt", &sys)) {
+        printf("⚠️  Aviso: Configuração falhou ou ficheiro inexistente.\n");
+        // Continuamos apenas para teste, num sistema real abortaríamos.
     }
+
+    // 2. Inicializar Hardware (Arduino)
+    // Tenta abrir a porta. Se falhar, avisa.
+    char port[50];
+    printf("Porta Serial (ex: /dev/ttyACM0): ");
+    scanf("%s", port);
+
+    if (!light_controller_init(port)) {
+        printf("❌ Falha ao abrir porta serial. A rodar em modo limitado.\n");
+    }
+
+    // 3. Lançar Menu UI
+    // A função menu() está no ui.c que incluímos
+    menu(&sys);
+
+    // 4. Limpeza
+    light_controller_close();
+    if(sys.tracks.data) free(sys.tracks.data);
+
+    printf("Sistema encerrado.\n");
+    return 0;
 }
