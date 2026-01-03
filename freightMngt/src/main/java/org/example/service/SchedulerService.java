@@ -14,10 +14,12 @@ public class SchedulerService {
 
     private final IRouteRepository repository;
     private final TravelTimeCalculator travelTimeCalc;
+    private final RoutePlannerService routePlanner;
 
     public SchedulerService(IRouteRepository repository) {
         this.repository = repository;
         this.travelTimeCalc = new TravelTimeCalculator(repository);
+        this.routePlanner = new RoutePlannerService(repository);
     }
 
     /**
@@ -205,7 +207,13 @@ public class SchedulerService {
      * Calcula schedules COM detecção e resolução de conflitos
      */
     public ScheduleResult calculateSchedulesWithConflicts(Collection<Train> trains) {
-        // 1. Calcular schedules iniciais
+
+        // PASSO 1 (NOVO): Garantir que todos os comboios têm rota (Manual ou Automática)
+        for (Train train : trains) {
+            ensureTrainHasPath(train);
+        }
+
+        // PASSO 2: Calcular schedules iniciais (Lógica existente)
         List<TrainSchedule> schedules = new ArrayList<>();
         Map<Train, TrainSchedule> scheduleMap = new HashMap<>();
 
@@ -220,7 +228,7 @@ public class SchedulerService {
             }
         }
 
-        // 2. Detectar conflitos
+        // PASSO 3: Detectar conflitos (Lógica existente)
         List<Conflict> conflicts = detectConflicts(schedules);
 
         // 3. Mostrar resumo de conflitos
@@ -244,9 +252,8 @@ public class SchedulerService {
             System.out.println("\n" + "=".repeat(80) + "\n");
         }
 
-        // 4. Resolver conflitos
+        // PASSO 4: Resolver conflitos (Lógica existente)
         List<CrossingOperation> crossings = new ArrayList<>();
-
         for (Conflict conflict : conflicts) {
             if (conflict.hasTemporalOverlap()) {
                 CrossingOperation crossing = resolveCrossing(conflict, scheduleMap);
@@ -472,5 +479,36 @@ public class SchedulerService {
         }
 
         return null;
+    }
+
+    /**
+     * MÉTODO NOVO: Verifica se o comboio tem caminho. Se não tiver, calcula automaticamente.
+     * Satisfaz o critério: "The path... can be... 2. Automatically calculated"
+     */
+    private void ensureTrainHasPath(Train train) {
+        // Se o comboio já tem estações definidas manualmente, não fazemos nada
+        if (train.getPathStations() != null && !train.getPathStations().isEmpty()) {
+            return;
+        }
+
+        System.out.println("ℹ️ Train " + train.getId() + " sem rota manual. A calcular rota automática...");
+
+        try {
+            // Invoca o RoutePlanner (USLP08) para calcular o melhor caminho
+            // Critérios: Distância, Custo ou Energia (podes definir um default, ex: DISTANCE)
+            RoutePlan plan = routePlanner.planRoute(train.getStartStation(), train.getEndStation(), RoutePriority.DISTANCE);
+
+            if (plan != null && !plan.getSegmentIds().isEmpty()) {
+                // Atualiza o comboio com o caminho calculado
+                train.setPathStations(plan.getStations());
+                // Importante: atualizar também os IDs para persistência/consistência
+                // train.setPathStationIds(...) se necessário
+                System.out.println("✓ Rota automática atribuída: " + plan.getTotalDistance() + "km");
+            } else {
+                System.err.println("(!) Não foi possível calcular rota automática para Train " + train.getId());
+            }
+        } catch (Exception e) {
+            System.err.println("(!) Erro no planeamento automático: " + e.getMessage());
+        }
     }
 }
