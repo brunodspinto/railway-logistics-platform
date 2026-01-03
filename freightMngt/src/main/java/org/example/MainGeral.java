@@ -2,11 +2,7 @@ package org.example;
 
 import org.example.repository.DatabaseRepositoryFacade;
 import org.example.repository.IRouteRepository;
-import org.example.ui.SchedulerUI;
-import org.example.ui.TravelTimeUI;
-import org.example.ui.ManualSchedulerUI;
-import org.example.ui.RoutePlannerUI;
-import org.example.ui.TrainAssemblyUI; // <--- NOVO IMPORT USLP09
+import org.example.ui.*;
 import org.example.utils.DatabaseConnection;
 
 import java.util.InputMismatchException;
@@ -29,6 +25,7 @@ public class MainGeral {
     private ManualSchedulerUI manualSchedulerUI;
     private RoutePlannerUI routePlannerUI;
     private TrainAssemblyUI trainAssemblyUI; // <--- NOVA UI USLP09
+    private TrafficSchedulerUI trafficSchedulerUI;
 
     public MainGeral(IRouteRepository repository, DatabaseRepositoryFacade databaseRepository) {
         this.repository = repository;
@@ -41,6 +38,7 @@ public class MainGeral {
         this.manualSchedulerUI = new ManualSchedulerUI(databaseRepository);
         this.routePlannerUI = new RoutePlannerUI(repository);
         this.trainAssemblyUI = new TrainAssemblyUI(repository); // <--- INICIALIZAR USLP09
+        this.trafficSchedulerUI = new TrafficSchedulerUI(repository);
     }
 
     public void run() {
@@ -65,8 +63,11 @@ public class MainGeral {
                 case 4:
                     runUSLP08();
                     break;
-                case 5: // <--- NOVA OPÇÃO USLP09
+                case 5:
                     runUSLP09();
+                    break;
+                case 6:
+                    runUSLP10();
                     break;
                 case 0:
                     exit = true;
@@ -98,7 +99,8 @@ public class MainGeral {
         System.out.println("  2. Run USLP03 - Travel Time Calculator (Sprint 1)");
         System.out.println("  3. Run USLP07 - Train Scheduler (Sprint 2)");
         System.out.println("  4. Run USLP08 - Route Planner Manifest (Sprint 3)");
-        System.out.println("  5. Run USLP09 - Train Assembly (Sprint 3)"); // <--- NOVA LINHA
+        System.out.println("  5. Run USLP09 - Train Assembly (Sprint 3)");
+        System.out.println("  6. Run USLP10 - Traffic Scheduler (Sprint 3)");
         System.out.println("  0. Exit");
         System.out.println("═".repeat(80));
         System.out.print("  Option: ");
@@ -109,9 +111,10 @@ public class MainGeral {
         System.out.println("                           DEVELOPMENT TEAM");
         System.out.println("═".repeat(80));
         System.out.println("  Sprint 1 (USLP03): Travel Time Calculator");
-        System.out.println("  Sprint 2 (USLP07): Train Scheduler - Diogo");
-        System.out.println("  Sprint 3 (USLP08): Route Planner - [Colega A]");
-        System.out.println("  Sprint 3 (USLP09): Train Assembly - Diogo");
+        System.out.println("  Sprint 2 (USLP07): Train Scheduler - [Diogo]");
+        System.out.println("  Sprint 3 (USLP08): Route Planner - [Bruno]");
+        System.out.println("  Sprint 3 (USLP09): Train Assembly - [Diogo]");
+        System.out.println("  Sprint 3 (USLP10): Traffic Scheduler - [David]");
         System.out.println("═".repeat(80));
     }
 
@@ -164,7 +167,6 @@ public class MainGeral {
         }
     }
 
-    // <--- NOVO MÉTODO USLP09
     private void runUSLP09() {
         System.out.println("\n" + "═".repeat(80));
         System.out.println("                 LAUNCHING USLP09 - TRAIN ASSEMBLY");
@@ -178,6 +180,23 @@ public class MainGeral {
             trainAssemblyUI.run();
         } catch (Exception e) {
             System.err.println("\n✗ Error running USLP09: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    private void runUSLP10() {
+        System.out.println("\n" + "═".repeat(80));
+        System.out.println("              LAUNCHING USLP10 - TRAFFIC SCHEDULER (AUTO)");
+        System.out.println("═".repeat(80));
+        System.out.println("  Sprint: 3");
+        System.out.println("  User Story: USLP10");
+        System.out.println("  Goal: Automatic Dispatch & Conflict Resolution for Trains");
+        System.out.println("─".repeat(80) + "\n");
+
+        try {
+            trafficSchedulerUI.run();
+        } catch (Exception e) {
+            System.err.println("\n✗ Error running USLP10: " + e.getMessage());
             e.printStackTrace();
         }
     }
