@@ -123,8 +123,9 @@ END add_new_line;
 /
 
 
--- Bloco Anónimo USBD45 1--
+SET SERVEROUTPUT ON;
 
+-- Bloco Anónimo USBD45 1--
 DECLARE
 v_cursor SYS_REFCURSOR;
     v_line_id NUMBER;
@@ -159,12 +160,21 @@ FETCH v_cursor INTO v_line_id, v_line_name, v_start_station, v_end_station,
                            v_max_weight, v_electrified, v_siding_id;
         EXIT WHEN v_cursor%NOTFOUND;
 
-        DBMS_OUTPUT.PUT_LINE('Line ID: ' || v_line_id ||
-                           ', Name: ' || v_line_name ||
-                           ', Start: ' || v_start_station ||
-                           ', End: ' || v_end_station ||
-                           ', Segment ID: ' || v_segment_id ||
-                           ', Siding: ' || NVL(TO_CHAR(v_siding_id), 'No'));
+        DBMS_OUTPUT.PUT_LINE('Line ID: ' || v_line_id);
+        DBMS_OUTPUT.PUT_LINE('Line Name: ' || v_line_name);
+        DBMS_OUTPUT.PUT_LINE('Start Station: ' || v_start_station);
+        DBMS_OUTPUT.PUT_LINE('End Station: ' || v_end_station);
+        DBMS_OUTPUT.PUT_LINE('Owner VAT: ' || v_owner_vat);
+        DBMS_OUTPUT.PUT_LINE('Gauge: ' || v_gauge || ' mm');
+        DBMS_OUTPUT.PUT_LINE('Segment ID: ' || v_segment_id);
+        DBMS_OUTPUT.PUT_LINE('Segment Length: ' || v_length || ' m');
+        DBMS_OUTPUT.PUT_LINE('Max Weight: ' || v_max_weight || ' kg/m');
+        DBMS_OUTPUT.PUT_LINE('Electrified: ' || CASE v_electrified WHEN 1 THEN 'Yes' ELSE 'No' END);
+        IF v_siding_id IS NOT NULL THEN
+            DBMS_OUTPUT.PUT_LINE('Siding ID: ' || v_siding_id);
+ELSE
+            DBMS_OUTPUT.PUT_LINE('Siding: No');
+END IF;
 END LOOP;
 
 CLOSE v_cursor;
@@ -177,7 +187,6 @@ END;
 /
 
 -- Bloco Anónimo USBD45 2--
-
 DECLARE
 v_cursor SYS_REFCURSOR;
     v_line_id NUMBER;
@@ -215,12 +224,21 @@ FETCH v_cursor INTO v_line_id, v_line_name, v_start_station, v_end_station,
                            v_max_weight, v_electrified, v_siding_id;
         EXIT WHEN v_cursor%NOTFOUND;
 
-        DBMS_OUTPUT.PUT_LINE('Line ID: ' || v_line_id ||
-                           ', Name: ' || v_line_name ||
-                           ', Start: ' || v_start_station ||
-                           ', End: ' || v_end_station ||
-                           ', Segment ID: ' || v_segment_id ||
-                           ', Siding: ' || NVL(TO_CHAR(v_siding_id), 'No'));
+        DBMS_OUTPUT.PUT_LINE('Line ID: ' || v_line_id);
+        DBMS_OUTPUT.PUT_LINE('Line Name: ' || v_line_name);
+        DBMS_OUTPUT.PUT_LINE('Start Station: ' || v_start_station);
+        DBMS_OUTPUT.PUT_LINE('End Station: ' || v_end_station);
+        DBMS_OUTPUT.PUT_LINE('Owner VAT: ' || v_owner_vat);
+        DBMS_OUTPUT.PUT_LINE('Gauge: ' || v_gauge || ' mm');
+        DBMS_OUTPUT.PUT_LINE('Segment ID: ' || v_segment_id);
+        DBMS_OUTPUT.PUT_LINE('Segment Length: ' || v_length || ' m');
+        DBMS_OUTPUT.PUT_LINE('Max Weight: ' || v_max_weight || ' kg/m');
+        DBMS_OUTPUT.PUT_LINE('Electrified: ' || CASE v_electrified WHEN 1 THEN 'Yes' ELSE 'No' END);
+        IF v_siding_id IS NOT NULL THEN
+            DBMS_OUTPUT.PUT_LINE('Siding ID: ' || v_siding_id);
+ELSE
+            DBMS_OUTPUT.PUT_LINE('Siding: No');
+END IF;
 END LOOP;
 
 CLOSE v_cursor;
@@ -258,8 +276,7 @@ EXCEPTION
 END;
 /
 
--- Bloco Anónimo USBD45 4
--- --
+-- Bloco Anónimo USBD45 4--
 DECLARE
 v_cursor SYS_REFCURSOR;
 BEGIN

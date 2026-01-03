@@ -1,15 +1,12 @@
 #include <stdio.h>
 #include "track_manager.h"
 #include "light_controller.h"
-#include "board.h" // Se tiveres o header do board disponível
-#include "types.h" // Para os enums TRACK_FREE, etc.
-#include "sensors_manager.h"
+#include "board.h"
+#include "types.h"
+#include "sensors_manager.h" // Aqui está a definição correta de manager_get_sensors_data
 
-// Declaração externa da função do board (caso não esteja num header público)
+// Declaração externa da função do board
 void manager_send_data_to_board(StationSystem *sys);
-
-// (Verifica se esta função recebe mesmo 'sys' como argumento no teu código original)
-int manager_get_sensors_data(StationSystem *sys);
 
 // Função auxiliar pura em C para encontrar via livre
 static Track* find_first_free_track(StationSystem* sys) {
@@ -59,7 +56,7 @@ int process_train_arrival(StationSystem* sys, int train_id) {
     // 4. Atualizar Hardware e Painel
     set_track_light(track);       // Atualiza semáforo (USAC14)
 
-    manager_get_sensors_data(sys); // Atualiza dados sensores (USAC15)
+    manager_get_sensors_data(&sys->sensors);
 
     manager_send_data_to_board(sys); // Atualiza dashboard (USAC15)
 
@@ -92,7 +89,7 @@ void process_train_departure(StationSystem* sys, int track_id) {
     // Atualizar Hardware e Painel
     set_track_light(track);
 
-    manager_get_sensors_data(sys);
+    manager_get_sensors_data(&sys->sensors);
 
     manager_send_data_to_board(sys);
 }
@@ -109,14 +106,12 @@ void set_track_unavailable(StationSystem* sys, int track_id) {
     }
 
     track->state = TRACK_INOPERATIVE; // Estado 3 (Vermelho/Bloqueado)
-    // Nota: Se houver lá um comboio, ele continua lá "preso" ou movemos?
-    // Assume-se que bloqueia a via independentemente do comboio.
 
     printf("✓ Via %d marcada como INOPERACIONAL.\n", track_id);
 
     set_track_light(track);
 
-    manager_get_sensors_data(sys);
+    manager_get_sensors_data(&sys->sensors);
 
     manager_send_data_to_board(sys);
 }
