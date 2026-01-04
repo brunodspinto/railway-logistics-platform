@@ -108,7 +108,9 @@ SELECT
     ls.lenght,
     ls.maximumWeigh,
     ls.isElectrified,
-    si.id AS sidingId
+    si.id AS sidingId,
+    si.position AS sidingPosition,
+    si.lenght AS sidingLength
 FROM Line l
          INNER JOIN LineSegment ls ON ls.lineId = l.id
          LEFT JOIN Siding si ON si.lineSegmentId = ls.id
@@ -123,7 +125,6 @@ END add_new_line;
 /
 
 
-SET SERVEROUTPUT ON;
 
 -- Bloco Anónimo USBD45 1--
 DECLARE
@@ -139,6 +140,8 @@ v_cursor SYS_REFCURSOR;
     v_max_weight NUMBER;
     v_electrified NUMBER;
     v_siding_id NUMBER;
+    v_siding_position NUMBER;
+    v_siding_length NUMBER;
 BEGIN
     DBMS_OUTPUT.PUT_LINE('Test 1: Create simple line without siding');
 
@@ -157,7 +160,7 @@ BEGIN
     LOOP
 FETCH v_cursor INTO v_line_id, v_line_name, v_start_station, v_end_station,
                            v_owner_vat, v_gauge, v_segment_id, v_length,
-                           v_max_weight, v_electrified, v_siding_id;
+                           v_max_weight, v_electrified, v_siding_id, v_siding_position, v_siding_length;
         EXIT WHEN v_cursor%NOTFOUND;
 
         DBMS_OUTPUT.PUT_LINE('Line ID: ' || v_line_id);
@@ -171,7 +174,9 @@ FETCH v_cursor INTO v_line_id, v_line_name, v_start_station, v_end_station,
         DBMS_OUTPUT.PUT_LINE('Max Weight: ' || v_max_weight || ' kg/m');
         DBMS_OUTPUT.PUT_LINE('Electrified: ' || CASE v_electrified WHEN 1 THEN 'Yes' ELSE 'No' END);
         IF v_siding_id IS NOT NULL THEN
-            DBMS_OUTPUT.PUT_LINE('Siding ID: ' || v_siding_id);
+            DBMS_OUTPUT.PUT_LINE('Siding: Yes');
+            DBMS_OUTPUT.PUT_LINE('  - Position: ' || v_siding_position || ' m (from start)');
+            DBMS_OUTPUT.PUT_LINE('  - Length: ' || v_siding_length || ' m');
 ELSE
             DBMS_OUTPUT.PUT_LINE('Siding: No');
 END IF;
@@ -200,6 +205,8 @@ v_cursor SYS_REFCURSOR;
     v_max_weight NUMBER;
     v_electrified NUMBER;
     v_siding_id NUMBER;
+    v_siding_position NUMBER;
+    v_siding_length NUMBER;
 BEGIN
     DBMS_OUTPUT.PUT_LINE('Test 2: Create line with siding');
 
@@ -221,7 +228,7 @@ BEGIN
     LOOP
 FETCH v_cursor INTO v_line_id, v_line_name, v_start_station, v_end_station,
                            v_owner_vat, v_gauge, v_segment_id, v_length,
-                           v_max_weight, v_electrified, v_siding_id;
+                           v_max_weight, v_electrified, v_siding_id, v_siding_position, v_siding_length;
         EXIT WHEN v_cursor%NOTFOUND;
 
         DBMS_OUTPUT.PUT_LINE('Line ID: ' || v_line_id);
@@ -235,7 +242,9 @@ FETCH v_cursor INTO v_line_id, v_line_name, v_start_station, v_end_station,
         DBMS_OUTPUT.PUT_LINE('Max Weight: ' || v_max_weight || ' kg/m');
         DBMS_OUTPUT.PUT_LINE('Electrified: ' || CASE v_electrified WHEN 1 THEN 'Yes' ELSE 'No' END);
         IF v_siding_id IS NOT NULL THEN
-            DBMS_OUTPUT.PUT_LINE('Siding ID: ' || v_siding_id);
+            DBMS_OUTPUT.PUT_LINE('Siding: Yes');
+            DBMS_OUTPUT.PUT_LINE('  - Position: ' || v_siding_position || ' m (from start)');
+            DBMS_OUTPUT.PUT_LINE('  - Length: ' || v_siding_length || ' m');
 ELSE
             DBMS_OUTPUT.PUT_LINE('Siding: No');
 END IF;

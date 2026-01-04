@@ -30,20 +30,15 @@ public class BelgianNetworkLoader {
 
         System.out.println("Loading Belgian railway network (Bidirectional: " + isBidirectional + ")...");
 
-        // 1. Load stations first
         Map<String, Station> stationMap = loadStations(stationsPath);
         System.out.println("Loaded " + stationMap.size() + " stations");
 
-        // 2. Create graph (Directed = true).
-        // Mesmo sendo bidirecional físico, representamo-lo como directed com arestas opostas.
         Graph<Station, Connection> graph = new MapGraph<>(true);
 
-        // 3. Add all stations to graph
         for (Station station : stationMap.values()) {
             graph.addVertex(station);
         }
 
-        // 4. Load lines (connections)
         int validLines = loadLines(linesPath, stationMap, graph, isBidirectional);
 
         System.out.println("\nLoaded network:");
@@ -79,7 +74,7 @@ public class BelgianNetworkLoader {
         int errorLines = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line = br.readLine(); // Skip header
+            String line = br.readLine();
 
             while ((line = br.readLine()) != null) {
                 line = line.trim();
@@ -100,14 +95,12 @@ public class BelgianNetworkLoader {
                             try {
                                 capacity = Integer.parseInt(parts[3].trim());
                             } catch (NumberFormatException e) {
-                                // ignore
                             }
                         }
                         if (parts.length >= 5 && !parts[4].trim().isEmpty()) {
                             try {
                                 cost = Double.parseDouble(parts[4].trim());
                             } catch (NumberFormatException e) {
-                                // ignore
                             }
                         }
 
@@ -115,11 +108,9 @@ public class BelgianNetworkLoader {
                         Station to = stationMap.get(toId);
 
                         if (from != null && to != null) {
-                            // 1. Sentido de Ida (Sempre adicionado, conforme o CSV)
                             Connection connForward = new Connection(from, to, distance, capacity, cost);
                             graph.addEdge(from, to, connForward);
 
-                            // 2. Sentido de Volta (Só se for bidirecional)
                             if (isBidirectional) {
                                 Connection connBackward = new Connection(to, from, distance, capacity, cost);
                                 graph.addEdge(to, from, connBackward);

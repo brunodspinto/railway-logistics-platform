@@ -9,7 +9,7 @@ public class Connection {
     private final Station source;
     private final Station target;
     private final double distance;
-    private double capacity; // Capacidade (comboios/dia)
+    private double capacity;
     private double cost;
 
     public Connection(Station source, Station target, double distance, double capacity, double cost) {
@@ -20,7 +20,7 @@ public class Connection {
         this.cost = cost;
     }
 
-    // Construtor simples (retrocompatibilidade, assume defaults)
+    // Construtor
     public Connection(Station source, Station target, double distance) {
         this(source, target, distance, 50.0, 0.0);
     }

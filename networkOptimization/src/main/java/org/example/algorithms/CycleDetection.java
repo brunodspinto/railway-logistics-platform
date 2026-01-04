@@ -31,7 +31,6 @@ public class CycleDetection<V, E> {
             color.put(vertex, Color.WHITE);
         }
 
-        // DFS a partir de cada vértice não visitado
         for (V vertex : graph.vertices()) {
             if (color.get(vertex) == Color.WHITE) {
                 LinkedList<V> path = new LinkedList<>();
@@ -59,13 +58,11 @@ public class CycleDetection<V, E> {
      */
     private boolean coloredDFS(Graph<V, E> graph, V current, Map<V, Color> color, LinkedList<V> path, List<List<V>> cycles) {
 
-        // Marcar como GRAY (em processamento)
         color.put(current, Color.GRAY);
         path.addLast(current);
 
         boolean foundCycle = false;
 
-        // Explorar adjacentes
         Collection<V> adjVertices = graph.adjVertices(current);
         if (adjVertices != null) {
             for (V adjacent : adjVertices) {
@@ -82,7 +79,6 @@ public class CycleDetection<V, E> {
             }
         }
 
-        // Marcar como BLACK (concluído)
         color.put(current, Color.BLACK);
         path.removeLast();
 

@@ -18,7 +18,7 @@ public class USEI11Demo {
         try {
             UpgradePlanController controller = new UpgradePlanController();
 
-            // Caminho relativo ao modulo (funciona tanto standalone como no menu)
+            // Caminho relativo ao modulo
             String stationsPath = "res/stations.csv";
             String linesPath = "res/lines.csv";
             controller.loadNetwork(stationsPath, linesPath);
