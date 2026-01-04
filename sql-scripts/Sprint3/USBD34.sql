@@ -16,7 +16,7 @@ BEGIN
     WHERE id = p_freight_id;
 
     IF v_exists = 0 THEN
-        RAISE_APPLICATION_ERROR(-20001,'Freight inexistente.');
+        RAISE_APPLICATION_ERROR(-20341,'Freight inexistente.');
     END IF;
 
     -- verificar train
@@ -25,7 +25,7 @@ BEGIN
     WHERE id = p_train_id;
 
     IF v_exists = 0 THEN
-        RAISE_APPLICATION_ERROR(-20002,'Train inexistente.');
+        RAISE_APPLICATION_ERROR(-20342,'Train inexistente.');
     END IF;
 
     -- obter maxLenght
@@ -46,7 +46,7 @@ BEGIN
 
     -- validar capacidade
     IF (v_current + v_new) > v_train_max THEN
-        RAISE_APPLICATION_ERROR(-20003,'Capacidade máxima do comboio excedida.');
+        RAISE_APPLICATION_ERROR(-20343,'Capacidade máxima do comboio excedida.');
     END IF;
 
     -- associar freight ao train
@@ -58,7 +58,7 @@ BEGIN
 
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20099,'Erro inesperado na USBD34: '||SQLERRM);
+        RAISE_APPLICATION_ERROR(-20344,'Erro inesperado na USBD34: '||SQLERRM);
 END;
 /
 

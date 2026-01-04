@@ -19,7 +19,7 @@ AS
 BEGIN
     SELECT COUNT(*) INTO v_exists FROM Line WHERE id = p_lineId;
     IF v_exists = 0 THEN
-        RAISE_APPLICATION_ERROR(-20001, 'Linha não existe.');
+        RAISE_APPLICATION_ERROR(-20441, 'Linha não existe.');
     END IF;
 
     SELECT NVL(MAX(id),0)+1 INTO v_segmentId FROM LineSegment;
@@ -30,7 +30,7 @@ BEGIN
     IF p_hasSiding = 1 THEN
 
         IF p_siding_pos IS NULL OR p_siding_len IS NULL THEN
-            RAISE_APPLICATION_ERROR(-20002,'Para siding é preciso posição e comprimento.');
+            RAISE_APPLICATION_ERROR(-20442,'Para siding é preciso posição e comprimento.');
         END IF;
 
         SELECT NVL(MAX(id),0)+1 INTO v_sidingId FROM Siding;
@@ -50,7 +50,7 @@ BEGIN
 
 EXCEPTION
     WHEN OTHERS THEN
-        RAISE_APPLICATION_ERROR(-20099,'Erro inesperado na USBD44: '||SQLERRM);
+        RAISE_APPLICATION_ERROR(-20443,'Erro inesperado na USBD44: '||SQLERRM);
 END;
 /
 
