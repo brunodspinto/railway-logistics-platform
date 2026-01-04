@@ -108,7 +108,9 @@ SELECT
     ls.lenght,
     ls.maximumWeigh,
     ls.isElectrified,
-    si.id AS sidingId
+    si.id AS sidingId,
+    si.position AS sidingPosition,
+    si.lenght AS sidingLength
 FROM Line l
          INNER JOIN LineSegment ls ON ls.lineId = l.id
          LEFT JOIN Siding si ON si.lineSegmentId = ls.id
@@ -122,8 +124,6 @@ EXCEPTION
 END add_new_line;
 /
 
-
-SET SERVEROUTPUT ON;
 
 -- Bloco Anónimo USBD45 1--
 DECLARE
