@@ -69,10 +69,7 @@ EXCEPTION
         RETURN 'Erro Inesperado: ' || SQLERRM;
 END;
 
-
 -- Bloco Anónimo USBD40 1 --
-
-SET SERVEROUTPUT ON;
 
 DECLARE
     v_result VARCHAR2(4000);
@@ -89,8 +86,6 @@ END;
 
 -- Bloco Anónimo USBD40 2 --
 
-SET SERVEROUTPUT ON;
-
 DECLARE
     v_result VARCHAR2(4000);
 BEGIN
@@ -105,8 +100,6 @@ BEGIN
 END;
 
 -- Bloco Anónimo USBD40 3 --
-
-SET SERVEROUTPUT ON;
 
 DECLARE
     v_result VARCHAR2(4000);

@@ -73,6 +73,34 @@ public class TrafficSchedulerUI {
         System.out.print("\nAutorizar despacho e cálculo de horários? (S/N): ");
         if (!scanner.next().equalsIgnoreCase("S")) return;
 
+        // === NOVO BLOCO: MODO DE TESTE SEM MEXER NA BD ===
+        System.out.print("Deseja forçar o MODO AUTOMÁTICO e CONFLITOS para teste (Ignorar BD)? (S/N): ");
+        if (scanner.next().equalsIgnoreCase("S")) {
+            System.out.println("\n⚠️ A ATIVAR MODO SIMULAÇÃO (Dados em memória alterados)...");
+
+            // Usamos a data do primeiro comboio como referência para colidir os outros
+            java.time.LocalDate targetDate = null;
+            if (!allTrains.isEmpty()) {
+                targetDate = allTrains.iterator().next().getDate();
+            }
+
+            for (Train t : allTrains) {
+                // 1. Apagar a rota manual (só na memória) para obrigar o Dijkstra a correr
+                if (t.getPathStations() != null && !t.getPathStations().isEmpty()) {
+                    // Guardamos Start/End, mas limpamos o caminho
+                    t.setPathStations(new java.util.ArrayList<>());
+                    System.out.println("-> Comboio " + t.getId() + ": Rota manual removida (Forçar Dijkstra).");
+                }
+
+                // 2. Sincronizar datas para garantir que há conflitos
+                if (targetDate != null) {
+                    t.setDate(targetDate);
+                }
+            }
+            System.out.println("-> Todas as datas sincronizadas para " + targetDate + " (Para testar cruzamentos).");
+        }
+        // =================================================
+
         try {
             System.out.println("\n>> A otimizar tráfego na rede...");
             ScheduleResult result = service.calculateSchedulesWithConflicts(allTrains);
@@ -118,11 +146,20 @@ public class TrafficSchedulerUI {
                 truncate(t.getStartStation().getName(), 15), firstDep);
 
         for (ScheduleEntry e : sched.getEntries()) {
+            // LÓGICA NOVA PARA MOSTRAR O TEMPO
+            String observacao;
+            if (e.stops()) {
+                long minutos = e.getStopDurationMinutes();
+                observacao = String.format("PARAGEM (%d min)", minutos);
+            } else {
+                observacao = "Passagem";
+            }
+
             System.out.printf("| %-15s | %s | %s | %-20s |\n",
                     truncate(e.getStation().getName(), 15),
                     e.getArrivalTime().format(timeFmt),
                     e.getDepartureTime().format(timeFmt),
-                    e.stops() ? "PARAGEM" : "Passagem");
+                    observacao);
         }
         System.out.println("+-----------------+-------+-------+----------------------+");
     }

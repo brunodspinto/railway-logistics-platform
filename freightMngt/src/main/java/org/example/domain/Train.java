@@ -9,7 +9,7 @@ import java.util.*;
 public class Train {
     private final int id;
     private final String operator;
-    private final LocalDate date;
+    private LocalDate date;
     private final LocalTime time;
 
     // ✅ REMOVER "final" destes 3:
@@ -94,6 +94,8 @@ public class Train {
     public void setPathStations(List<Station> stations) {
         this.pathStations = new ArrayList<>(stations);
     }
+
+    public void setDate(LocalDate date) { this.date = date; }
 
     // Métodos de cálculo
     public double getTotalWeightTons() {
