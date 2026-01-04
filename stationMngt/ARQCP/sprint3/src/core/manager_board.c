@@ -10,24 +10,24 @@
 void manager_send_data_to_board(StationSystem *sys){
     BoardData bd;
 
-    bd.num_tracks = sys->tracks.count;
-    bd.tracks = malloc(sizeof(BoardTrack)*bd.num_tracks);
+    bd.num_tracks = sys->tracks.count;                         // nº de vias
+    bd.tracks = malloc(sizeof(BoardTrack)*bd.num_tracks);      // alocar vias
 
     if (bd.tracks) {
         for(int i=0;i<bd.num_tracks;i++){
-            bd.tracks[i].id = sys->tracks.data[i].id;
-            bd.tracks[i].state = sys->tracks.data[i].state;
-            bd.tracks[i].train_id = sys->tracks.data[i].assigned_train_id;
+            bd.tracks[i].id = sys->tracks.data[i].id;          // id da via
+            bd.tracks[i].state = sys->tracks.data[i].state;   // estado da via
+            bd.tracks[i].train_id = sys->tracks.data[i].assigned_train_id; // comboio
         }
 
-        bd.temperature = sys->sensors.temperature.last;
-        bd.humidity    = sys->sensors.humidity.last;
-        strcpy(bd.temp_unit, sys->sensors.temperature.unit);
-        strcpy(bd.hum_unit,  sys->sensors.humidity.unit);
+        bd.temperature = sys->sensors.temperature.last;        // temperatura filtrada
+        bd.humidity    = sys->sensors.humidity.last;           // humidade filtrada
+        strcpy(bd.temp_unit, sys->sensors.temperature.unit);   // unidade temperatura
+        strcpy(bd.hum_unit,  sys->sensors.humidity.unit);      // unidade humidade
 
-        board_show(&bd);
+        board_show(&bd);                                       // envio para board
 
-        free(bd.tracks);
+        free(bd.tracks);                                      // libertar memória
     }
 }
 
