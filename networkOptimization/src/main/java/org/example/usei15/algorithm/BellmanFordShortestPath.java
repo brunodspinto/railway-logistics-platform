@@ -9,12 +9,7 @@ import java.util.function.ToDoubleFunction;
 
 public class BellmanFordShortestPath<V, E> {
 
-    public ShortestPathResult<V> shortestPath(
-            Graph<V, E> graph,
-            V source,
-            V target,
-            ToDoubleFunction<E> costFunction
-    ) {
+    public ShortestPathResult<V> shortestPath(Graph<V, E> graph, V source, V target, ToDoubleFunction<E> costFunction) {
 
         int n = graph.numVertices();
         double[] dist = new double[n];
