@@ -39,9 +39,6 @@ public class SchedulerService {
 
         List<Station> pathStations = train.getPathStations();
 
-        // ❌ REMOVER: Não adicionar origem como entry
-        // O TrainSchedule.format() já mostra a origem
-
         // Para cada segmento do caminho
         for (int i = 0; i < pathStations.size() - 1; i++) {
             Station fromStation = pathStations.get(i);
@@ -113,30 +110,15 @@ public class SchedulerService {
         return schedules;
     }
 
-    /**
-     * Calcula velocidade efetiva considerando:
-     * - Limite da linha
-     * - Capacidade das locomotivas
-     * - Peso do comboio
-     */
     private double calculateEffectiveSpeed(Line line, Train train) {
-        // Velocidade máxima da linha
         int lineMaxSpeed = line.getMinMaxSpeed();
-
-        // Velocidade máxima das locomotivas
         int trainMaxSpeed = train.getMaxSpeed();
-
-        // Velocidade base = menor das duas
         double baseSpeed = Math.min(lineMaxSpeed, trainMaxSpeed);
 
-        // Penalização por peso (simplificado)
         double weight = train.getTotalWeightTons();
         int power = train.getTotalPowerKw();
+        double weightPowerRatio = weight / (power > 0 ? power : 1);
 
-        // Ratio peso/potência (tons por kW)
-        double weightPowerRatio = weight / power;
-
-        // Se ratio > 0.15, reduzir velocidade
         if (weightPowerRatio > 0.15) {
             double penalty = Math.min(0.3, (weightPowerRatio - 0.15) * 2);
             baseSpeed = baseSpeed * (1 - penalty);
@@ -145,75 +127,42 @@ public class SchedulerService {
         return baseSpeed;
     }
 
-    /**
-     * Calcula tempo de viagem em minutos
-     */
     private long calculateTravelTimeMinutes(double distanceKm, double speedKmh) {
-        if (speedKmh <= 0) {
-            throw new IllegalArgumentException("Speed must be positive");
-        }
-
+        if (speedKmh <= 0) return 60; // Fallback se velocidade for 0 (evita crash)
         double timeHours = distanceKm / speedKmh;
         return Math.round(timeHours * 60);
     }
 
-    /**
-     * Determina se o comboio deve parar numa estação
-     */
     private boolean shouldStopAt(Train train, Station station) {
-        // Para na origem
-        if (station.getId() == train.getStartId()) {
-            return true;
-        }
+        if (station.getId() == train.getStartId()) return true;
+        if (station.getId() == train.getEndId()) return true;
 
-        // Para no destino final
-        if (station.getId() == train.getEndId()) {
-            return true;
-        }
-
-        // Para se algum freight tem origem ou destino nesta estação
         for (Freight freight : train.getFreights()) {
             if (freight.getOriginId() == station.getId() ||
                     freight.getDestinationId() == station.getId()) {
                 return true;
             }
         }
-
         return false;
     }
 
-    /**
-     * Calcula tempo de operação numa estação (carga/descarga)
-     */
     private long calculateOperationTime(Train train, Station station) {
-        long baseTime = 10; // 10 minutos (paragem técnica)
-
+        long baseTime = 10;
         int freightOps = 0;
-
         for (Freight freight : train.getFreights()) {
-            if (freight.getOriginId() == station.getId()) {
-                freightOps++; // Carregar
-            }
-            if (freight.getDestinationId() == station.getId()) {
-                freightOps++; // Descarregar
-            }
+            if (freight.getOriginId() == station.getId()) freightOps++;
+            if (freight.getDestinationId() == station.getId()) freightOps++;
         }
-
-        // 30 minutos por operação de freight
         return baseTime + (freightOps * 30L);
     }
 
-    /**
-     * Calcula schedules COM detecção e resolução de conflitos
-     */
     public ScheduleResult calculateSchedulesWithConflicts(Collection<Train> trains) {
-
-        // PASSO 1 (NOVO): Garantir que todos os comboios têm rota (Manual ou Automática)
+        // PASSO 1: Garantir que todos os comboios têm rota
         for (Train train : trains) {
             ensureTrainHasPath(train);
         }
 
-        // PASSO 2: Calcular schedules iniciais (Lógica existente)
+        // PASSO 2: Calcular schedules iniciais
         List<TrainSchedule> schedules = new ArrayList<>();
         Map<Train, TrainSchedule> scheduleMap = new HashMap<>();
 
@@ -228,10 +177,9 @@ public class SchedulerService {
             }
         }
 
-        // PASSO 3: Detectar conflitos (Lógica existente)
+        // PASSO 3: Detectar conflitos
         List<Conflict> conflicts = detectConflicts(schedules);
 
-        // 3. Mostrar resumo de conflitos
         if (!conflicts.isEmpty()) {
             System.out.println("\n" + "=".repeat(80));
             System.out.printf("CONFLICTS DETECTED: %d\n", conflicts.size());
@@ -239,62 +187,41 @@ public class SchedulerService {
 
             for (Conflict c : conflicts) {
                 System.out.printf("\nLine: %s (single track)\n", c.getSegment().getLineId());
-                System.out.printf("  Train %d: %s -> %s\n",
-                        c.getTrain1().getId(),
-                        c.getTrain1EntryTime().toLocalTime(),
-                        c.getTrain1ExitTime().toLocalTime());
-                System.out.printf("  Train %d: %s -> %s\n",
-                        c.getTrain2().getId(),
-                        c.getTrain2EntryTime().toLocalTime(),
-                        c.getTrain2ExitTime().toLocalTime());
+                System.out.printf("  Train %d: %s -> %s\n", c.getTrain1().getId(),
+                        c.getTrain1EntryTime().toLocalTime(), c.getTrain1ExitTime().toLocalTime());
+                System.out.printf("  Train %d: %s -> %s\n", c.getTrain2().getId(),
+                        c.getTrain2EntryTime().toLocalTime(), c.getTrain2ExitTime().toLocalTime());
             }
-
             System.out.println("\n" + "=".repeat(80) + "\n");
         }
 
-        // PASSO 4: Resolver conflitos (Lógica existente)
+        // PASSO 4: Resolver conflitos
         List<CrossingOperation> crossings = new ArrayList<>();
         for (Conflict conflict : conflicts) {
             if (conflict.hasTemporalOverlap()) {
                 CrossingOperation crossing = resolveCrossing(conflict, scheduleMap);
-                if (crossing != null) {
-                    crossings.add(crossing);
-                }
+                if (crossing != null) crossings.add(crossing);
             }
         }
 
         if (crossings.size() > 0) {
-            System.out.printf("Resolved %d of %d crossings\n\n",
-                    crossings.size(), conflicts.size());
+            System.out.printf("Resolved %d of %d crossings\n\n", crossings.size(), conflicts.size());
         }
 
         return new ScheduleResult(schedules, crossings);
     }
 
-    /**
-     * Detecta conflitos entre trains
-     */
     private List<Conflict> detectConflicts(List<TrainSchedule> schedules) {
         List<Conflict> conflicts = new ArrayList<>();
-
         for (int i = 0; i < schedules.size(); i++) {
             for (int j = i + 1; j < schedules.size(); j++) {
-                TrainSchedule schedule1 = schedules.get(i);
-                TrainSchedule schedule2 = schedules.get(j);
-
-                List<Conflict> pairConflicts = detectConflictsBetween(schedule1, schedule2);
-                conflicts.addAll(pairConflicts);
+                conflicts.addAll(detectConflictsBetween(schedules.get(i), schedules.get(j)));
             }
         }
-
         return conflicts;
     }
 
-    /**
-     * Detecta conflitos entre dois trains específicos
-     */
-    private List<Conflict> detectConflictsBetween(TrainSchedule schedule1,
-                                                  TrainSchedule schedule2) {
+    private List<Conflict> detectConflictsBetween(TrainSchedule schedule1, TrainSchedule schedule2) {
         List<Conflict> conflicts = new ArrayList<>();
         Train train1 = schedule1.getTrain();
         Train train2 = schedule2.getTrain();
@@ -305,47 +232,31 @@ public class SchedulerService {
         for (int i = 0; i < path1.size() - 1; i++) {
             Station from1 = path1.get(i);
             Station to1 = path1.get(i + 1);
-
             Line line1 = repository.findDirectLine(from1.getId(), to1.getId());
             if (line1 == null) continue;
 
             for (int j = 0; j < path2.size() - 1; j++) {
                 Station from2 = path2.get(j);
                 Station to2 = path2.get(j + 1);
-
                 Line line2 = repository.findDirectLine(from2.getId(), to2.getId());
                 if (line2 == null) continue;
 
-                boolean sameLine = (line1.getId() == line2.getId()) ||
-                        (from1.equals(to2) && to1.equals(from2));
+                boolean sameLine = (line1.getId() == line2.getId()) || (from1.equals(to2) && to1.equals(from2));
 
                 if (sameLine) {
-                    boolean hasSingleTrack = line1.getSegments().stream()
-                            .anyMatch(LineSegment::isSingleTrack);
-
+                    boolean hasSingleTrack = line1.getSegments().stream().anyMatch(LineSegment::isSingleTrack);
                     if (hasSingleTrack) {
                         LocalDateTime t1Entry = schedule1.getDepartureTimeAt(from1);
                         LocalDateTime t1Exit = schedule1.getArrivalTimeAt(to1);
                         LocalDateTime t2Entry = schedule2.getDepartureTimeAt(from2);
                         LocalDateTime t2Exit = schedule2.getArrivalTimeAt(to2);
 
-                        if (t1Entry != null && t1Exit != null &&
-                                t2Entry != null && t2Exit != null) {
-
-                            boolean hasOverlap = checkTimeOverlap(t1Entry, t1Exit, t2Entry, t2Exit);
-
-                            if (hasOverlap) {
+                        if (t1Entry != null && t1Exit != null && t2Entry != null && t2Exit != null) {
+                            if (checkTimeOverlap(t1Entry, t1Exit, t2Entry, t2Exit)) {
                                 LineSegment singleTrackSeg = line1.getSegments().stream()
-                                        .filter(LineSegment::isSingleTrack)
-                                        .findFirst()
-                                        .orElse(null);
-
+                                        .filter(LineSegment::isSingleTrack).findFirst().orElse(null);
                                 if (singleTrackSeg != null) {
-                                    Conflict conflict = new Conflict(
-                                            train1, train2, singleTrackSeg,
-                                            t1Entry, t1Exit, t2Entry, t2Exit
-                                    );
-                                    conflicts.add(conflict);
+                                    conflicts.add(new Conflict(train1, train2, singleTrackSeg, t1Entry, t1Exit, t2Entry, t2Exit));
                                 }
                             }
                         }
@@ -353,162 +264,91 @@ public class SchedulerService {
                 }
             }
         }
-
         return conflicts;
     }
 
-    /**
-     * Verifica se dois intervalos de tempo se sobrepõem
-     */
-    private boolean checkTimeOverlap(LocalDateTime start1, LocalDateTime end1,
-                                     LocalDateTime start2, LocalDateTime end2) {
-        // Overlap se: start1 < end2 AND start2 < end1
+    private boolean checkTimeOverlap(LocalDateTime start1, LocalDateTime end1, LocalDateTime start2, LocalDateTime end2) {
         return start1.isBefore(end2) && start2.isBefore(end1);
     }
 
-    /**
-     * Resolve um conflito criando uma operação de cruzamento
-     */
-    private CrossingOperation resolveCrossing(Conflict conflict,
-                                              Map<Train, TrainSchedule> scheduleMap) {
-
+    private CrossingOperation resolveCrossing(Conflict conflict, Map<Train, TrainSchedule> scheduleMap) {
         Train waitingTrain = conflict.getWaitingTrain();
         Train passingTrain = conflict.getPassingTrain();
-
         TrainSchedule waitingSchedule = scheduleMap.get(waitingTrain);
         TrainSchedule passingSchedule = scheduleMap.get(passingTrain);
 
-        if (waitingSchedule == null || passingSchedule == null) {
-            return null;
-        }
+        if (waitingSchedule == null || passingSchedule == null) return null;
 
         Station waitingStation = findWaitingStation(waitingTrain, conflict.getSegment());
-
-        if (waitingStation == null) {
-            System.err.printf("No waiting station found for train %d before segment %d\n",
-                    waitingTrain.getId(), conflict.getSegment().getId());
-            return null;
-        }
+        if (waitingStation == null) return null;
 
         LocalDateTime waitingArrival = waitingSchedule.getArrivalTimeAt(waitingStation);
-        LocalDateTime passingClearTime = getSegmentClearTime(passingTrain, passingSchedule,
-                conflict.getSegment());
+        LocalDateTime passingClearTime = getSegmentClearTime(passingTrain, passingSchedule, conflict.getSegment());
 
-        if (waitingArrival == null || passingClearTime == null) {
-            return null;
-        }
+        if (waitingArrival == null || passingClearTime == null) return null;
 
         LocalDateTime safeDeparture = passingClearTime.plusMinutes(5);
         long delayMinutes = java.time.Duration.between(waitingArrival, safeDeparture).toMinutes();
 
         if (delayMinutes > 0) {
             waitingSchedule.addDelay(waitingStation, delayMinutes);
-
-            return new CrossingOperation(
-                    waitingTrain,
-                    passingTrain,
-                    waitingStation,
-                    conflict.getSegment(),
-                    waitingArrival,
-                    safeDeparture
-            );
+            return new CrossingOperation(waitingTrain, passingTrain, waitingStation, conflict.getSegment(), waitingArrival, safeDeparture);
         }
-
         return null;
     }
 
-    /**
-     * Encontra a estação onde o train deve esperar
-     */
-    /**
-     * Encontra a estação onde o train deve esperar
-     */
     private Station findWaitingStation(Train train, LineSegment conflictSegment) {
         List<Station> path = train.getPathStations();
+        if (path.size() == 2) return path.get(0);
 
-        // Para paths curtos (2 estações), usar origem
-        if (path.size() == 2) {
-            return path.get(0);
-        }
-
-        // Para paths longos, procurar segmento
         for (int i = 0; i < path.size() - 1; i++) {
             Station from = path.get(i);
             Station to = path.get(i + 1);
-
             Line line = repository.findDirectLine(from.getId(), to.getId());
             if (line != null) {
-                boolean hasSegment = line.getSegments().stream()
-                        .anyMatch(seg -> seg.getId() == conflictSegment.getId());
-
-                if (hasSegment) {
+                if (line.getSegments().stream().anyMatch(seg -> seg.getId() == conflictSegment.getId())) {
                     return from;
                 }
             }
         }
-
         return null;
     }
 
-    /**
-     * Calcula quando o train liberta completamente o segmento
-     */
-    private LocalDateTime getSegmentClearTime(Train train, TrainSchedule schedule,
-                                              LineSegment segment) {
+    private LocalDateTime getSegmentClearTime(Train train, TrainSchedule schedule, LineSegment segment) {
         List<Station> path = train.getPathStations();
+        if (path.size() == 2) return schedule.getArrivalTimeAt(path.get(1));
 
-        // Para paths curtos (2 estações), retornar chegada ao destino
-        if (path.size() == 2) {
-            return schedule.getArrivalTimeAt(path.get(1));
-        }
-
-        // Para paths longos, procurar segmento
         for (int i = 0; i < path.size() - 1; i++) {
             Station from = path.get(i);
             Station to = path.get(i + 1);
-
             Line line = repository.findDirectLine(from.getId(), to.getId());
             if (line != null) {
-                boolean hasSegment = line.getSegments().stream()
-                        .anyMatch(seg -> seg.getId() == segment.getId());
-
-                if (hasSegment) {
+                if (line.getSegments().stream().anyMatch(seg -> seg.getId() == segment.getId())) {
                     return schedule.getArrivalTimeAt(to);
                 }
             }
         }
-
         return null;
     }
 
-    /**
-     * MÉTODO NOVO: Verifica se o comboio tem caminho. Se não tiver, calcula automaticamente.
-     * Satisfaz o critério: "The path... can be... 2. Automatically calculated"
-     */
     private void ensureTrainHasPath(Train train) {
-        // Se o comboio já tem estações definidas manualmente, não fazemos nada
-        if (train.getPathStations() != null && !train.getPathStations().isEmpty()) {
-            return;
-        }
+        if (train.getPathStations() != null && !train.getPathStations().isEmpty()) return;
 
         System.out.println("ℹ️ Train " + train.getId() + " sem rota manual. A calcular rota automática...");
 
         try {
-            // Invoca o RoutePlanner (USLP08) para calcular o melhor caminho
-            // Critérios: Distância, Custo ou Energia (podes definir um default, ex: DISTANCE)
             RoutePlan plan = routePlanner.planRoute(train.getStartStation(), train.getEndStation(), RoutePriority.DISTANCE);
 
-            if (plan != null && !plan.getSegmentIds().isEmpty()) {
-                // Atualiza o comboio com o caminho calculado
+            // CORREÇÃO: Verificar se existem Estações em vez de Segmentos
+            if (plan != null && !plan.getStations().isEmpty()) {
                 train.setPathStations(plan.getStations());
-                // Importante: atualizar também os IDs para persistência/consistência
-                // train.setPathStationIds(...) se necessário
-                System.out.println("✓ Rota automática atribuída: " + plan.getTotalDistance() + "km");
+                System.out.println("✓ Rota automática atribuída: " + String.format("%.2f", plan.getTotalDistance()) + "km");
             } else {
                 System.err.println("(!) Não foi possível calcular rota automática para Train " + train.getId());
             }
         } catch (Exception e) {
             System.err.println("(!) Erro no planeamento automático: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
