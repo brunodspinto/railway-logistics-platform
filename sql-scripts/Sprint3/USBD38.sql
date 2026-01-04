@@ -4,7 +4,7 @@ CREATE OR REPLACE FUNCTION func_add_gauge(
     p_measure IN Gauge.measure%TYPE,
     p_name    IN Gauge.name%TYPE
 ) RETURN VARCHAR2 IS
-
+    v_count NUMBER;
 BEGIN
     SELECT COUNT(*) INTO v_count
     FROM Gauge
