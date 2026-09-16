@@ -6,13 +6,12 @@ public class DevTeamUI implements Runnable {
     public void run() {
         System.out.println("""
         === Development Team ===
-        Group: G054
         -------------------------
-        Eduardo Oliveira (Scrum Master) - [removed]
-        David Ribeiro                   - [removed]
-        Diogo Azevedo                   - [removed]
-        Bruno Pinto                     - [removed]
-        Rafael Santos                   - [removed]
+        Eduardo Oliveira (Scrum Master)
+        David Ribeiro
+        Diogo Azevedo
+        Bruno Pinto
+        Rafael Santos
         """);
     }
 }

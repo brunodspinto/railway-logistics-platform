@@ -99,7 +99,7 @@ mvn -pl networkOptimization compile exec:java -Dexec.mainClass=org.example.MainM
 For the station controller:
 
 ```bash
-cd stationMngt/ARQCP/sprint3
+cd stationMngt/ARQCP/sprint3/Makefile
 make            # build the station_app and USAC10–USAC16 tests
 make run_app    # run station_app under qemu-riscv64-static
 ```

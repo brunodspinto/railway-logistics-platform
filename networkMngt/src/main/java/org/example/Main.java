@@ -106,11 +106,11 @@ public class Main {
         System.out.println("\n" + "─".repeat(80));
         System.out.println("  TEAM MEMBERS:");
         System.out.println("─".repeat(80));
-        System.out.println("  Student 1: David Ribeiro     -  [removed]  -  [removed]");
-        System.out.println("  Student 2: Eduardo Oliveira  -  [removed]  -  [removed]");
-        System.out.println("  Student 3: Diogo Azevedo     -  [removed]  -  [removed]");
-        System.out.println("  Student 4: Bruno Pinto       -  [removed]  -  [removed]");
-        System.out.println("  Student 5: Rafael Santos     -  [removed]  -  [removed]");
+        System.out.println("  David Ribeiro");
+        System.out.println("  Eduardo Oliveira");
+        System.out.println("  Diogo Azevedo");
+        System.out.println("  Bruno Pinto");
+        System.out.println("  Rafael Santos");
         System.out.println("═".repeat(80));
 
         pauseForUser();

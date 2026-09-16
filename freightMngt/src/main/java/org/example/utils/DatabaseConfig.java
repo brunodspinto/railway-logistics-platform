@@ -42,7 +42,7 @@ public class DatabaseConfig {
     }
 
     public static String getPassword() {
-        return properties.getProperty("db.password", "freight123");
+        return properties.getProperty("db.password", "CHANGE_ME");
     }
 
     public static boolean isConfigured() {

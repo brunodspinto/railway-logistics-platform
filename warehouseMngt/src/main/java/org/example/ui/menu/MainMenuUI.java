@@ -40,7 +40,7 @@ public class MainMenuUI {
       .o                                _________
      . ______          ______________  |         |      _____
    _()_||__|| ________ |            |  |_________|   __||___||__
-  (G054 ISEP| |      | |            | __Y______00_| |_         _|
+  (LOGISTICS| |      | |            | __Y______00_| |_         _|
  /-OO----OO\"\"=\"OO--OO\"=\"OO--------OO\"=\"OO-------OO\"=\"OO-------OO\"=P
         """);
         System.out.println("Welcome to the Logistics on Rails System (Sprint 1)\n");

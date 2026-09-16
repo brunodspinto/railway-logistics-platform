@@ -313,6 +313,6 @@ The system successfully:
 
 ---
 
-**Authors**: Team G054  
+**Authors**: Railway Logistics Platform team  
 **Course**: LAPR3/ESINF/BDDAD/ARQCP Integration Project  
 **Academic Year**: 2025/2026
