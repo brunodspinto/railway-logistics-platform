@@ -96,6 +96,12 @@ mvn -pl networkMngt   compile exec:java -Dexec.mainClass=org.example.Main
 mvn -pl networkOptimization compile exec:java -Dexec.mainClass=org.example.MainMenu
 ```
 
+`freightMngt` needs an Oracle connection and stops at startup without one. Before running it, create the local configuration file (it is ignored by Git) and fill in `db.hostname`, `db.port`, `db.servicename`, `db.username` and `db.password`:
+
+```bash
+cp freightMngt/src/main/resources/database.properties.example freightMngt/src/main/resources/database.properties
+```
+
 For the station controller:
 
 ```bash

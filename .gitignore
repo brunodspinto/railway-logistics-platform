@@ -69,9 +69,12 @@ mvnw.cmd
 ###############################
 # Local credentials (never commit)
 **/database.properties
+.env
+*.key
+*.pem
 
 # Oracle trace files
-*.trclogs/
+*.trc
 
 # Claude Code
 .claude/
