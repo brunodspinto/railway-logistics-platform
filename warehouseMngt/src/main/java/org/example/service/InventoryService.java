@@ -32,7 +32,7 @@ public class InventoryService {
         }
 
         int remainingQty = requestedQty;
-        List<Bay> baysWithSku = warehouse.getBaysWithSku(sku);
+        List<Bay> baysWithSku = warehouse.getBaysWithSkuSorted(sku);
 
         for (Bay bay : baysWithSku) {
             if (remainingQty <= 0) break;

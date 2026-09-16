@@ -64,10 +64,14 @@ class InventoryServiceTest {
         // When: Dispatch 30 units (partial)
         DispatchResult result = inventoryService.dispatchBoxes("MILK", 30);
 
-        // Then: Box should have 70 remaining
+        // Then: A replacement box with 70 units should remain in the bay.
+        // Service replaces the original box with a new immutable Box holding the remaining qty,
+        // so we read the current state from the bay rather than the original reference.
         assertEquals(30, result.getTotalDispatched());
-        assertEquals(70, box.getQuantity(), "Box should have 70 units remaining");
         assertFalse(bay.isEmpty(), "Bay should not be empty");
+        Box remaining = bay.peekFirstBox("MILK");
+        assertNotNull(remaining);
+        assertEquals(70, remaining.getQuantity(), "Remaining box should have 70 units");
     }
 
     @Test

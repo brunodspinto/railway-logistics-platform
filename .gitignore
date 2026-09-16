@@ -72,3 +72,6 @@ mvnw.cmd
 
 # Oracle trace files
 *.trclogs/
+
+# Claude Code
+.claude/

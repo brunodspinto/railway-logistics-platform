@@ -82,6 +82,11 @@ class USEI04ExecutorTest {
 
         assertTrue(output.contains("  -> Total Distance: 33.0"));
         assertTrue(output.contains("  -> Total Distance: 35.0"));
-        assertTrue(output.contains("  -> Strategy A is shorter by 2,00 units."));
+        // Executor prints the delta with %.2f, whose decimal separator depends on the
+        // JVM default locale (2,00 in pt-PT, 2.00 in en-US). Assert on the parts of the
+        // line that are locale-independent.
+        assertTrue(output.contains("Strategy A is shorter by 2"),
+                "Should announce Strategy A is shorter by 2 units");
+        assertTrue(output.contains("units."));
     }
 }

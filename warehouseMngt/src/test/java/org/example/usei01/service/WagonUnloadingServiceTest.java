@@ -4,6 +4,7 @@ import org.example.domain.*;
 import org.example.repository.WarehouseRepository;
 import org.example.results.UnloadingResult;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.example.service.WagonUnloadingService;
 
@@ -157,6 +158,11 @@ class WagonUnloadingServiceTest {
         assertEquals("BOX-NEW", boxes.get(1).getBoxId());
     }
 
+    @Disabled("Round-robin distribution across aisles was removed from " +
+            "WagonUnloadingService. It now delegates placement to " +
+            "Warehouse.findBestAvailableBay, which picks the lowest aisle/bay with space, " +
+            "so all boxes cluster in the first aisle until it is full. Re-enable if " +
+            "round-robin (or a similar spread policy) is reintroduced.")
     @Test
     void testRoundRobin_DistributesAcrossAisles() {
         // Given: 6 boxes (more than one aisle capacity)

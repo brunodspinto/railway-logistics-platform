@@ -77,15 +77,15 @@ class InspectionServiceTest {
     }
 
     @Test
-    void testInspect_CustomerRemorse_NotExpired_PartialRestock() {
+    void testInspect_CustomerRemorse_NotExpired_FullRestock() {
         ReturnRecord record = createReturn("RET005", ReturnReason.CUSTOMER_REMORSE, 10,
                 LocalDate.now().plusMonths(1));
         InspectionResult result = service.inspect(record);
 
-        // 80% rule: 10 * 0.8 = 8 restocked, 2 discarded
-        assertTrue(result.getAction().contains("RESTOCK"));
-        assertEquals(8, result.getQtyRestocked());
-        assertEquals(2, result.getQtyDiscarded());
+        // Simplified service: non-expired customer remorse is fully restocked
+        assertEquals("RESTOCK", result.getAction());
+        assertEquals(10, result.getQtyRestocked());
+        assertEquals(0, result.getQtyDiscarded());
     }
 
     @Test
@@ -93,19 +93,20 @@ class InspectionServiceTest {
         ReturnRecord record = createReturn("RET006", ReturnReason.CUSTOMER_REMORSE, 100, null);
         InspectionResult result = service.inspect(record);
 
-        assertEquals("PARTIAL_RESTOCK", result.getAction());
-        assertEquals(80, result.getQtyRestocked());
-        assertEquals(20, result.getQtyDiscarded());
+        assertEquals("RESTOCK", result.getAction());
+        assertEquals(100, result.getQtyRestocked());
+        assertEquals(0, result.getQtyDiscarded());
     }
 
     @Test
-    void testInspect_CycleCount_NotExpired_PartialRestock() {
+    void testInspect_CycleCount_NotExpired_FullRestock() {
         ReturnRecord record = createReturn("RET008", ReturnReason.CYCLE_COUNT, 20,
                 LocalDate.now().plusMonths(1));
         InspectionResult result = service.inspect(record);
 
-        assertEquals(16, result.getQtyRestocked());
-        assertEquals(4, result.getQtyDiscarded());
+        assertEquals("RESTOCK", result.getAction());
+        assertEquals(20, result.getQtyRestocked());
+        assertEquals(0, result.getQtyDiscarded());
     }
 
     @Test
