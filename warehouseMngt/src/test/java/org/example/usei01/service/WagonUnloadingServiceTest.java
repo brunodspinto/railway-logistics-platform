@@ -206,7 +206,6 @@ class WagonUnloadingServiceTest {
         }
         warehouseRepository.save(warehouse);
 
-        unloadingService.resetRoundRobin();
 
         Wagon wagon2 = new Wagon("W-002");
         for (int i = 1; i <= 3; i++) {

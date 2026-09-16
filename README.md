@@ -1,4 +1,4 @@
-### sem3-pi-25-26-g054-repo
+### railway-logistics-platform
 
 Este repositório contém o desenvolvimento do **Projeto Integrador do 3º semestre** das UC:  
 - **ARQCP** (Arquitetura de Computadores)  

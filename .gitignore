@@ -1,60 +1,12 @@
 ###############################
-# GERAL
+# GENERAL
 ###############################
-# Arquivos de sistema
+# System files
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Logs e temporários
-*.log
-*.tmp
-*.swp
-
-###############################
-# INTELLIJ IDEA / JETBRAINS
-###############################
-# Pasta de configuração local do IntelliJ (não partilhar)
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/usage.statistics.xml
-.idea/dictionaries
-.idea/httpRequests
-.idea/shelf/
-.idea/sonarlint/
-.idea/gradle.xml
-.idea/misc.xml
-.idea/modules.xml
-.idea/compiler.xml
-.idea/libraries/
-
-# Ficheiros de configuração individuais
-*.iml
-*.ipr
-*.iws
-
-###############################
-# MAVEN / JAVA
-###############################
-# Pastas de compilação e artefactos
-target/
-*/target/
-out/
-bin/
-build/
-*.class
-*.jar
-*.war
-*.ear
-*.zip
-*.tar.gz
-
-# Relatórios de testes
-surefire-reports/
-test-output/
-
-###############################
-# SISTEMA OPERATIVO / IDE VARIADOS
-###############################
 # macOS
 .AppleDouble
 .AppleDB
@@ -63,29 +15,60 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
-# Windows
-ehthumbs.db
-Desktop.ini
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+logs/
 
-# VSCode (caso alguém use)
+###############################
+# IDEs
+###############################
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
 .vscode/
 
 ###############################
-# ESPECÍFICO DO PROJETO
+# MAVEN / JAVA
 ###############################
-# Ignorar ficheiros locais do Maven Wrapper (se não usarem)
+# Build output
+target/
+out/
+bin/
+build/
+*.class
+
+# Packaged artifacts
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+
+# Test reports
+surefire-reports/
+test-output/
+
+# Maven Wrapper (not used)
 .mvn/
 mvnw
 mvnw.cmd
 
-# SQL scripts de build são versionados, por isso NÃO ignorar sql-scripts/
-# resources podem ser versionados também, então NÃO ignorar /res/
+###############################
+# C / ASSEMBLY
+###############################
+*.o
 
-# Database configuration (não fazer commit de passwords!)
-freightMngt/src/main/resources/database.properties
-
+###############################
+# DATABASE
+###############################
+# Local credentials (never commit)
 **/database.properties
 
-# Oracle specific
-*.log
-*.trc
+# Oracle trace files
+*.trclogs/
